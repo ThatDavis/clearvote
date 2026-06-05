@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { auditLog } from '@/lib/audit'
 import { canManagePoll } from '@/lib/auth'
+import { sendPollOpenNotification } from '@/lib/email'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
@@ -97,6 +98,29 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
     pollId: poll.id,
     action: status === 'open' ? 'poll_opened' : 'poll_closed',
   })
+
+  // Notify registered voters on the roll when the poll opens
+  if (status === 'open') {
+    const rolls = await prisma.voterRoll.findMany({
+      where: { pollId: poll.id, hasVoted: false },
+      include: { user: { select: { email: true } } },
+    })
+
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const voteLink = `${baseUrl}/vote/${slug}`
+
+    for (const roll of rolls) {
+      if (roll.user?.email) {
+        await sendPollOpenNotification({
+          to: roll.user.email,
+          pollTitle: poll.title,
+          voteLink,
+        }).catch((err) => {
+          console.error(`Failed to notify ${roll.user.email}:`, err)
+        })
+      }
+    }
+  }
 
   return NextResponse.json(updated)
 }

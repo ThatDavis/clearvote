@@ -1,3 +1,17 @@
+/**
+ * In-process rate limiter using a Map.
+ *
+ * ⚠️  LIMITATION: This only works correctly for a **single long-lived instance**
+ * (e.g. the Docker Compose deployment). On serverless or multi-instance setups
+ * the store resets on every cold start and is not shared across instances, so
+ * limits are far weaker than they appear. For those environments a shared store
+ * (e.g. Redis / Upstash) is required.
+ *
+ * ⚠️  TRUSTED PROXY: IP comes from `x-forwarded-for`, which is client-spoofable
+ * unless a trusted proxy overwrites it. Ensure your deployment sits behind a
+ * known proxy (e.g. nginx, Vercel, Cloudflare) that sanitises this header.
+ */
+
 interface RateLimitEntry {
   count: number
   resetAt: number

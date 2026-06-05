@@ -6,7 +6,19 @@
 
 ## [PLANS]
 
-### Milestone 5: Election Security & Audit Hardening (Completed 2026-06-05)
+### Milestone 6: Multi-Poll Ballots (Elections) (Planned)
+Goal: One ballot containing several contests of mixed voting methods, cast in a single atomic session — a real election ballot. Design: `docs/MULTI-POLL-BALLOT-PLAN.md`. Build guide: `docs/MILESTONE-6-IMPLEMENTATION.md`. Depends on M5 remediations (esp. FIX-2 atomic claim, generalized to election scope) and a working voter-eligibility path (C4).
+
+Decisions (2026-06-05): reuse `Poll` as contest (Election + nullable `electionId`); ballot styles = fast-follow with `ballotStyleId` reserved in v1; blanks = empty ballot per contest; one `ElectionReceipt` per package. v1 = Phases A,B,D,E,F; Phase C (styles) is the fast-follow.
+
+- [ ] A: Data model & back-compat — Election/ElectionVoterToken/ElectionVoterRoll/ElectionReceipt/ElectionAuditLog models, `electionId`+`contestOrder` on Poll, deferral helpers, guard parented polls out of standalone routes
+- [ ] B: Admin — election CRUD + contests, election-scoped credentials/distribution (one per voter), lifecycle cascade + open-guard + auto-close
+- [ ] C: Ballot styles (FAST-FOLLOW) — BallotStyle model, assign+resolve+enforce, admin visibility
+- [ ] D: Voting session — extract per-method components, `/elect/[slug]` multi-contest page, review step, atomic `POST /api/elections/[slug]/ballots` with one receipt
+- [ ] E: Results/audit/certification — combined per-contest results (shuffled, gated), election audit trail, re-tallyable export
+- [ ] F: Polish — order rotation, accessibility/long ballots, organizer docs
+
+### Milestone 5: Election Security & Audit Hardening (In Progress — Remediation)
 Goal: Close active vulnerabilities and add the ballot-secrecy + audit guarantees a credible election requires. Surfaced by a security/integrity review of the codebase.
 
 Priority order: Phase A (active holes) → Phase B (integrity/trust) → Phase C (correctness/process).
@@ -26,7 +38,7 @@ Priority order: Phase A (active holes) → Phase B (integrity/trust) → Phase C
 - [x] C1: Deterministic, documented tie-breaking (RCV/STV/approval).
 - [x] C2: Shuffle ballots on results page; gate per-ballot dump behind closure.
 - [x] C3: Finish or remove proxy voting (no double-vote).
-- [x] C4: Email verification before roll eligibility.
+- [ ] C4: Email verification before roll eligibility. **Gate reverted in FIX-1 Option A — needs real verification flow (see docs/MILESTONE-5-REMEDIATION.md FIX-1 Option B).**
 
 ### Milestone 1: Core Voting Engine (Completed 2026-06-04)
 Goal: Anonymous polls with ranked-choice voting and instant-runoff tally.
@@ -158,6 +170,7 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 - 2026-06-04: Initial stack — TypeScript + Next.js + PostgreSQL + Prisma + Tailwind + Vitest + Biome. Rationale: full-stack in one language, RDBMS for ballot integrity, mature ecosystem.
 - 2026-06-04: Deep-plan validated M2.5 (Organization Accounts). Key decisions: optional org affiliation on User/Poll, atomic org+admin creation, org-level poll authorization, member management included. Fresh schema start.
 - 2026-06-05: Deep-plan validated Milestone 5 (Election Security & Audit Hardening). Key decisions: fix auth holes first (A1/A2), then ballot secrecy refactor (A3), then integrity features (B1-B4), then correctness (C1-C4). A3 uses separate VoterEligibility table to prevent double-vote while severing ballot→voter link.
+- 2026-06-05: Deep-plan validated Milestone 5 remediation (Issue #9). Key decisions: Option A for FIX-1 (revert email-verification gate since verification flow was never built), atomic credential claim with updateMany+count for FIX-2, add automated route test for double-vote race, keep emailVerified column for future Option B.
 
 ## [PROGRESS]
 
@@ -180,6 +193,13 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 |  |    - Update tests and run full test suite |
 | 2026-06-05 | Security/election-integrity review of the codebase. Opened Milestone 5 (Election Security & Audit Hardening) in PLAN.md + CONTINUITY with 11 tracked items across 3 priority phases. No code changes yet. |
 | 2026-06-05 | Completed Milestone 5: Election Security & Audit Hardening. All 11 items (A1-A3, B1-B4, C1-C4) implemented and tested. Issue #7, branch feature/7-milestone-5-election-security-audit-hardening. |
+| 2026-06-05 | Post-merge audit found 5 issues (docs/MILESTONE-5-REMEDIATION.md). Issue #9 opened, branch fix/9-milestone-5-remediation. Deep-plan validated. Starting implementation. |
+|  |    ✓ FIX-2: Atomic credential claim — replace transaction body with updateMany+count guard, add AlreadyVotedError, add route test for double-vote race |
+|  |    ✓ FIX-1 Option A: Revert email-verification gate — remove checks from roll/route.ts and distribute/route.ts, keep emailVerified column |
+|  |    ✓ FIX-4: Approval voting tie-break — add deterministic sort, add test, document in SPEC.md |
+|  |    ✓ FIX-3: Rate limiter scope — add header comment, narrow auth limiter to credentials callback only |
+|  |    ✓ FIX-5: Remove dead secret check — simplify generateReceipt, keep env.ts as single source |
+|  |    ✓ Update PLAN.md and CONTINUITY.md — mark C4 reopened, reflect approval gap fixed |
 |  |    ✓ A1: Protect GET /api/polls/[slug]/tokens with canManagePoll |
 |  |    ✓ A2: Fix token-generation authz bypass (session?.user?.id && pattern) |
 |  |    ✓ A3: Separate ballot content from voter identity |

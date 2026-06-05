@@ -23,7 +23,7 @@
 ## Milestone 5: Election Security & Audit Hardening
 
 **Goal:** Close active vulnerabilities and add the ballot-secrecy and audit guarantees a credible election requires. Surfaced by a security/integrity review on 2026-06-05.
-**Status:** Complete
+**Status:** In Progress — Remediation (Issue #9)
 
 ### Phase A: Critical — active vulnerabilities
 - [x] A1: Protect `GET /api/polls/[slug]/tokens` — currently unauthenticated, returns every valid voting token by slug. Require `canManagePoll`; stop returning raw token values after creation. (`src/app/api/polls/[slug]/tokens/route.ts:7-21`)
@@ -37,10 +37,53 @@
 - [x] B4: Add rate limiting — login, ballot casting, and `/api/verify` have none (token/receipt enumeration, password brute-force).
 
 ### Phase C: Correctness & process
-- [x] C1: Deterministic, documented tie-breaking for RCV (returns no winner today), approval, and STV.
+- [x] C1: Deterministic, documented tie-breaking for RCV (returns no winner today) and STV.
+- [x] C1-approval: Deterministic tie-breaking for approval voting (see docs/MILESTONE-5-REMEDIATION.md FIX-4).
 - [x] C2: Shuffle ballots on the results page and gate the per-ballot dump behind poll closure — insertion-order + small electorate can de-anonymize.
 - [x] C3: Finish or remove proxy voting — `Proxy` model/routes exist but aren't wired into casting; nothing stops principal and proxy both voting.
-- [x] C4: Require email verification before a signup can appear on a voter roll (roll eligibility keys off `user.email`).
+- [ ] C4: Require email verification before a signup can appear on a voter roll (roll eligibility keys off `user.email`). **Gate reverted in FIX-1 Option A — needs real verification flow (see docs/MILESTONE-5-REMEDIATION.md FIX-1 Option B).**
+
+---
+
+## Milestone 6: Multi-Poll Ballots (Elections)
+
+**Goal:** Let a voter cast one ballot containing several contests of mixed voting methods in a single atomic session — a real election ballot. Design rationale in `docs/MULTI-POLL-BALLOT-PLAN.md`; task-by-task build guide in `docs/MILESTONE-6-IMPLEMENTATION.md`.
+**Status:** Planned (depends on Milestone 5 remediations — see `docs/MILESTONE-5-REMEDIATION.md`; C4 verification flow still open)
+
+**Decisions (resolved 2026-06-05):** reuse `Poll` as the contest (Election container + nullable `electionId`); ballot styles are a fast-follow with the `ballotStyleId` column reserved in v1; blanks stored as an empty ballot per contest; one `ElectionReceipt` per package.
+
+v1 = Phases A, B, D, E, F. Phase C (ballot styles) is the fast-follow.
+
+### Phase A: Data model & back-compat
+- [ ] A1: Write the four decisions into `docs/SPEC.md`
+- [ ] A2: Schema — add Election, ElectionVoterToken, ElectionVoterRoll, ElectionReceipt, ElectionAuditLog; add `electionId` + `contestOrder` to Poll; additive migration
+- [ ] A3: Deferral helpers (`effectiveStatus`, `canManageElection`) + guard parented polls out of standalone token/roll/vote routes
+
+### Phase B: Admin — build an election
+- [ ] B1: Election CRUD + add/remove/reorder contests (contests = polls with `electionId`)
+- [ ] B2: Election-scoped credentials & distribution (one hashed token / roll entry per voter; links to `/elect/[slug]`)
+- [ ] B3: Lifecycle — draft→open→closed cascade, open-guard against incomplete contests, auto-close on `endsAt`
+
+### Phase C: Ballot styles (FAST-FOLLOW, post-v1)
+- [ ] C1: `BallotStyle` model + admin (named contest subsets)
+- [ ] C2: Assign styles to credentials; resolve + enforce at vote/submit
+- [ ] C3: Admin visibility of who gets which ballot
+
+### Phase D: Voting session
+- [ ] D0: Extract reusable per-method ballot components from `vote-form.tsx`
+- [ ] D1: `/elect/[slug]` multi-contest page — one credential check, all entitled contests, per-method UIs, blank/abstain affordances
+- [ ] D2: Review-and-confirm step (no identifiable partial state persisted)
+- [ ] D3: `POST /api/elections/[slug]/ballots` — atomic package submit (FIX-2 claim at election scope), per-contest validation, empty ballot for skips, one receipt
+
+### Phase E: Results, audit & certification
+- [ ] E1: Combined results page — per-contest tallies, turnout, shuffled ballots gated to closed, small-electorate suppression
+- [ ] E2: Election audit trail + admin view (cast = timestamp only)
+- [ ] E3: Certification bundle export (re-tallyable, anonymized)
+
+### Phase F: Polish
+- [ ] F1: Optional contest/candidate order rotation
+- [ ] F2: Accessibility & long-ballot handling
+- [ ] F3: Organizer documentation
 
 ---
 
@@ -60,6 +103,12 @@
 
 ## Active Feature
 
-Milestone 5: Election Security & Audit Hardening — start with A1 and A2 (small, active holes), then the A3 ballot-secrecy refactor as its own focused change.
+Milestone 5: Election Security & Audit Hardening — Remediation (Issue #9, branch fix/9-milestone-5-remediation)
+- [x] FIX-2: Atomic credential claim — replace transaction body with updateMany+count guard, add AlreadyVotedError, add route test for double-vote race
+- [x] FIX-1 Option A: Revert email-verification gate — remove checks from roll/route.ts and distribute/route.ts, keep emailVerified column
+- [x] FIX-4: Approval voting tie-break — add deterministic sort, add test, document in SPEC.md
+- [x] FIX-3: Rate limiter scope — add header comment, narrow auth limiter to credentials callback only
+- [x] FIX-5: Remove dead secret check — simplify generateReceipt, keep env.ts as single source
+- [x] Update PLAN.md and CONTINUITY.md — mark C4 reopened, reflect approval gap fixed
 
 ---

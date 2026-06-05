@@ -45,7 +45,10 @@ rank/
 
 ## Key Design Decisions
 
-*No architecture decisions recorded yet. Run `/dev:file-adr` when making significant design choices.*
+### Rate Limiting
+The current rate limiter (`src/lib/rate-limit.ts`) is an in-process `Map`. It works correctly for the Docker Compose deployment (single long-lived instance) but is **not suitable for serverless or multi-instance deployments** because the store resets on cold starts and is not shared across instances. A shared store (e.g. Redis / Upstash) is required for those environments.
+
+The auth rate limiter (`src/app/api/auth/[...nextauth]/route.ts`) is narrowed to credential sign-in callbacks only, so signout and session requests are not throttled.
 
 ## Architecture Decision Records
 

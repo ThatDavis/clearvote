@@ -1,6 +1,9 @@
+import { randomBytes } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
+import { sendOrgInvite } from '@/lib/email'
 import { prisma } from '@/lib/prisma'
+import { hashToken } from '@/lib/token'
 
 async function isOrgAdmin(userId: string, orgId: string): Promise<boolean> {
   const membership = await prisma.organizationMember.findUnique({
@@ -37,7 +40,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     orderBy: { createdAt: 'asc' },
   })
 
-  return NextResponse.json(members)
+  const invites = await prisma.organizationInvite.findMany({
+    where: { organizationId: org.id },
+    select: { id: true, email: true, createdAt: true },
+    orderBy: { createdAt: 'asc' },
+  })
+
+  return NextResponse.json({ members, invites })
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
@@ -66,12 +75,41 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   })
 
   if (!user) {
-    // User doesn't exist yet — we could send an invite email here
-    // For now, return a specific error so the UI can show a "send invite" option
-    return NextResponse.json(
-      { error: 'No user found with that email', invite: true },
-      { status: 404 },
-    )
+    // Create an invite for non-registered users
+    const existingInvite = await prisma.organizationInvite.findUnique({
+      where: {
+        email_organizationId: {
+          email: normalizedEmail,
+          organizationId: org.id,
+        },
+      },
+    })
+
+    if (existingInvite) {
+      return NextResponse.json(
+        { error: 'An invite has already been sent to this email' },
+        { status: 409 },
+      )
+    }
+
+    const token = randomBytes(32).toString('hex')
+    const invite = await prisma.organizationInvite.create({
+      data: {
+        email: normalizedEmail,
+        organizationId: org.id,
+        tokenHash: hashToken(token),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      },
+    })
+
+    const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/org/invite?token=${token}`
+    await sendOrgInvite({
+      to: normalizedEmail,
+      orgName: org.name,
+      inviteLink,
+    })
+
+    return NextResponse.json({ id: invite.id, email: invite.email, invited: true }, { status: 201 })
   }
 
   // Check if already a member
@@ -115,12 +153,40 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ s
   }
 
   const body = await request.json()
-  const { userId } = body as { userId?: string }
+  const { userId, inviteId } = body as { userId?: string; inviteId?: string }
 
-  if (!userId) {
-    return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
+  if (!userId && !inviteId) {
+    return NextResponse.json({ error: 'User ID or invite ID is required' }, { status: 400 })
   }
 
+  // Handle invite deletion
+  if (inviteId) {
+    const membership = await prisma.organizationMember.findUnique({
+      where: {
+        userId_organizationId: {
+          userId: session?.user?.id ?? '',
+          organizationId: org.id,
+        },
+      },
+    })
+
+    if (membership?.role !== 'admin') {
+      return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
+    }
+
+    const invite = await prisma.organizationInvite.findUnique({
+      where: { id: inviteId },
+    })
+
+    if (!invite || invite.organizationId !== org.id) {
+      return NextResponse.json({ error: 'Invite not found' }, { status: 404 })
+    }
+
+    await prisma.organizationInvite.delete({ where: { id: inviteId } })
+    return NextResponse.json({ success: true })
+  }
+
+  // Handle member deletion
   const membership = await prisma.organizationMember.findUnique({
     where: {
       userId_organizationId: {
@@ -142,7 +208,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ s
   await prisma.organizationMember.delete({
     where: {
       userId_organizationId: {
-        userId,
+        userId: userId!,
         organizationId: org.id,
       },
     },

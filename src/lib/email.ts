@@ -98,6 +98,49 @@ export async function sendVoteInvite({
   })
 }
 
+export async function sendWelcomeEmail({ to, name }: { to: string; name: string }) {
+  return sendEmail({
+    to,
+    subject: 'Welcome to Clearvote',
+    html: `
+      <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+        <h1 style="color: #1a1a1a; font-size: 20px; margin-bottom: 16px;">Welcome to Clearvote, ${name}</h1>
+        <p style="color: #4a4a4a; line-height: 1.6; margin-bottom: 24px;">
+          Your account has been created. You can now participate in ranked-choice polls and elections run by your community.
+        </p>
+        <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 500;">Go to dashboard</a>
+      </div>
+    `,
+  })
+}
+
+export async function sendPollOpenNotification({
+  to,
+  pollTitle,
+  voteLink,
+}: {
+  to: string
+  pollTitle: string
+  voteLink: string
+}) {
+  return sendEmail({
+    to,
+    subject: `Voting has started: ${pollTitle}`,
+    html: `
+      <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+        <h1 style="color: #1a1a1a; font-size: 20px; margin-bottom: 16px;">Voting is now open</h1>
+        <p style="color: #4a4a4a; line-height: 1.6; margin-bottom: 24px;">
+          The poll <strong>${pollTitle}</strong> has opened and your vote is ready to be cast.
+        </p>
+        <a href="${voteLink}" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 500;">Cast your vote</a>
+        <p style="color: #6a6a6a; font-size: 14px; margin-top: 24px;">
+          Or copy this link: ${voteLink}
+        </p>
+      </div>
+    `,
+  })
+}
+
 export async function sendOrgInvite({
   to,
   orgName,

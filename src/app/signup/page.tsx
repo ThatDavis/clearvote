@@ -1,5 +1,6 @@
 import { hash } from 'bcryptjs'
 import { redirect } from 'next/navigation'
+import { sendWelcomeEmail } from '@/lib/email'
 import { prisma } from '@/lib/prisma'
 
 export default function SignupPage() {
@@ -28,6 +29,8 @@ export default function SignupPage() {
     await prisma.user.create({
       data: { email, name, passwordHash },
     })
+
+    await sendWelcomeEmail({ to: email, name })
 
     redirect('/login?registered=true')
   }

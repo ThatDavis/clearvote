@@ -6,11 +6,9 @@ import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
 import { hashToken } from '@/lib/token'
 
+class AlreadyVotedError extends Error {}
+
 function generateReceipt(): string {
-  const secret = process.env.AUTH_SECRET
-  if (!secret) {
-    throw new Error('AUTH_SECRET is required for receipt generation')
-  }
   return randomBytes(16).toString('hex')
 }
 
@@ -141,8 +139,24 @@ export async function POST(request: Request) {
     }
 
     const ballot = await prisma.$transaction(async (tx) => {
-      const receipt = generateReceipt()
+      // Atomically claim the voting credential. The `where` guard ensures
+      // only one of N concurrent requests for the same credential succeeds.
+      if (token) {
+        const tokenHash = hashToken(token)
+        const claimed = await tx.voterToken.updateMany({
+          where: { pollId: poll.id, tokenHash, usedAt: null },
+          data: { usedAt: new Date() },
+        })
+        if (claimed.count !== 1) throw new AlreadyVotedError()
+      } else if (session?.user?.id) {
+        const claimed = await tx.voterRoll.updateMany({
+          where: { pollId: poll.id, userId: session.user.id, hasVoted: false },
+          data: { hasVoted: true, votedAt: new Date() },
+        })
+        if (claimed.count !== 1) throw new AlreadyVotedError()
+      }
 
+      const receipt = generateReceipt()
       const b = await tx.ballot.create({
         data: {
           pollId: poll.id,
@@ -150,29 +164,6 @@ export async function POST(request: Request) {
           receiptCode: receipt,
         },
       })
-
-      if (token) {
-        const tokenHash = hashToken(token)
-        await tx.voterToken.update({
-          where: {
-            pollId_tokenHash: {
-              pollId: poll.id,
-              tokenHash,
-            },
-          },
-          data: { usedAt: new Date() },
-        })
-      } else if (session?.user?.id) {
-        await tx.voterRoll.update({
-          where: {
-            pollId_userId: {
-              pollId: poll.id,
-              userId: session.user.id,
-            },
-          },
-          data: { hasVoted: true, votedAt: new Date() },
-        })
-      }
 
       await auditLog({
         pollId: poll.id,
@@ -193,6 +184,9 @@ export async function POST(request: Request) {
       { status: 201 },
     )
   } catch (error) {
+    if (error instanceof AlreadyVotedError) {
+      return NextResponse.json({ error: 'You have already voted in this poll' }, { status: 409 })
+    }
     console.error('Ballot creation error:', error)
     return NextResponse.json({ error: 'Failed to cast vote' }, { status: 500 })
   }

@@ -26,7 +26,8 @@ export function tallyApproval(
       label: o.label,
       count: counts.get(o.id) || 0,
     }))
-    .sort((a, b) => b.count - a.count)
+    // Deterministic tie-break: higher count first, then smallest optionId.
+    .sort((a, b) => b.count - a.count || a.optionId.localeCompare(b.optionId))
 
   const elected = voteList.slice(0, seats).map((v) => v.optionId)
 

@@ -74,7 +74,9 @@ export default function AuditTrail({ slug }: Props) {
     <div className="mt-8 rounded-xl border border-zinc-200 bg-white p-5">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-zinc-900">Audit trail</h2>
-        <span className="text-xs text-zinc-500">{logs.length} event{logs.length !== 1 ? 's' : ''}</span>
+        <span className="text-xs text-zinc-500">
+          {logs.length} event{logs.length !== 1 ? 's' : ''}
+        </span>
       </div>
       <p className="mt-1 text-xs text-zinc-500">Chronological record of all significant actions.</p>
 
