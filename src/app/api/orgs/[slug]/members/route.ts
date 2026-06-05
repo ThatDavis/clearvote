@@ -40,7 +40,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     orderBy: { createdAt: 'asc' },
   })
 
-  return NextResponse.json(members)
+  const invites = await prisma.organizationInvite.findMany({
+    where: { organizationId: org.id },
+    select: { id: true, email: true, createdAt: true },
+    orderBy: { createdAt: 'asc' },
+  })
+
+  return NextResponse.json({ members, invites })
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
@@ -147,12 +153,40 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ s
   }
 
   const body = await request.json()
-  const { userId } = body as { userId?: string }
+  const { userId, inviteId } = body as { userId?: string; inviteId?: string }
 
-  if (!userId) {
-    return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
+  if (!userId && !inviteId) {
+    return NextResponse.json({ error: 'User ID or invite ID is required' }, { status: 400 })
   }
 
+  // Handle invite deletion
+  if (inviteId) {
+    const membership = await prisma.organizationMember.findUnique({
+      where: {
+        userId_organizationId: {
+          userId: session?.user?.id ?? '',
+          organizationId: org.id,
+        },
+      },
+    })
+
+    if (membership?.role !== 'admin') {
+      return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
+    }
+
+    const invite = await prisma.organizationInvite.findUnique({
+      where: { id: inviteId },
+    })
+
+    if (!invite || invite.organizationId !== org.id) {
+      return NextResponse.json({ error: 'Invite not found' }, { status: 404 })
+    }
+
+    await prisma.organizationInvite.delete({ where: { id: inviteId } })
+    return NextResponse.json({ success: true })
+  }
+
+  // Handle member deletion
   const membership = await prisma.organizationMember.findUnique({
     where: {
       userId_organizationId: {
@@ -174,7 +208,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ s
   await prisma.organizationMember.delete({
     where: {
       userId_organizationId: {
-        userId,
+        userId: userId!,
         organizationId: org.id,
       },
     },

@@ -12,16 +12,28 @@ interface Member {
   role: string
 }
 
+interface Invite {
+  id: string
+  email: string
+}
+
 interface Props {
   slug: string
   members: Member[]
+  invites: Invite[]
 }
 
-export default function MemberManager({ slug, members: initialMembers }: Props) {
+export default function MemberManager({
+  slug,
+  members: initialMembers,
+  invites: initialInvites,
+}: Props) {
   const [members, setMembers] = useState(initialMembers)
+  const [invites, setInvites] = useState(initialInvites)
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [resendingId, setResendingId] = useState('')
 
   async function addMember(e: React.FormEvent) {
     e.preventDefault()
@@ -43,9 +55,9 @@ export default function MemberManager({ slug, members: initialMembers }: Props) 
 
     const data = await res.json()
     if (data.invited) {
+      setInvites([...invites, { id: data.id, email: data.email }])
       setEmail('')
       setLoading(false)
-      // Could show a success toast here; for now we just clear the form
       return
     }
 
@@ -70,6 +82,43 @@ export default function MemberManager({ slug, members: initialMembers }: Props) 
     }
 
     setMembers(members.filter((m) => m.user.id !== userId))
+  }
+
+  async function removeInvite(inviteId: string) {
+    setError('')
+
+    const res = await fetch(`/api/orgs/${slug}/members`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ inviteId }),
+    })
+
+    if (!res.ok) {
+      const data = await res.json()
+      setError(data.error || 'Failed to remove invite')
+      return
+    }
+
+    setInvites(invites.filter((i) => i.id !== inviteId))
+  }
+
+  async function resendInvite(inviteId: string) {
+    setError('')
+    setResendingId(inviteId)
+
+    const res = await fetch(`/api/orgs/${slug}/members/resend`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ inviteId }),
+    })
+
+    setResendingId('')
+
+    if (!res.ok) {
+      const data = await res.json()
+      setError(data.error || 'Failed to resend invite')
+      return
+    }
   }
 
   async function updateRole(userId: string, role: string) {
@@ -140,6 +189,33 @@ export default function MemberManager({ slug, members: initialMembers }: Props) 
               <button
                 type="button"
                 onClick={() => removeMember(m.user.id)}
+                className="text-red-600 hover:text-red-800"
+              >
+                Remove
+              </button>
+            </div>
+          </li>
+        ))}
+        {invites.map((i) => (
+          <li key={i.id} className="flex items-center justify-between px-3 py-2 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-zinc-500">{i.email}</span>
+              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-700">
+                Pending
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => resendInvite(i.id)}
+                disabled={resendingId === i.id}
+                className="text-sm text-chicago-blue hover:text-chicago-blue-dark disabled:opacity-50"
+              >
+                {resendingId === i.id ? 'Resending...' : 'Resend invite'}
+              </button>
+              <button
+                type="button"
+                onClick={() => removeInvite(i.id)}
                 className="text-red-600 hover:text-red-800"
               >
                 Remove

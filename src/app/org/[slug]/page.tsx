@@ -21,6 +21,10 @@ export default async function OrgPage({ params }: { params: Promise<{ slug: stri
         },
         orderBy: { createdAt: 'asc' },
       },
+      invites: {
+        select: { id: true, email: true },
+        orderBy: { createdAt: 'asc' },
+      },
       polls: {
         orderBy: { createdAt: 'desc' },
         take: 10,
@@ -70,8 +74,13 @@ export default async function OrgPage({ params }: { params: Promise<{ slug: stri
       </div>
 
       <div className="mt-8">
-        <h2 className="text-sm font-medium">Members ({org.members.length})</h2>
-        {isAdmin && <MemberManager slug={org.slug} members={org.members} />}
+        <h2 className="text-sm font-medium">
+          Members ({org.members.length})
+          {org.invites.length > 0 && (
+            <span className="ml-2 text-zinc-400">{org.invites.length} pending</span>
+          )}
+        </h2>
+        {isAdmin && <MemberManager slug={org.slug} members={org.members} invites={org.invites} />}
         {!isAdmin && (
           <ul className="mt-2 divide-y divide-zinc-200 rounded-md border border-zinc-200">
             {org.members.map((m) => (
