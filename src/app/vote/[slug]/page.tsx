@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import VoteForm from './vote-form'
 
@@ -11,15 +12,7 @@ export default async function VotePage({
 }) {
   const { slug } = await params
   const { token } = await searchParams
-
-  if (!token) {
-    return (
-      <div className="mx-auto max-w-lg px-6 py-32 text-center">
-        <h1 className="text-xl font-semibold">Missing token</h1>
-        <p className="mt-2 text-zinc-600">You need a valid voting link to access this page.</p>
-      </div>
-    )
-  }
+  const session = await auth()
 
   const poll = await prisma.poll.findUnique({
     where: { slug },
@@ -45,29 +38,76 @@ export default async function VotePage({
     )
   }
 
-  const voterToken = await prisma.voterToken.findUnique({
-    where: {
-      pollId_token: {
-        pollId: poll.id,
-        token,
+  if (token) {
+    // Token-based anonymous voting
+    const voterToken = await prisma.voterToken.findUnique({
+      where: {
+        pollId_token: {
+          pollId: poll.id,
+          token,
+        },
       },
-    },
-  })
+    })
 
-  if (!voterToken) {
+    if (!voterToken) {
+      return (
+        <div className="mx-auto max-w-lg px-6 py-32 text-center">
+          <h1 className="text-xl font-semibold">Invalid token</h1>
+          <p className="mt-2 text-zinc-600">This voting link is not valid.</p>
+        </div>
+      )
+    }
+
+    if (voterToken.usedAt) {
+      return (
+        <div className="mx-auto max-w-lg px-6 py-32 text-center">
+          <h1 className="text-xl font-semibold">Already voted</h1>
+          <p className="mt-2 text-zinc-600">This token has already been used.</p>
+        </div>
+      )
+    }
+  } else if (session?.user?.id) {
+    // Authenticated voting — check voter roll
+    const onRoll = await prisma.voterRoll.findUnique({
+      where: {
+        pollId_userId: {
+          pollId: poll.id,
+          userId: session.user.id,
+        },
+      },
+    })
+
+    if (!onRoll) {
+      return (
+        <div className="mx-auto max-w-lg px-6 py-32 text-center">
+          <h1 className="text-xl font-semibold">Not eligible</h1>
+          <p className="mt-2 text-zinc-600">You are not on the voter roll for this poll.</p>
+        </div>
+      )
+    }
+
+    const alreadyVoted = await prisma.ballot.findFirst({
+      where: {
+        pollId: poll.id,
+        userId: session.user.id,
+      },
+    })
+
+    if (alreadyVoted) {
+      return (
+        <div className="mx-auto max-w-lg px-6 py-32 text-center">
+          <h1 className="text-xl font-semibold">Already voted</h1>
+          <p className="mt-2 text-zinc-600">You have already cast a vote in this poll.</p>
+        </div>
+      )
+    }
+  } else {
     return (
       <div className="mx-auto max-w-lg px-6 py-32 text-center">
-        <h1 className="text-xl font-semibold">Invalid token</h1>
-        <p className="mt-2 text-zinc-600">This voting link is not valid.</p>
-      </div>
-    )
-  }
-
-  if (voterToken.usedAt) {
-    return (
-      <div className="mx-auto max-w-lg px-6 py-32 text-center">
-        <h1 className="text-xl font-semibold">Already voted</h1>
-        <p className="mt-2 text-zinc-600">This token has already been used.</p>
+        <h1 className="text-xl font-semibold">Authentication required</h1>
+        <p className="mt-2 text-zinc-600">
+          This poll requires authentication. Please log in to vote.
+        </p>
       </div>
     )
   }
@@ -83,7 +123,7 @@ export default async function VotePage({
 
       <VoteForm
         pollSlug={poll.slug}
-        token={token}
+        token={token ?? null}
         options={poll.options.map((o) => ({ id: o.id, label: o.label }))}
       />
     </div>
