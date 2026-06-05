@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import StatusControls from './status-controls'
+import TokenGenerator from './token-generator'
 
 export default async function PollPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -62,6 +63,7 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
       </div>
 
       <StatusControls slug={poll.slug} status={poll.status} />
+      <TokenGenerator slug={poll.slug} />
     </div>
   )
 }
