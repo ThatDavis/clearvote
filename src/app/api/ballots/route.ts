@@ -35,6 +35,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
     }
 
+    // Auto-close if past end date
+    if (poll.status === 'open' && poll.endsAt && new Date(poll.endsAt) < new Date()) {
+      await prisma.poll.update({
+        where: { id: poll.id },
+        data: { status: 'closed' },
+      })
+      poll.status = 'closed'
+    }
+
     if (poll.status !== 'open') {
       return NextResponse.json({ error: 'This poll is not accepting votes' }, { status: 400 })
     }

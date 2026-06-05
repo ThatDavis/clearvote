@@ -64,6 +64,19 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
 
       <div className="mt-4 text-sm text-zinc-500">
         <p>
+          Method:{' '}
+          {poll.votingMethod === 'stv'
+            ? 'STV'
+            : poll.votingMethod === 'approval'
+              ? 'Approval'
+              : poll.votingMethod === 'yesno'
+                ? 'Yes/No'
+                : 'RCV'}
+          {poll.votingMethod === 'stv' && ` (${poll.seats} seats)`}
+        </p>
+        {poll.startsAt && <p>Starts: {new Date(poll.startsAt).toLocaleString()}</p>}
+        {poll.endsAt && <p>Ends: {new Date(poll.endsAt).toLocaleString()}</p>}
+        <p>
           {poll._count.tokens} token{poll._count.tokens !== 1 ? 's' : ''} generated
         </p>
         <p>

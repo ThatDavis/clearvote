@@ -20,16 +20,12 @@
 
 ---
 
-## Future Milestones
+## Completed Features
 
-### Milestone 3: Vote & Voter Management
-- [ ] Multi-winner STV election support (fractional surplus transfer)
-- [ ] Approval voting (check all that apply, most approvals wins)
-- [ ] Yes/No referendums (binary vote with configurable threshold)
-- [ ] User dashboard (past, present, and future votes)
-- [ ] Voting deadlines and timed auto-close
-- [ ] Delegate / proxy voting
-- [ ] Audit trail and export
+- Milestone 1 (2026-06-04): Core Voting Engine — poll creation, status lifecycle, RCV tally, voter tokens, drag-and-drop voting, results page, vote receipts.
+- Milestone 2 (2026-06-04): Auth & Voter Integrity — user accounts (Auth.js v5), signup/login, session management, auth-gated poll management, voter roll management, authenticated voting, one-vote-per-person enforcement, user dashboard.
+- Milestone 2.5 (2026-06-04): Organization Accounts — dual-path signup (individual + org), Organization model, org-scoped polls, org-level authorization, member management, org dashboard. Fresh schema.
+- Milestone 3 (2026-06-04): Advanced Voting & Management — STV with fractional surplus transfer, approval voting, yes/no referendums, timed polls, audit logs, proxy voting, enhanced dashboard.
 
 ---
 
@@ -40,10 +36,6 @@
 
 ## Active Feature
 
-*No active feature. Run `/dev:start-feature` to begin the next milestone.*
+*No active feature. All milestones complete.*
 
-## Completed Features
-
-- Milestone 1 (2026-06-04): Core Voting Engine — poll creation, status lifecycle, RCV tally, voter tokens, drag-and-drop voting, results page, vote receipts.
-- Milestone 2 (2026-06-04): Auth & Voter Integrity — user accounts (Auth.js v5), signup/login, session management, auth-gated poll management, voter roll management, authenticated voting, one-vote-per-person enforcement, user dashboard.
-- Milestone 2.5 (2026-06-04): Organization Accounts — dual-path signup (individual + org), Organization model, org-scoped polls, org-level authorization, member management, org dashboard. Fresh schema.
+---

@@ -27,6 +27,7 @@ interface Props {
   pollSlug: string
   token: string | null
   options: Option[]
+  votingMethod: string
 }
 
 function SortableOption({ option, index }: { option: Option; index: number }) {
@@ -62,25 +63,26 @@ function SortableOption({ option, index }: { option: Option; index: number }) {
   )
 }
 
-export default function VoteForm({ pollSlug, token, options }: Props) {
-  const router = useRouter()
+function RankedVoteForm({
+  pollSlug,
+  token,
+  options,
+  onSuccess,
+}: {
+  pollSlug: string
+  token: string | null
+  options: Option[]
+  onSuccess: (receipt: string) => void
+}) {
   const [items, setItems] = useState(options)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [receipt, setReceipt] = useState('')
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5,
-      },
-    }),
-  )
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
     if (!over || active.id === over.id) return
-
     setItems((current) => {
       const oldIndex = current.findIndex((o) => o.id === active.id)
       const newIndex = current.findIndex((o) => o.id === over.id)
@@ -91,30 +93,209 @@ export default function VoteForm({ pollSlug, token, options }: Props) {
   async function handleSubmit() {
     setSubmitting(true)
     setError('')
-
     const rankings = items.map((o) => o.id)
-
     const body: Record<string, unknown> = { pollSlug, rankings }
-    if (token) {
-      body.token = token
-    }
-
+    if (token) body.token = token
     const res = await fetch('/api/ballots', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
-
     if (!res.ok) {
       const data = await res.json()
       setError(data.error || 'Failed to cast vote')
       setSubmitting(false)
       return
     }
-
     const data = await res.json()
-    setReceipt(data.receiptCode)
-    setSubmitting(false)
+    onSuccess(data.receiptCode)
+  }
+
+  return (
+    <div>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={items.map((o) => o.id)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-2">
+            {items.map((option, index) => (
+              <SortableOption key={option.id} option={option} index={index} />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      <button
+        type="button"
+        onClick={handleSubmit}
+        disabled={submitting}
+        className="mt-6 w-full rounded-md bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+      >
+        {submitting ? 'Submitting...' : 'Submit vote'}
+      </button>
+    </div>
+  )
+}
+
+function ApprovalVoteForm({
+  pollSlug,
+  token,
+  options,
+  onSuccess,
+}: {
+  pollSlug: string
+  token: string | null
+  options: Option[]
+  onSuccess: (receipt: string) => void
+}) {
+  const [approved, setApproved] = useState<Set<string>>(new Set())
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  function toggle(id: string) {
+    const next = new Set(approved)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    setApproved(next)
+  }
+
+  async function handleSubmit() {
+    setSubmitting(true)
+    setError('')
+    const rankings = Array.from(approved)
+    const body: Record<string, unknown> = { pollSlug, rankings }
+    if (token) body.token = token
+    const res = await fetch('/api/ballots', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) {
+      const data = await res.json()
+      setError(data.error || 'Failed to cast vote')
+      setSubmitting(false)
+      return
+    }
+    const data = await res.json()
+    onSuccess(data.receiptCode)
+  }
+
+  return (
+    <div>
+      <div className="space-y-2">
+        {options.map((option) => (
+          <label
+            key={option.id}
+            className="flex cursor-pointer items-center gap-3 rounded-md border border-zinc-200 px-3 py-3 hover:bg-zinc-50"
+          >
+            <input
+              type="checkbox"
+              checked={approved.has(option.id)}
+              onChange={() => toggle(option.id)}
+              className="h-4 w-4 rounded border-zinc-300"
+            />
+            <span className="text-sm">{option.label}</span>
+          </label>
+        ))}
+      </div>
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      <button
+        type="button"
+        onClick={handleSubmit}
+        disabled={submitting}
+        className="mt-6 w-full rounded-md bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+      >
+        {submitting ? 'Submitting...' : 'Submit vote'}
+      </button>
+    </div>
+  )
+}
+
+function YesNoVoteForm({
+  pollSlug,
+  token,
+  options,
+  onSuccess,
+}: {
+  pollSlug: string
+  token: string | null
+  options: Option[]
+  onSuccess: (receipt: string) => void
+}) {
+  const [votes, setVotes] = useState<Record<string, string>>({})
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleSubmit() {
+    setSubmitting(true)
+    setError('')
+    const body: Record<string, unknown> = { pollSlug, rankings: votes }
+    if (token) body.token = token
+    const res = await fetch('/api/ballots', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) {
+      const data = await res.json()
+      setError(data.error || 'Failed to cast vote')
+      setSubmitting(false)
+      return
+    }
+    const data = await res.json()
+    onSuccess(data.receiptCode)
+  }
+
+  const allVoted = options.every((o) => votes[o.id])
+
+  return (
+    <div>
+      <div className="space-y-3">
+        {options.map((option) => (
+          <div key={option.id} className="rounded-md border border-zinc-200 p-3">
+            <span className="block text-sm font-medium">{option.label}</span>
+            <div className="mt-2 flex gap-4">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  name={`vote-${option.id}`}
+                  checked={votes[option.id] === 'yes'}
+                  onChange={() => setVotes({ ...votes, [option.id]: 'yes' })}
+                  className="h-4 w-4"
+                />
+                Yes
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  name={`vote-${option.id}`}
+                  checked={votes[option.id] === 'no'}
+                  onChange={() => setVotes({ ...votes, [option.id]: 'no' })}
+                  className="h-4 w-4"
+                />
+                No
+              </label>
+            </div>
+          </div>
+        ))}
+      </div>
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      <button
+        type="button"
+        onClick={handleSubmit}
+        disabled={submitting || !allVoted}
+        className="mt-6 w-full rounded-md bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+      >
+        {submitting ? 'Submitting...' : 'Submit vote'}
+      </button>
+    </div>
+  )
+}
+
+export default function VoteForm({ pollSlug, token, options, votingMethod }: Props) {
+  const router = useRouter()
+  const [receipt, setReceipt] = useState('')
+
+  function onSuccess(code: string) {
+    setReceipt(code)
   }
 
   if (receipt) {
@@ -140,26 +321,18 @@ export default function VoteForm({ pollSlug, token, options }: Props) {
 
   return (
     <div className="mt-6">
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={items.map((o) => o.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-2">
-            {items.map((option, index) => (
-              <SortableOption key={option.id} option={option} index={index} />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
-
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-
-      <button
-        type="button"
-        onClick={handleSubmit}
-        disabled={submitting}
-        className="mt-6 w-full rounded-md bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
-      >
-        {submitting ? 'Submitting...' : 'Submit vote'}
-      </button>
+      {votingMethod === 'approval' ? (
+        <ApprovalVoteForm
+          pollSlug={pollSlug}
+          token={token}
+          options={options}
+          onSuccess={onSuccess}
+        />
+      ) : votingMethod === 'yesno' ? (
+        <YesNoVoteForm pollSlug={pollSlug} token={token} options={options} onSuccess={onSuccess} />
+      ) : (
+        <RankedVoteForm pollSlug={pollSlug} token={token} options={options} onSuccess={onSuccess} />
+      )}
     </div>
   )
 }

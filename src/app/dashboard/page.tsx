@@ -71,6 +71,16 @@ export default async function DashboardPage() {
     return labels[status] || status
   }
 
+  const methodBadge = (method: string) => {
+    const badges: Record<string, string> = {
+      rcv: 'RCV',
+      stv: 'STV',
+      approval: 'App',
+      yesno: 'Y/N',
+    }
+    return badges[method] || method
+  }
+
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
       <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
@@ -94,7 +104,10 @@ export default async function DashboardPage() {
                   >
                     <div>
                       <span className="text-sm font-medium">{poll.title}</span>
-                      <span className="ml-2 text-xs text-zinc-500">{statusLabel(poll.status)}</span>
+                      <span className="ml-2 inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500">
+                        {methodBadge(poll.votingMethod)}
+                      </span>
+                      <span className="ml-1 text-xs text-zinc-500">{statusLabel(poll.status)}</span>
                     </div>
                     <span className="text-xs text-zinc-400">
                       {poll._count.ballots} vote{poll._count.ballots !== 1 ? 's' : ''}

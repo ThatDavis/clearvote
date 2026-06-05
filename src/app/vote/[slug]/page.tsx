@@ -112,19 +112,27 @@ export default async function VotePage({
     )
   }
 
+  const instructions: Record<string, string> = {
+    rcv: 'Drag the options to rank them in order of preference. Your first choice goes at the top.',
+    stv: `Drag the options to rank them in order of preference. ${poll.seats} winner${poll.seats !== 1 ? 's' : ''} will be elected.`,
+    approval: 'Check all options you approve of.',
+    yesno: 'Vote yes or no on each option.',
+  }
+
   return (
     <div className="mx-auto max-w-lg px-6 py-16">
       <h1 className="text-2xl font-semibold tracking-tight">{poll.title}</h1>
       {poll.description && <p className="mt-2 text-zinc-600">{poll.description}</p>}
 
       <p className="mt-6 text-sm text-zinc-500">
-        Drag the options to rank them in order of preference. Your first choice goes at the top.
+        {instructions[poll.votingMethod] || instructions.rcv}
       </p>
 
       <VoteForm
         pollSlug={poll.slug}
         token={token ?? null}
         options={poll.options.map((o) => ({ id: o.id, label: o.label }))}
+        votingMethod={poll.votingMethod as string}
       />
     </div>
   )

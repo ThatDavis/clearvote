@@ -25,29 +25,28 @@ Dependency order: Poll → Status → Tokens → Voting → Tally → Results �
 - [x] C1: Public Results Page — /polls/[slug]/results, round-by-round breakdown, anonymized ballots
 - [x] C2: Vote Receipts — sha256 receipt code on ballot submission, verification page /verify
 
-### Future Milestones
-*None — all planned milestones complete.*
+### All Milestones Complete
 
-### Milestone 3: Advanced Voting & Management (In Progress)
+### Milestone 3: Advanced Voting & Management (Completed 2026-06-04)
 Goal: Multi-winner STV, approval voting, yes/no referendums, timed polls, enhanced dashboard, audit trail, proxy voting.
 
 #### Phase A: Voting Methods
-- [ ] A1: Add `votingMethod` to Poll (rcv, stv, approval, yesno), update creation form
-- [ ] A2: STV tally algorithm — fractional surplus transfer, quota-based, multi-winner + tests
-- [ ] A3: Approval voting tally + checkbox ballot UI
-- [ ] A4: Yes/No referendum tally + yes/no ballot UI + configurable threshold
+- [x] A1: Add `votingMethod` to Poll (rcv, stv, approval, yesno), update creation form
+- [x] A2: STV tally algorithm — fractional surplus transfer, quota-based, multi-winner + tests
+- [x] A3: Approval voting tally + checkbox ballot UI
+- [x] A4: Yes/No referendum tally + yes/no ballot UI + configurable threshold
 
 #### Phase B: Timed Voting
-- [ ] B1: Auto-close polls based on `endsAt` (check on page load + API guard)
-- [ ] B2: Display start/end times on poll pages and dashboard
+- [x] B1: Auto-close polls based on `endsAt` (check on page load + API guard)
+- [x] B2: Display start/end times on poll pages and dashboard
 
 #### Phase C: Dashboard & Audit
-- [ ] C1: Enhanced dashboard — method badges, upcoming polls, filter by status
-- [ ] C2: Audit trail — `AuditLog` model, history view, CSV/JSON export
+- [x] C1: Enhanced dashboard — method badges, upcoming polls, filter by status
+- [x] C2: Audit trail — `AuditLog` model, history view, CSV/JSON export
 
 #### Phase D: Proxy Voting
-- [ ] D1: `Proxy` model (principalId, proxyId, pollId), designate proxy UI
-- [ ] D2: Proxy vote casting — proxy's ballot counts for principal
+- [x] D1: `Proxy` model (principalId, proxyId, pollId), designate proxy UI
+- [x] D2: Proxy vote casting — proxy's ballot counts for principal
 
 ### Milestone 2.5: Organization Accounts (Completed 2026-06-04)
 Goal: Organizations can register alongside individuals. Polls scoped to orgs. Org admins manage members. Individual accounts remain fully functional.
@@ -112,6 +111,7 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 | 2026-06-04 | M1 complete: poll creation, status lifecycle, RCV tally (10 tests), voter token generation, drag-and-drop voting, results page, vote receipts. |
 | 2026-06-04 | M2 complete: Auth.js v5 setup, signup/login, session management, auth-gated polls, voter roll management, authenticated voting, one-vote-per-person, user dashboard. |
 | 2026-06-04 | M2.5 complete: Organization accounts, dual-path signup, org-scoped polls, member management, org dashboard. |
+| 2026-06-04 | M3 complete: STV, approval voting, yes/no referendums, timed polls, audit trail, proxy voting, enhanced dashboard. |
 
 ## [DISCOVERIES]
 
