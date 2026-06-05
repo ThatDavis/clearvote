@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { tallyApproval } from '@/lib/approval'
 import { auditLog } from '@/lib/audit'
+import { effectiveStatus } from '@/lib/election'
 import { prisma } from '@/lib/prisma'
 import { seededShuffle } from '@/lib/shuffle'
 import { tallyStv } from '@/lib/stv'
@@ -20,6 +21,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ slug: 
       ballots: {
         select: { id: true, rankings: true },
       },
+      election: true,
     },
   })
 
@@ -39,7 +41,8 @@ export default async function ResultsPage({ params }: { params: Promise<{ slug: 
   }
 
   const method = poll.votingMethod as string
-  const statusLabel = { draft: 'Draft', open: 'Open', closed: 'Closed' }[poll.status]
+  const status = effectiveStatus(poll)
+  const statusLabel = { draft: 'Draft', open: 'Open', closed: 'Closed' }[status]
   const ballotCount = poll.ballots.length
 
   let winnerSection: React.ReactNode = null
@@ -258,7 +261,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ slug: 
       {winnerSection}
       {tallyDetail}
 
-      {ballotCount > 0 && poll.status === 'closed' && (
+      {ballotCount > 0 && status === 'closed' && (
         <div className="mt-10">
           <h2 className="text-lg font-semibold">All ballots (anonymized)</h2>
           <p className="mt-1 text-xs text-zinc-500">

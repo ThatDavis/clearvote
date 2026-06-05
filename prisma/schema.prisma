@@ -14,9 +14,10 @@ model Organization {
   slug        String   @unique
   createdAt   DateTime @default(now())
 
-  members  OrganizationMember[]
-  invites  OrganizationInvite[]
-  polls    Poll[]
+  members   OrganizationMember[]
+  invites   OrganizationInvite[]
+  polls     Poll[]
+  elections Election[]
 }
 
 model OrganizationMember {
@@ -59,6 +60,8 @@ model User {
   memberships        OrganizationMember[]
   polls              Poll[]
   rolls              VoterRoll[]
+  electionRolls      ElectionVoterRoll[]
+  elections          Election[]
   verificationTokens EmailVerificationToken[]
 }
 
@@ -85,6 +88,8 @@ model Poll {
   status         String        @default("draft")
   creatorId      String?
   organizationId String?
+  electionId     String?
+  contestOrder   Int           @default(0)
   startsAt       DateTime?
   endsAt         DateTime?
   createdAt      DateTime      @default(now())
@@ -92,11 +97,14 @@ model Poll {
 
   creator      User?         @relation(fields: [creatorId], references: [id])
   organization Organization? @relation(fields: [organizationId], references: [id])
+  election     Election?     @relation(fields: [electionId], references: [id])
   options      PollOption[]
   ballots      Ballot[]
   tokens       VoterToken[]
   rolls        VoterRoll[]
   auditLogs    AuditLog[]
+
+  @@index([electionId])
 }
 
 model PollOption {
@@ -161,6 +169,81 @@ model AuditLog {
   poll Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
 
   @@index([pollId])
+}
+
+model Election {
+  id             String    @id @default(uuid())
+  title          String
+  description    String?
+  slug           String    @unique
+  status         String    @default("draft")
+  startsAt       DateTime?
+  endsAt         DateTime?
+  creatorId      String?
+  organizationId String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  contests   Poll[]
+  tokens     ElectionVoterToken[]
+  rolls      ElectionVoterRoll[]
+  receipts   ElectionReceipt[]
+  auditLogs  ElectionAuditLog[]
+
+  creator      User?         @relation(fields: [creatorId], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
+}
+
+model ElectionVoterToken {
+  id            String    @id @default(uuid())
+  electionId    String
+  tokenHash     String
+  ballotStyleId String?
+  usedAt        DateTime?
+  createdAt     DateTime  @default(now())
+
+  election Election @relation(fields: [electionId], references: [id], onDelete: Cascade)
+
+  @@unique([electionId, tokenHash])
+  @@index([electionId])
+}
+
+model ElectionVoterRoll {
+  id            String    @id @default(uuid())
+  electionId    String
+  userId        String
+  ballotStyleId String?
+  hasVoted      Boolean   @default(false)
+  votedAt       DateTime?
+
+  election Election @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@unique([electionId, userId])
+  @@index([electionId])
+}
+
+model ElectionReceipt {
+  id          String   @id @default(uuid())
+  electionId  String
+  receiptCode String   @unique
+  castAt      DateTime @default(now())
+
+  election Election @relation(fields: [electionId], references: [id], onDelete: Cascade)
+
+  @@index([electionId])
+}
+
+model ElectionAuditLog {
+  id        String   @id @default(uuid())
+  electionId String
+  action    String
+  detail    String?
+  createdAt DateTime @default(now())
+
+  election Election @relation(fields: [electionId], references: [id], onDelete: Cascade)
+
+  @@index([electionId])
 }
 
 
