@@ -11,10 +11,12 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { title, description, organizationId } = body as {
+    const { title, description, organizationId, startsAt, endsAt } = body as {
       title?: string
       description?: string
       organizationId?: string
+      startsAt?: string
+      endsAt?: string
     }
 
     if (!title || typeof title !== 'string' || title.trim().length === 0) {
@@ -48,6 +50,8 @@ export async function POST(request: Request) {
         slug,
         creatorId: session.user.id,
         organizationId: organizationId ?? null,
+        startsAt: startsAt ? new Date(startsAt + 'T00:00:00Z') : null,
+        endsAt: endsAt ? new Date(endsAt + 'T00:00:00Z') : null,
       },
     })
 

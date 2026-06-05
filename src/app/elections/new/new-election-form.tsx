@@ -164,6 +164,8 @@ export default function NewElectionForm() {
         title,
         description: description || undefined,
         organizationId: orgId || undefined,
+        startsAt: startsAt || undefined,
+        endsAt: endsAt || undefined,
       }),
     })
 
