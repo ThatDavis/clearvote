@@ -72,6 +72,39 @@ Deep-plan decisions:
 - [x] C1: Dashboard shows org polls + personal polls + votable polls
 - [x] C2: Org name displayed in poll pages and results
 
+### Milestone 4: Multi-Organization Membership (In Progress)
+Goal: Users can belong to multiple organizations with role-based access. Personal and org dashboards are URL-based. Any user can create orgs. Polls can be distributed to all or select org members.
+
+#### Active Feature
+- [x] Org flow redesign with Resend email - separate individual accounts from org membership (Issue #5, branch feature/5-org-flow-redesign-resend)
+
+#### Phase A: Schema Redesign
+- [x] A1: Create `OrganizationMember` join table (userId, orgId, role: admin/member)
+- [x] A2: Remove `organizationId` from User; update all relations
+- [x] A3: Reset database with fresh schema
+
+#### Phase B: Auth & Session
+- [x] B1: Update auth to query memberships and return array
+- [x] B2: Update JWT session to carry `memberships` instead of single `organizationId`
+- [x] B3: Update all session consumers (dashboard, poll creation, navbar)
+
+#### Phase C: Dashboard & Routing
+- [x] C1: Create `/org/[slug]/dashboard` route with org-scoped polls
+- [x] C2: Update `/dashboard` to show only personal polls
+- [x] C3: Add org switcher to navbar
+- [x] C4: Update poll creation to choose personal vs org context
+
+#### Phase D: Org Management
+- [x] D1: Add "Create organization" flow for existing users
+- [x] D2: Update invite system to support multi-org (no longer reject existing members)
+- [x] D3: Add invite email with auto-join signup link for non-registered users
+- [x] D4: Add role management (promote/demote)
+
+#### Phase E: Poll Distribution
+- [x] E1: Auto-add all org members to voter roll when creating org poll
+- [x] E2: Add "select members" option with checkbox UI
+- [x] E3: Update dashboard "Polls you can vote on" to include org polls
+
 ### Milestone 2: Auth & Voter Integrity (Completed 2026-06-04)
 Goal: User accounts, authenticated voting, one-vote-per-person enforcement, voter roll management.
 
@@ -112,6 +145,15 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 | 2026-06-04 | M2 complete: Auth.js v5 setup, signup/login, session management, auth-gated polls, voter roll management, authenticated voting, one-vote-per-person, user dashboard. |
 | 2026-06-04 | M2.5 complete: Organization accounts, dual-path signup, org-scoped polls, member management, org dashboard. |
 | 2026-06-04 | M3 complete: STV, approval voting, yes/no referendums, timed polls, audit trail, proxy voting, enhanced dashboard. |
+| 2026-06-05 | Feature complete: Org flow redesign with Resend email - separate individual accounts from org membership (Issue #5). |
+|  |    - Install Resend SDK and configure email utility |
+|  |    - Add Organization.description field to schema and migrate |
+|  |    - Remove member distribution from poll creation wizard |
+|  |    - Add voter distribution UI to poll detail page (personal: comma-separated emails; org: all/select members) |
+|  |    - Add org cards to dashboard with name and description |
+|  |    - Add description field to org creation form |
+|  |    - Create email templates and send vote invite emails via Resend |
+|  |    - Update tests and run full test suite |
 
 ## [DISCOVERIES]
 
