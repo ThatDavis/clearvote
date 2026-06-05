@@ -2,13 +2,13 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
-import ContestManager from './contest-manager'
 import ElectionAuditTrail from './audit-trail'
+import ContestManager from './contest-manager'
 import ElectionDistributor from './election-distributor'
 import ElectionEditor from './election-editor'
+import OrgElectionDistributor from './org-election-distributor'
 import ElectionStatusControls from './status-controls'
 import ElectionTokenGenerator from './token-generator'
-import OrgElectionDistributor from './org-election-distributor'
 
 export default async function ElectionPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params

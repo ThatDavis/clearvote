@@ -50,8 +50,8 @@ export async function POST(request: Request) {
         slug,
         creatorId: session.user.id,
         organizationId: organizationId ?? null,
-        startsAt: startsAt ? new Date(startsAt + 'T00:00:00Z') : null,
-        endsAt: endsAt ? new Date(endsAt + 'T00:00:00Z') : null,
+        startsAt: startsAt ? new Date(`${startsAt}T00:00:00Z`) : null,
+        endsAt: endsAt ? new Date(`${endsAt}T00:00:00Z`) : null,
       },
     })
 

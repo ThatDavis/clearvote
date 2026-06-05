@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useToast } from '@/components/toast-provider'
 import VotingMethodSelector from '@/components/voting-method-selector'
 
@@ -33,9 +33,7 @@ export default function NewElectionForm() {
   // Contests
   const nextContestId = useRef(1)
   const nextOptionKey = useRef(0)
-  const [contests, setContests] = useState<ContestDraft[]>([
-    createEmptyContest(),
-  ])
+  const [contests, setContests] = useState<ContestDraft[]>([createEmptyContest()])
   const [activeContestIndex, setActiveContestIndex] = useState(0)
 
   const [error, setError] = useState('')
@@ -102,7 +100,10 @@ export default function NewElectionForm() {
     const contest = contests[contestIndex]
     let nextOptions = [...contest.options]
     if (method === 'yesno') {
-      nextOptions = nextOptions.length > 0 ? [nextOptions[0]] : [{ key: String(nextOptionKey.current++), value: '' }]
+      nextOptions =
+        nextOptions.length > 0
+          ? [nextOptions[0]]
+          : [{ key: String(nextOptionKey.current++), value: '' }]
     } else if (nextOptions.length < 2) {
       nextOptions.push({ key: String(nextOptionKey.current++), value: '' })
     }
@@ -149,7 +150,9 @@ export default function NewElectionForm() {
       const minOptions = contest.votingMethod === 'yesno' ? 1 : 2
       const filled = contest.options.map((o) => o.value.trim()).filter(Boolean)
       if (filled.length < minOptions) {
-        setError(`Contest "${contest.title || 'Untitled'}" needs at least ${minOptions} option${minOptions === 1 ? '' : 's'}`)
+        setError(
+          `Contest "${contest.title || 'Untitled'}" needs at least ${minOptions} option${minOptions === 1 ? '' : 's'}`,
+        )
         return
       }
     }
@@ -277,8 +280,19 @@ export default function NewElectionForm() {
                 onClick={addContest}
                 className="inline-flex items-center gap-1 rounded-lg border border-dashed border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-600 transition-colors hover:border-chicago-blue hover:text-chicago-blue"
               >
-                <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                <svg
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
                 </svg>
                 Add contest
               </button>
@@ -298,15 +312,17 @@ export default function NewElectionForm() {
                 >
                   {contest.title.trim() || `Contest ${i + 1}`}
                   {contests.length > 1 && (
-                    <span
+                    <button
+                      type="button"
                       className="ml-2 text-xs"
                       onClick={(e) => {
                         e.stopPropagation()
                         removeContest(i)
                       }}
+                      aria-label={`Remove contest ${i + 1}`}
                     >
                       ×
-                    </span>
+                    </button>
                   )}
                 </button>
               ))}
@@ -319,8 +335,14 @@ export default function NewElectionForm() {
               >
                 <div className="rounded-xl border-2 border-zinc-200 bg-white p-5 space-y-6">
                   <div>
-                    <label className="block text-sm font-semibold text-zinc-900">Contest Title</label>
+                    <label
+                      htmlFor={`contest-title-${contest.id}`}
+                      className="block text-sm font-semibold text-zinc-900"
+                    >
+                      Contest Title
+                    </label>
                     <input
+                      id={`contest-title-${contest.id}`}
                       type="text"
                       value={contest.title}
                       onChange={(e) => updateContest(ci, { title: e.target.value })}
@@ -330,8 +352,14 @@ export default function NewElectionForm() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-zinc-900">Description <span className="font-normal text-zinc-400">(optional)</span></label>
+                    <label
+                      htmlFor={`contest-desc-${contest.id}`}
+                      className="block text-sm font-semibold text-zinc-900"
+                    >
+                      Description <span className="font-normal text-zinc-400">(optional)</span>
+                    </label>
                     <textarea
+                      id={`contest-desc-${contest.id}`}
                       rows={2}
                       value={contest.description}
                       onChange={(e) => updateContest(ci, { description: e.target.value })}
@@ -350,8 +378,14 @@ export default function NewElectionForm() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold text-zinc-900">Winners</label>
+                      <label
+                        htmlFor={`contest-seats-${contest.id}`}
+                        className="block text-sm font-semibold text-zinc-900"
+                      >
+                        Winners
+                      </label>
                       <input
+                        id={`contest-seats-${contest.id}`}
                         type="number"
                         min={1}
                         max={20}
@@ -362,8 +396,14 @@ export default function NewElectionForm() {
                     </div>
                     {contest.votingMethod === 'yesno' && (
                       <div>
-                        <label className="block text-sm font-semibold text-zinc-900">Pass threshold (%)</label>
+                        <label
+                          htmlFor={`contest-threshold-${contest.id}`}
+                          className="block text-sm font-semibold text-zinc-900"
+                        >
+                          Pass threshold (%)
+                        </label>
                         <input
+                          id={`contest-threshold-${contest.id}`}
                           type="number"
                           min={1}
                           max={100}
@@ -371,7 +411,9 @@ export default function NewElectionForm() {
                           onChange={(e) => updateContest(ci, { threshold: Number(e.target.value) })}
                           className="mt-2 block w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm shadow-sm transition-colors hover:border-zinc-400 focus:border-chicago-blue focus:outline-none focus:ring-2 focus:ring-chicago-blue/20"
                         />
-                        <p className="mt-2 text-xs text-zinc-500">Percentage of yes votes required to pass.</p>
+                        <p className="mt-2 text-xs text-zinc-500">
+                          Percentage of yes votes required to pass.
+                        </p>
                       </div>
                     )}
                   </div>
@@ -402,8 +444,19 @@ export default function NewElectionForm() {
                               onClick={() => removeOption(ci, oi)}
                               className="shrink-0 rounded-lg px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
                             >
-                              <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              <svg
+                                aria-hidden="true"
+                                className="h-5 w-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
                               </svg>
                             </button>
                           )}
@@ -415,8 +468,19 @@ export default function NewElectionForm() {
                       onClick={() => addOption(ci)}
                       className="mt-3 inline-flex items-center gap-1 rounded-lg border border-dashed border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-600 transition-colors hover:border-chicago-blue hover:text-chicago-blue"
                     >
-                      <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      <svg
+                        aria-hidden="true"
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 4v16m8-8H4"
+                        />
                       </svg>
                       Add option
                     </button>
@@ -470,13 +534,17 @@ export default function NewElectionForm() {
                 {startsAt && (
                   <div className="flex justify-between">
                     <dt className="text-sm text-zinc-500">Start date</dt>
-                    <dd className="text-sm font-medium text-zinc-900">{new Date(startsAt + 'T00:00:00').toLocaleDateString()}</dd>
+                    <dd className="text-sm font-medium text-zinc-900">
+                      {new Date(`${startsAt}T00:00:00`).toLocaleDateString()}
+                    </dd>
                   </div>
                 )}
                 {endsAt && (
                   <div className="flex justify-between">
                     <dt className="text-sm text-zinc-500">End date</dt>
-                    <dd className="text-sm font-medium text-zinc-900">{new Date(endsAt + 'T00:00:00').toLocaleDateString()}</dd>
+                    <dd className="text-sm font-medium text-zinc-900">
+                      {new Date(`${endsAt}T00:00:00`).toLocaleDateString()}
+                    </dd>
                   </div>
                 )}
               </dl>
@@ -485,8 +553,12 @@ export default function NewElectionForm() {
                 {contests.map((contest, i) => (
                   <div key={contest.id} className="rounded-lg border border-zinc-200 bg-white p-3">
                     <div className="flex justify-between">
-                      <span className="text-sm font-medium">{i + 1}. {contest.title}</span>
-                      <span className="text-xs text-zinc-500 capitalize">{contest.votingMethod}</span>
+                      <span className="text-sm font-medium">
+                        {i + 1}. {contest.title}
+                      </span>
+                      <span className="text-xs text-zinc-500 capitalize">
+                        {contest.votingMethod}
+                      </span>
                     </div>
                     <div className="mt-1 text-xs text-zinc-400">
                       {contest.options.filter((o) => o.value.trim()).length} option

@@ -234,7 +234,10 @@ export default function ContestManager({
                 <h3 className="text-sm font-semibold">Edit contest</h3>
 
                 <div>
-                  <label htmlFor={`edit-title-${contest.id}`} className="block text-xs font-medium text-zinc-700">
+                  <label
+                    htmlFor={`edit-title-${contest.id}`}
+                    className="block text-xs font-medium text-zinc-700"
+                  >
                     Title
                   </label>
                   <input
@@ -248,7 +251,10 @@ export default function ContestManager({
                 </div>
 
                 <div>
-                  <label htmlFor={`edit-desc-${contest.id}`} className="block text-xs font-medium text-zinc-700">
+                  <label
+                    htmlFor={`edit-desc-${contest.id}`}
+                    className="block text-xs font-medium text-zinc-700"
+                  >
                     Description
                   </label>
                   <textarea
@@ -262,7 +268,10 @@ export default function ContestManager({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor={`edit-method-${contest.id}`} className="block text-xs font-medium text-zinc-700">
+                    <label
+                      htmlFor={`edit-method-${contest.id}`}
+                      className="block text-xs font-medium text-zinc-700"
+                    >
                       Method
                     </label>
                     <select
@@ -280,7 +289,10 @@ export default function ContestManager({
 
                   {editVotingMethod === 'stv' && (
                     <div>
-                      <label htmlFor={`edit-seats-${contest.id}`} className="block text-xs font-medium text-zinc-700">
+                      <label
+                        htmlFor={`edit-seats-${contest.id}`}
+                        className="block text-xs font-medium text-zinc-700"
+                      >
                         Seats
                       </label>
                       <input
@@ -296,7 +308,10 @@ export default function ContestManager({
 
                   {editVotingMethod === 'yesno' && (
                     <div>
-                      <label htmlFor={`edit-threshold-${contest.id}`} className="block text-xs font-medium text-zinc-700">
+                      <label
+                        htmlFor={`edit-threshold-${contest.id}`}
+                        className="block text-xs font-medium text-zinc-700"
+                      >
                         Threshold (%)
                       </label>
                       <input
@@ -313,7 +328,10 @@ export default function ContestManager({
                 </div>
 
                 <div>
-                  <label htmlFor={`edit-options-${contest.id}`} className="block text-xs font-medium text-zinc-700">
+                  <label
+                    htmlFor={`edit-options-${contest.id}`}
+                    className="block text-xs font-medium text-zinc-700"
+                  >
                     Options (one per line)
                   </label>
                   <textarea
@@ -370,8 +388,19 @@ export default function ContestManager({
                       className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 disabled:opacity-30"
                       title="Edit"
                     >
-                      <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      <svg
+                        aria-hidden="true"
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
                       </svg>
                     </button>
                     <button
