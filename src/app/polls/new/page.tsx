@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useToast } from '@/components/toast-provider'
 import VotingMethodSelector from '@/components/voting-method-selector'
 
@@ -30,15 +30,17 @@ export default function NewPollPage() {
 
   function setVotingMethod(method: string) {
     setVotingMethodRaw(method)
-    if (method === 'yesno' && options.length > 1) {
-      // Yes/no defaults to a single proposition
-      setOptions([options[0]])
-    } else if (method !== 'yesno' && options.length < 2) {
-      // Other methods need at least 2 options
-      const key = String(nextKey.current++)
-      setOptions([...options, { key, value: '' }])
-    }
   }
+
+  // Adjust options count when voting method changes
+  useEffect(() => {
+    if (votingMethod === 'yesno' && options.length > 1) {
+      setOptions([options[0]])
+    } else if (votingMethod !== 'yesno' && options.length < 2) {
+      const key = String(nextKey.current++)
+      setOptions((prev) => [...prev, { key, value: '' }])
+    }
+  }, [votingMethod])
 
   function addOption() {
     const key = String(nextKey.current++)
