@@ -24,7 +24,7 @@ If `seats` is `<= 0` or `>= number of options`, every option is elected (nothing
 
 ## Approval
 
-Voters select any number of options they approve of. Each selection is one vote. The `seats` options with the most approvals win. Ties break toward the smaller `optionId`.
+Voters select any number of options they approve of. Each selection is one vote. The `seats` options with the most approvals win. Because approval ballots carry no preference order, a count tie is broken by a reproducible seeded lot (see [Tally Algorithms](Tally-Algorithms.md#tie-breaking)), never by candidate id.
 
 ## Yes/No
 

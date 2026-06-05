@@ -1,4 +1,5 @@
 import type { BallotInput, OptionInput, Round, VoteCount } from './tally'
+import { ballotSeed, breakEliminationTie } from './tiebreak'
 
 export interface StvRound extends Round {
   quota: number
@@ -23,6 +24,7 @@ export function tallyStv(
 
   const totalVotes = ballots.length
   const quota = Math.floor(totalVotes / (seats + 1)) + 1
+  const seed = ballotSeed(ballots)
 
   let round = 1
 
@@ -85,13 +87,19 @@ export function tallyStv(
     // If all seats filled, break
     if (elected.size >= seats) break
 
-    // Find candidates to eliminate (lowest vote among non-elected; deterministic tie-break)
+    // Find candidates to eliminate (lowest vote among non-elected). Ties are
+    // broken by the Next-Preference Cascade, weighting each ballot by its current
+    // STV weight, rather than by candidate id.
     const nonElected = voteList.filter((v) => !elected.has(v.optionId))
     if (nonElected.length === 0) break
 
     const minVotes = nonElected[nonElected.length - 1].count
     const tied = nonElected.filter((v) => v.count === minVotes).map((v) => v.optionId)
-    const toEliminate = tied.length > 1 ? [tied.sort()[0]] : tied
+    const weightedBallots = ballots.map((b, i) => ({
+      rankings: b.rankings,
+      weight: ballotWeights[i],
+    }))
+    const toEliminate = [breakEliminationTie(tied, weightedBallots, seed)]
 
     // Don't eliminate if it would remove all remaining candidates
     if (toEliminate.length === remaining.length - roundElected.length) {
