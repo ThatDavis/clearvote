@@ -7,6 +7,18 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  polls   Poll[]
+  ballots Ballot[]
+  rolls   VoterRoll[]
+}
+
 model Poll {
   id          String   @id @default(uuid())
   title       String
@@ -14,11 +26,13 @@ model Poll {
   slug        String   @unique
   seats       Int      @default(1)
   status      String   @default("draft")
+  creatorId   String?
   startsAt    DateTime?
   endsAt      DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  creator User?        @relation(fields: [creatorId], references: [id])
   options PollOption[]
   ballots Ballot[]
   tokens  VoterToken[]
@@ -40,6 +54,7 @@ model PollOption {
 model Ballot {
   id          String   @id @default(uuid())
   pollId      String
+  userId      String?
   voterToken  String
   rankings    Json
   receiptCode String   @unique
@@ -47,6 +62,7 @@ model Ballot {
   verifiedAt  DateTime?
 
   poll Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id])
 
   @@unique([pollId, voterToken])
   @@index([pollId])
@@ -68,10 +84,11 @@ model VoterToken {
 model VoterRoll {
   id     String @id @default(uuid())
   pollId String
-  email  String
+  userId String
 
   poll Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
 
-  @@unique([pollId, email])
+  @@unique([pollId, userId])
   @@index([pollId])
 }

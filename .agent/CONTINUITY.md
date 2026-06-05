@@ -26,8 +26,29 @@ Dependency order: Poll → Status → Tokens → Voting → Tally → Results �
 - [x] C2: Vote Receipts — sha256 receipt code on ballot submission, verification page /verify
 
 ### Future Milestones
-- Milestone 2 — Auth & Voter Integrity: user accounts, authenticated voting, one-vote-per-person
 - Milestone 3 — Vote & Voter Management: dashboards, multi-winner STV, deadlines, proxy voting
+
+### Milestone 2: Auth & Voter Integrity (In Progress)
+Goal: User accounts, authenticated voting, one-vote-per-person enforcement, voter roll management.
+
+Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT sessions — no database session tables.
+
+#### Phase A: Auth Foundation
+- [ ] A1: Add User model, add creatorId to Poll, install next-auth + bcryptjs
+- [ ] A2: Auth.js config (src/auth.ts), middleware, API route handler
+- [ ] A3: Signup + login pages, session display in layout
+
+#### Phase B: Auth-Gated Poll Management
+- [ ] B1: Protect poll creation (POST /api/polls) behind auth, set creatorId
+- [ ] B2: Restrict poll management (status, tokens) to poll creator
+
+#### Phase C: Voter Rolls & Authenticated Voting
+- [ ] C1: Update VoterRoll to use userId, add voter roll management UI
+- [ ] C2: Add userId to Ballot (optional), auth-gated ballot submission
+- [ ] C3: Enforce one-vote-per-person for authenticated votes
+
+#### Phase D: Dashboard
+- [ ] D1: User dashboard — polls I created + polls I can vote on
 
 ### Open Questions
 - [ ] Should we support "equal ranking" where a voter gives two candidates the same rank?
