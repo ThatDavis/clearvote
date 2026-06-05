@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { auditLog } from '@/lib/audit'
+import { sendVoteConfirmation } from '@/lib/email'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
 import { hashToken } from '@/lib/token'
@@ -10,6 +11,10 @@ class AlreadyVotedError extends Error {}
 
 function generateReceipt(): string {
   return randomBytes(16).toString('hex')
+}
+
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 }
 
 export async function POST(request: Request) {
@@ -26,10 +31,11 @@ export async function POST(request: Request) {
 
     const session = await auth()
     const body = await request.json()
-    const { pollSlug, token, rankings } = body as {
+    const { pollSlug, token, rankings, email } = body as {
       pollSlug?: string
       token?: string
       rankings?: string[] | Record<string, string>
+      email?: string
     }
 
     if (!pollSlug) {
@@ -182,11 +188,52 @@ export async function POST(request: Request) {
       return b
     })
 
+    // Send the confirmation AFTER the vote is committed, best-effort. A failed or
+    // slow email must never roll back or block a recorded vote.
+    //
+    // Ballot secrecy depends on never persisting or logging a link between the
+    // recipient and the receipt/ballot. We resolve the recipient transiently here
+    // and send; nothing connecting the address to this ballot is stored or logged.
+    let recipient: string | null = null
+    if (token) {
+      // Anonymous voter: only email if they explicitly supplied a valid address.
+      if (typeof email === 'string' && isValidEmail(email.trim())) {
+        recipient = email.trim()
+      }
+    } else if (session?.user?.id) {
+      // Registered voter: auto-send to their account email (fetched here, not stored).
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { email: true },
+      })
+      recipient = user?.email ?? null
+    }
+
+    let emailed = false
+    if (recipient) {
+      try {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+        const result = await sendVoteConfirmation({
+          to: recipient,
+          pollTitle: poll.title,
+          receiptCode: ballot.receiptCode,
+          verifyLink: `${appUrl}/verify?code=${ballot.receiptCode}`,
+          castAt: ballot.castAt,
+        })
+        emailed = result.success
+      } catch {
+        // Best-effort only. Deliberately do not log the recipient or receipt here -
+        // that pairing is exactly what must never be recorded.
+        console.error('Vote confirmation email failed to send')
+      }
+    }
+
     return NextResponse.json(
       {
         id: ballot.id,
         receiptCode: ballot.receiptCode,
         castAt: ballot.castAt,
+        emailed,
       },
       { status: 201 },
     )

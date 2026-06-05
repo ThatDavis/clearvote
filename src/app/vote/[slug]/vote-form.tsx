@@ -23,12 +23,14 @@ function RankedVoteForm({
   pollSlug,
   token,
   options,
+  email,
   onSuccess,
 }: {
   pollSlug: string
   token: string | null
   options: Option[]
-  onSuccess: (receipt: string) => void
+  email: string
+  onSuccess: (receipt: string, emailed: boolean) => void
 }) {
   const [rankings, setRankings] = useState<string[]>(options.map((o) => o.id))
   const [submitting, setSubmitting] = useState(false)
@@ -39,6 +41,7 @@ function RankedVoteForm({
     setError('')
     const body: Record<string, unknown> = { pollSlug, rankings }
     if (token) body.token = token
+    if (token && email.trim()) body.email = email.trim()
     const res = await fetch('/api/ballots', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -51,7 +54,7 @@ function RankedVoteForm({
       return
     }
     const data = await res.json()
-    onSuccess(data.receiptCode)
+    onSuccess(data.receiptCode, Boolean(data.emailed))
   }
 
   return (
@@ -78,12 +81,14 @@ function ApprovalVoteForm({
   pollSlug,
   token,
   options,
+  email,
   onSuccess,
 }: {
   pollSlug: string
   token: string | null
   options: Option[]
-  onSuccess: (receipt: string) => void
+  email: string
+  onSuccess: (receipt: string, emailed: boolean) => void
 }) {
   const [approved, setApproved] = useState<string[]>([])
   const [submitting, setSubmitting] = useState(false)
@@ -94,6 +99,7 @@ function ApprovalVoteForm({
     setError('')
     const body: Record<string, unknown> = { pollSlug, rankings: approved }
     if (token) body.token = token
+    if (token && email.trim()) body.email = email.trim()
     const res = await fetch('/api/ballots', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -106,7 +112,7 @@ function ApprovalVoteForm({
       return
     }
     const data = await res.json()
-    onSuccess(data.receiptCode)
+    onSuccess(data.receiptCode, Boolean(data.emailed))
   }
 
   return (
@@ -133,12 +139,14 @@ function YesNoVoteForm({
   pollSlug,
   token,
   options,
+  email,
   onSuccess,
 }: {
   pollSlug: string
   token: string | null
   options: Option[]
-  onSuccess: (receipt: string) => void
+  email: string
+  onSuccess: (receipt: string, emailed: boolean) => void
 }) {
   const [votes, setVotes] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
@@ -149,6 +157,7 @@ function YesNoVoteForm({
     setError('')
     const body: Record<string, unknown> = { pollSlug, rankings: votes }
     if (token) body.token = token
+    if (token && email.trim()) body.email = email.trim()
     const res = await fetch('/api/ballots', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -161,7 +170,7 @@ function YesNoVoteForm({
       return
     }
     const data = await res.json()
-    onSuccess(data.receiptCode)
+    onSuccess(data.receiptCode, Boolean(data.emailed))
   }
 
   const allVoted = options.every((o) => votes[o.id])
@@ -190,9 +199,15 @@ export default function VoteForm({ pollSlug, token, options, votingMethod }: Pro
   const router = useRouter()
   const { showToast } = useToast()
   const [receipt, setReceipt] = useState('')
+  const [emailed, setEmailed] = useState(false)
+  const [email, setEmail] = useState('')
 
-  function onSuccess(code: string) {
+  // Anonymous voters reach this form with a token; registered voters do not.
+  const isAnonymous = token !== null
+
+  function onSuccess(code: string, wasEmailed: boolean) {
     setReceipt(code)
+    setEmailed(wasEmailed)
     showToast('Vote cast successfully!', 'success')
   }
 
@@ -218,6 +233,12 @@ export default function VoteForm({ pollSlug, token, options, votingMethod }: Pro
         <p className="mt-3 text-sm text-green-600">
           Save this code to verify your vote was counted.
         </p>
+        {emailed && (
+          <p className="mt-2 text-sm text-green-600">
+            A copy has been emailed to you. It confirms your ballot was recorded and does not reveal
+            how you voted.
+          </p>
+        )}
         <button
           type="button"
           onClick={() => router.push('/')}
@@ -231,17 +252,54 @@ export default function VoteForm({ pollSlug, token, options, votingMethod }: Pro
 
   return (
     <div className="mt-6">
+      {isAnonymous ? (
+        <div className="mb-6">
+          <label htmlFor="confirmation-email" className="block text-sm font-medium text-zinc-700">
+            Email my confirmation (optional)
+          </label>
+          <input
+            id="confirmation-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            autoComplete="email"
+            className="mt-2 w-full rounded-xl border-2 border-zinc-200 px-4 py-3 text-sm text-zinc-900 transition-colors focus:border-chicago-blue focus:outline-none"
+          />
+          <p className="mt-2 text-xs text-zinc-500">
+            We will email your receipt code so you can confirm your ballot was recorded. Your
+            address is used only to send this one message and is never stored with your ballot.
+          </p>
+        </div>
+      ) : (
+        <p className="mb-6 text-sm text-zinc-500">
+          A confirmation with your receipt code will be emailed to your account.
+        </p>
+      )}
       {votingMethod === 'approval' ? (
         <ApprovalVoteForm
           pollSlug={pollSlug}
           token={token}
           options={options}
+          email={email}
           onSuccess={onSuccess}
         />
       ) : votingMethod === 'yesno' ? (
-        <YesNoVoteForm pollSlug={pollSlug} token={token} options={options} onSuccess={onSuccess} />
+        <YesNoVoteForm
+          pollSlug={pollSlug}
+          token={token}
+          options={options}
+          email={email}
+          onSuccess={onSuccess}
+        />
       ) : (
-        <RankedVoteForm pollSlug={pollSlug} token={token} options={options} onSuccess={onSuccess} />
+        <RankedVoteForm
+          pollSlug={pollSlug}
+          token={token}
+          options={options}
+          email={email}
+          onSuccess={onSuccess}
+        />
       )}
     </div>
   )

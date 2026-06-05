@@ -215,3 +215,47 @@ export async function sendOrgInvite({
     `,
   })
 }
+
+// Confirmation sent after a ballot is recorded. The receipt code and verify link
+// only let the holder confirm the ballot was recorded - they do not reveal how
+// the voter voted. The caller must not store or log any link between this
+// recipient and the receipt/ballot, which is what would break ballot secrecy.
+export async function sendVoteConfirmation({
+  to,
+  pollTitle,
+  receiptCode,
+  verifyLink,
+  castAt,
+}: {
+  to: string
+  pollTitle: string
+  receiptCode: string
+  verifyLink: string
+  castAt: Date
+}) {
+  const castAtText = new Date(castAt).toUTCString()
+  return sendEmail({
+    to,
+    subject: `Your vote was recorded: ${pollTitle}`,
+    html: `
+      <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+        ${emailHeader}
+        <h1 style="color: #1a1a1a; font-size: 20px; margin-bottom: 16px;">Your vote was recorded</h1>
+        <p style="color: #4a4a4a; line-height: 1.6; margin-bottom: 8px;">
+          Your ballot for <strong>${pollTitle}</strong> was recorded on ${castAtText}.
+        </p>
+        <p style="color: #4a4a4a; line-height: 1.6; margin-bottom: 24px;">
+          Keep the receipt code below. You can use it to confirm your ballot was recorded. It does not reveal how you voted and is not linked to your identity.
+        </p>
+        <div style="background: #f5f5f5; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
+          <p style="color: #6a6a6a; font-size: 13px; margin: 0 0 6px 0;">Receipt code</p>
+          <p style="color: #1a1a1a; font-size: 18px; font-family: ui-monospace, 'SF Mono', monospace; font-weight: 700; margin: 0; letter-spacing: 1px;">${receiptCode}</p>
+        </div>
+        <a href="${verifyLink}" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 500;">Verify my ballot</a>
+        <p style="color: #6a6a6a; font-size: 14px; margin-top: 24px;">
+          Or copy this link: ${verifyLink}
+        </p>
+      </div>
+    `,
+  })
+}
