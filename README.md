@@ -1,14 +1,14 @@
 <p align="center">
-  <img src="logo.svg" alt="clearvote logo" width="120" />
+  <img src="logo.svg" alt="ClearVote logo" width="120" />
 </p>
 
-# clearvote
+# ClearVote
 
 A voting system for community-run spaces. Supports ranked-choice, approval, and yes/no voting methods with full audit trails.
 
-## Why clearvote exists
+## Why ClearVote exists
 
-Most voting tools are either too simple (Google Forms) or too complex (enterprise election software). clearvote targets the middle: organizations that need credible elections without a PhD in cryptography.
+Most voting tools are either too simple (Google Forms) or too complex (enterprise election software). ClearVote targets the middle: organizations that need credible elections without a PhD in cryptography.
 
 ## How it works
 
@@ -21,7 +21,7 @@ Most voting tools are either too simple (Google Forms) or too complex (enterpris
 
 ### Security model
 
-Rather than trust a single administrator, clearvote separates roles and provides auditability:
+Rather than trust a single administrator, ClearVote separates roles and provides auditability:
 
 - **Ballot secrecy**: Votes are stored without voter identity. A separate eligibility table prevents double-voting without linking ballots to users.
 - **Token hashing**: Anonymous voting tokens are hashed with SHA-256 before storage. A database leak reveals nothing usable.
@@ -42,7 +42,7 @@ Built as a Next.js application with intentional tradeoffs:
 
 ## Quick start
 
-The fastest way to run clearvote is with Docker Compose.
+The fastest way to run ClearVote is with Docker Compose.
 
 ### Prerequisites
 
@@ -53,8 +53,8 @@ The fastest way to run clearvote is with Docker Compose.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/ThatDavis/clearvote.git
-cd clearvote
+git clone https://github.com/ThatDavis/ClearVote.git
+cd ClearVote
 
 # 2. Copy and configure environment variables
 cp .env.example .env
@@ -97,7 +97,7 @@ docker compose -f docker-compose.prod.yml up -d
 
 ## Development
 
-If you want to hack on clearvote locally:
+If you want to hack on ClearVote locally:
 
 ```bash
 # Install dependencies
