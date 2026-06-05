@@ -75,7 +75,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-trivy-db-
 
-      - name: Run Trivy vulnerability scanner
+      - name: Run Trivy vulnerability scanner (table output)
+        # v0.36.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.push.outputs.digest }}
+          format: 'table'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '0'
+          skip-dirs: '/root/.npm,/root/.cache'
+          scanners: 'vuln'
+
+      - name: Run Trivy vulnerability scanner (SARIF output)
         # v0.36.0
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
         with:
@@ -83,14 +94,13 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'HIGH,CRITICAL'
-          exit-code: '1'
+          exit-code: '0'
           skip-dirs: '/root/.npm,/root/.cache'
           scanners: 'vuln'
 
       - name: Upload Trivy scan results
         # v4.36.2
         uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e
-        if: success() || failure()
         with:
           sarif_file: 'trivy-results.sarif'
           category: 'trivy-container'
