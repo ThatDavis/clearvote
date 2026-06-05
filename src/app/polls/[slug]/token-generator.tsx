@@ -11,6 +11,59 @@ interface Props {
   slug: string
 }
 
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false)
+
+  async function copy() {
+    await navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      className={`shrink-0 rounded-md px-2 py-1 text-xs font-medium transition-all ${
+        copied ? 'bg-green-100 text-green-700' : 'bg-zinc-200 text-zinc-600 hover:bg-zinc-300'
+      }`}
+    >
+      {copied ? (
+        <span className="flex items-center gap-1">
+          <svg
+            aria-hidden="true"
+            className="h-3 w-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          Copied
+        </span>
+      ) : (
+        <span className="flex items-center gap-1">
+          <svg
+            aria-hidden="true"
+            className="h-3 w-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+            />
+          </svg>
+          Copy
+        </span>
+      )}
+    </button>
+  )
+}
+
 export default function TokenGenerator({ slug }: Props) {
   const [count, setCount] = useState(10)
   const [loading, setLoading] = useState(false)
@@ -78,15 +131,9 @@ export default function TokenGenerator({ slug }: Props) {
             {tokens.map((t) => {
               const link = `${origin}/vote/${slug}?token=${t.token}`
               return (
-                <li key={t.id}>
-                  <button
-                    type="button"
-                    className="text-zinc-500 hover:text-zinc-900"
-                    onClick={() => navigator.clipboard.writeText(link)}
-                    title="Click to copy"
-                  >
-                    {link}
-                  </button>
+                <li key={t.id} className="flex items-center gap-2">
+                  <code className="flex-1 truncate text-zinc-600">{link}</code>
+                  <CopyButton text={link} />
                 </li>
               )
             })}

@@ -20,7 +20,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const user = await prisma.user.findUnique({
           where: { email },
-          include: { organization: { select: { name: true } } },
+          include: {
+            memberships: {
+              include: {
+                organization: { select: { id: true, name: true, slug: true } },
+              },
+            },
+          },
         })
         if (!user) return null
 
@@ -31,8 +37,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: user.id,
           email: user.email,
           name: user.name,
-          organizationId: user.organizationId ?? null,
-          organizationName: user.organization?.name ?? null,
+          memberships: user.memberships.map((m) => ({
+            organizationId: m.organization.id,
+            organizationName: m.organization.name,
+            organizationSlug: m.organization.slug,
+            role: m.role,
+          })),
         }
       },
     }),
@@ -41,17 +51,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     jwt({ token, user }) {
       if (user) {
         token.id = user.id as string
-        token.organizationId = (user as { organizationId?: string | null }).organizationId ?? null
-        token.organizationName =
-          (user as { organizationName?: string | null }).organizationName ?? null
+        token.memberships =
+          (
+            user as {
+              memberships?: Array<{
+                organizationId: string
+                organizationName: string
+                organizationSlug: string
+                role: string
+              }>
+            }
+          ).memberships ?? []
       }
       return token
     },
     session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
-        session.user.organizationId = (token.organizationId as string) ?? null
-        session.user.organizationName = (token.organizationName as string) ?? null
+        session.user.memberships =
+          (token.memberships as Array<{
+            organizationId: string
+            organizationName: string
+            organizationSlug: string
+            role: string
+          }>) ?? []
       }
       return session
     },

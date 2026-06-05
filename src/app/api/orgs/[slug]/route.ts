@@ -9,8 +9,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
   const org = await prisma.organization.findUnique({
     where: { slug },
     include: {
-      users: {
-        select: { id: true, name: true, email: true },
+      members: {
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+        },
         orderBy: { createdAt: 'asc' },
       },
     },
@@ -20,9 +22,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
   }
 
-  const isMember = session?.user?.organizationId === org.id
+  const membership = session?.user?.memberships?.find((m) => m.organizationId === org.id)
 
-  return NextResponse.json({ ...org, isMember })
+  return NextResponse.json({
+    ...org,
+    isMember: !!membership,
+    isAdmin: membership?.role === 'admin',
+  })
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ slug: string }> }) {
@@ -34,20 +40,32 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
     return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
   }
 
-  if (session?.user?.organizationId !== org.id) {
+  const membership = session?.user?.memberships?.find((m) => m.organizationId === org.id)
+  if (membership?.role !== 'admin') {
     return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
   }
 
   const body = await request.json()
-  const { name } = body as { name?: string }
+  const { name, description } = body as { name?: string; description?: string | null }
 
-  if (!name || name.trim().length === 0) {
-    return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+  const data: { name?: string; description?: string | null } = {}
+  if (name !== undefined) {
+    if (name.trim().length === 0) {
+      return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+    }
+    data.name = name.trim()
+  }
+  if (description !== undefined) {
+    data.description = description?.trim() || null
+  }
+
+  if (Object.keys(data).length === 0) {
+    return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
   }
 
   const updated = await prisma.organization.update({
     where: { slug },
-    data: { name: name.trim() },
+    data,
   })
 
   return NextResponse.json(updated)

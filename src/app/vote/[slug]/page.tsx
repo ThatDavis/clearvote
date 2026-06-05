@@ -29,7 +29,7 @@ export default async function VotePage({
 
   if (poll.status !== 'open') {
     return (
-      <div className="mx-auto max-w-lg px-6 py-32 text-center">
+      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8 text-center">
         <h1 className="text-xl font-semibold">Voting is {poll.status}</h1>
         <p className="mt-2 text-zinc-600">
           {poll.status === 'draft' ? 'This poll has not opened yet.' : 'This poll has closed.'}
@@ -51,7 +51,7 @@ export default async function VotePage({
 
     if (!voterToken) {
       return (
-        <div className="mx-auto max-w-lg px-6 py-32 text-center">
+        <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8 text-center">
           <h1 className="text-xl font-semibold">Invalid token</h1>
           <p className="mt-2 text-zinc-600">This voting link is not valid.</p>
         </div>
@@ -60,7 +60,7 @@ export default async function VotePage({
 
     if (voterToken.usedAt) {
       return (
-        <div className="mx-auto max-w-lg px-6 py-32 text-center">
+        <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8 text-center">
           <h1 className="text-xl font-semibold">Already voted</h1>
           <p className="mt-2 text-zinc-600">This token has already been used.</p>
         </div>
@@ -79,7 +79,7 @@ export default async function VotePage({
 
     if (!onRoll) {
       return (
-        <div className="mx-auto max-w-lg px-6 py-32 text-center">
+        <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8 text-center">
           <h1 className="text-xl font-semibold">Not eligible</h1>
           <p className="mt-2 text-zinc-600">You are not on the voter roll for this poll.</p>
         </div>
@@ -95,7 +95,7 @@ export default async function VotePage({
 
     if (alreadyVoted) {
       return (
-        <div className="mx-auto max-w-lg px-6 py-32 text-center">
+        <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8 text-center">
           <h1 className="text-xl font-semibold">Already voted</h1>
           <p className="mt-2 text-zinc-600">You have already cast a vote in this poll.</p>
         </div>
@@ -103,7 +103,7 @@ export default async function VotePage({
     }
   } else {
     return (
-      <div className="mx-auto max-w-lg px-6 py-32 text-center">
+      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8 text-center">
         <h1 className="text-xl font-semibold">Authentication required</h1>
         <p className="mt-2 text-zinc-600">
           This poll requires authentication. Please log in to vote.

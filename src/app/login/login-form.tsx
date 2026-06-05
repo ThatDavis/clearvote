@@ -1,11 +1,10 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { useState } from 'react'
 
 export default function LoginForm() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -34,12 +33,11 @@ export default function LoginForm() {
     }
 
     const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
-    router.push(callbackUrl)
-    router.refresh()
+    window.location.href = callbackUrl
   }
 
   return (
-    <div className="mx-auto max-w-sm px-6 py-32">
+    <div className="mx-auto max-w-md px-4 py-16 sm:px-6 lg:px-8 sm:py-24">
       <h1 className="text-2xl font-semibold tracking-tight">Log in</h1>
 
       {registered && (

@@ -8,29 +8,44 @@ datasource db {
 }
 
 model Organization {
-  id        String   @id @default(uuid())
-  name      String
-  slug      String   @unique
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  slug        String   @unique
+  createdAt   DateTime @default(now())
 
-  users User[]
-  polls Poll[]
+  members OrganizationMember[]
+  polls   Poll[]
+}
+
+model OrganizationMember {
+  id             String   @id @default(uuid())
+  userId         String
+  organizationId String
+  role           String   @default("member") // admin | member
+  createdAt      DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
 }
 
 model User {
-  id             String        @id @default(uuid())
-  email          String        @unique
-  name           String
-  passwordHash   String
-  organizationId String?
-  createdAt      DateTime      @default(now())
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
 
-  organization Organization? @relation(fields: [organizationId], references: [id])
-  polls         Poll[]
-  ballots       Ballot[]
-  rolls         VoterRoll[]
-  principalFor  Proxy[]  @relation("Principal")
-  proxyFor      Proxy[]  @relation("Proxy")
+  memberships  OrganizationMember[]
+  polls        Poll[]
+  ballots      Ballot[]
+  rolls        VoterRoll[]
+  principalFor Proxy[]  @relation("Principal")
+  proxyFor     Proxy[]  @relation("Proxy")
 }
 
 model Poll {
@@ -53,10 +68,10 @@ model Poll {
   organization Organization? @relation(fields: [organizationId], references: [id])
   options      PollOption[]
   ballots      Ballot[]
-  tokens     VoterToken[]
-  rolls      VoterRoll[]
-  auditLogs  AuditLog[]
-  proxies    Proxy[]
+  tokens       VoterToken[]
+  rolls        VoterRoll[]
+  auditLogs    AuditLog[]
+  proxies      Proxy[]
 }
 
 model PollOption {
