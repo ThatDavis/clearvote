@@ -23,7 +23,7 @@
 ## Milestone 5: Election Security & Audit Hardening
 
 **Goal:** Close active vulnerabilities and add the ballot-secrecy and audit guarantees a credible election requires. Surfaced by a security/integrity review on 2026-06-05.
-**Status:** In Progress — Remediation (Issue #9)
+**Status:** Complete (Issue #9 closed, PR #10 merged)
 
 ### Phase A: Critical — active vulnerabilities
 - [x] A1: Protect `GET /api/polls/[slug]/tokens` — currently unauthenticated, returns every valid voting token by slug. Require `canManagePoll`; stop returning raw token values after creation. (`src/app/api/polls/[slug]/tokens/route.ts:7-21`)
@@ -93,6 +93,8 @@ v1 = Phases A, B, D, E, F. Phase C (ballot styles) is the fast-follow.
 - Milestone 2 (2026-06-04): Auth & Voter Integrity — user accounts (Auth.js v5), signup/login, session management, auth-gated poll management, voter roll management, authenticated voting, one-vote-per-person enforcement, user dashboard.
 - Milestone 2.5 (2026-06-04): Organization Accounts — dual-path signup (individual + org), Organization model, org-scoped polls, org-level authorization, member management, org dashboard. Fresh schema.
 - Milestone 3 (2026-06-04): Advanced Voting & Management — STV with fractional surplus transfer, approval voting, yes/no referendums, timed polls, audit logs, proxy voting, enhanced dashboard.
+- Milestone 5 (2026-06-05): Election Security & Audit Hardening — all remediation items applied (A1-A3, B1-B4, C1-C3, FIX-1 through FIX-5). C4 (email verification) reverted and deferred.
+- Email Notifications (2026-06-05): Welcome email on registration, poll-open notifications to voter roll, org invite emails with acceptance flow, pending invite UI with resend. PR #10.
 
 ---
 
@@ -103,12 +105,6 @@ v1 = Phases A, B, D, E, F. Phase C (ballot styles) is the fast-follow.
 
 ## Active Feature
 
-Milestone 5: Election Security & Audit Hardening — Remediation (Issue #9, branch fix/9-milestone-5-remediation)
-- [x] FIX-2: Atomic credential claim — replace transaction body with updateMany+count guard, add AlreadyVotedError, add route test for double-vote race
-- [x] FIX-1 Option A: Revert email-verification gate — remove checks from roll/route.ts and distribute/route.ts, keep emailVerified column
-- [x] FIX-4: Approval voting tie-break — add deterministic sort, add test, document in SPEC.md
-- [x] FIX-3: Rate limiter scope — add header comment, narrow auth limiter to credentials callback only
-- [x] FIX-5: Remove dead secret check — simplify generateReceipt, keep env.ts as single source
-- [x] Update PLAN.md and CONTINUITY.md — mark C4 reopened, reflect approval gap fixed
+No active feature. Next: Milestone 6 — Multi-Poll Ballots (Elections). See docs/MILESTONE-6-IMPLEMENTATION.md for the build guide.
 
 ---
