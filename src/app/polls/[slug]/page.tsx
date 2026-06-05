@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
+import OrgPollDistributor from './org-poll-distributor'
+import PollDistributor from './poll-distributor'
 import StatusControls from './status-controls'
 import TokenGenerator from './token-generator'
 import VoterRollManager from './voter-roll-manager'
@@ -15,6 +17,9 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
     include: {
       options: {
         orderBy: { order: 'asc' },
+      },
+      organization: {
+        select: { slug: true },
       },
       _count: {
         select: { ballots: true, tokens: true },
@@ -148,6 +153,11 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
       {userCanManage && (
         <div className="mt-8 space-y-6">
           <StatusControls slug={poll.slug} status={poll.status} />
+          {poll.organizationId && poll.organization ? (
+            <OrgPollDistributor slug={poll.slug} orgSlug={poll.organization.slug} />
+          ) : (
+            <PollDistributor slug={poll.slug} pollId={poll.id} />
+          )}
           <TokenGenerator slug={poll.slug} />
           <VoterRollManager slug={poll.slug} />
         </div>

@@ -18,6 +18,7 @@ export default async function CreateOrgPage() {
     }
 
     const name = (formData.get('name') as string).trim()
+    const description = (formData.get('description') as string)?.trim() || null
     if (!name) {
       return redirect('/orgs/new?error=Organization name is required')
     }
@@ -26,7 +27,7 @@ export default async function CreateOrgPage() {
 
     await prisma.$transaction(async (tx) => {
       const org = await tx.organization.create({
-        data: { name, slug },
+        data: { name, description, slug },
       })
 
       await tx.organizationMember.create({
@@ -59,6 +60,20 @@ export default async function CreateOrgPage() {
             type="text"
             required
             placeholder="Your co-op, HOA, or union name"
+            className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="description" className="block text-sm font-medium">
+            Description
+            <span className="ml-1 text-zinc-400">(optional)</span>
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            rows={3}
+            placeholder="What does your organization do?"
             className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
           />
         </div>

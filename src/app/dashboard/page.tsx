@@ -18,6 +18,17 @@ export default async function DashboardPage() {
     orderBy: { createdAt: 'desc' },
   })
 
+  const myOrganizations = await prisma.organization.findMany({
+    where: {
+      members: {
+        some: {
+          userId: session.user.id,
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  })
+
   const myRolls = await prisma.voterRoll.findMany({
     where: { userId: session.user.id },
     include: {
@@ -113,6 +124,48 @@ export default async function DashboardPage() {
           New poll
         </Link>
       </div>
+
+      {myOrganizations.length > 0 && (
+        <section className="mb-10">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-zinc-900">Your organizations</h2>
+            <Link
+              href="/orgs/new"
+              className="text-sm text-chicago-red hover:text-chicago-red-dark transition-colors"
+            >
+              + Create organization
+            </Link>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {myOrganizations.map((org) => (
+              <Link
+                key={org.id}
+                href={`/org/${org.slug}`}
+                className="group flex flex-col rounded-xl border-2 border-zinc-200 bg-white p-5 shadow-sm transition-all hover:border-chicago-blue/40 hover:shadow-md hover:-translate-y-0.5"
+              >
+                <h3 className="text-sm font-semibold text-zinc-900 group-hover:text-chicago-navy transition-colors">
+                  {org.name}
+                </h3>
+                {org.description && (
+                  <p className="mt-2 text-sm text-zinc-500 line-clamp-2">{org.description}</p>
+                )}
+                <div className="mt-4 flex items-center gap-1 text-xs text-chicago-blue">
+                  <span>Manage organization</span>
+                  <svg
+                    aria-hidden="true"
+                    className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="mb-10">
         <div className="mb-4 flex items-center justify-between">
