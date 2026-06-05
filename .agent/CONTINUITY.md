@@ -28,27 +28,27 @@ Dependency order: Poll → Status → Tokens → Voting → Tally → Results �
 ### Future Milestones
 - Milestone 3 — Vote & Voter Management: dashboards, multi-winner STV, deadlines, proxy voting
 
-### Milestone 2: Auth & Voter Integrity (In Progress)
+### Milestone 2: Auth & Voter Integrity (Completed 2026-06-04)
 Goal: User accounts, authenticated voting, one-vote-per-person enforcement, voter roll management.
 
 Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT sessions — no database session tables.
 
 #### Phase A: Auth Foundation
-- [ ] A1: Add User model, add creatorId to Poll, install next-auth + bcryptjs
-- [ ] A2: Auth.js config (src/auth.ts), middleware, API route handler
-- [ ] A3: Signup + login pages, session display in layout
+- [x] A1: Add User model, add creatorId to Poll, install next-auth + bcryptjs
+- [x] A2: Auth.js config (src/auth.ts), middleware, API route handler
+- [x] A3: Signup + login pages, session display in layout
 
 #### Phase B: Auth-Gated Poll Management
-- [ ] B1: Protect poll creation (POST /api/polls) behind auth, set creatorId
-- [ ] B2: Restrict poll management (status, tokens) to poll creator
+- [x] B1: Protect poll creation (POST /api/polls) behind auth, set creatorId
+- [x] B2: Restrict poll management (status, tokens) to poll creator
 
 #### Phase C: Voter Rolls & Authenticated Voting
-- [ ] C1: Update VoterRoll to use userId, add voter roll management UI
-- [ ] C2: Add userId to Ballot (optional), auth-gated ballot submission
-- [ ] C3: Enforce one-vote-per-person for authenticated votes
+- [x] C1: Update VoterRoll to use userId, add voter roll management UI
+- [x] C2: Add userId to Ballot (optional), auth-gated ballot submission
+- [x] C3: Enforce one-vote-per-person for authenticated votes
 
 #### Phase D: Dashboard
-- [ ] D1: User dashboard — polls I created + polls I can vote on
+- [x] D1: User dashboard — polls I created + polls I can vote on
 
 ### Open Questions
 - [ ] Should we support "equal ranking" where a voter gives two candidates the same rank?
@@ -65,6 +65,7 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 |------|---------------|
 | 2026-06-04 | Initial scaffold. Stack: TypeScript + Next.js + PostgreSQL + Prisma + Tailwind + Vitest + Biome + Docker Compose. |
 | 2026-06-04 | M1 complete: poll creation, status lifecycle, RCV tally (10 tests), voter token generation, drag-and-drop voting, results page, vote receipts. |
+| 2026-06-04 | M2 complete: Auth.js v5 setup, signup/login, session management, auth-gated polls, voter roll management, authenticated voting, one-vote-per-person, user dashboard. |
 
 ## [DISCOVERIES]
 
