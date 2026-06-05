@@ -6,27 +6,27 @@
 
 ## [PLANS]
 
-### Milestone 5: Election Security & Audit Hardening (In Progress, opened 2026-06-05)
+### Milestone 5: Election Security & Audit Hardening (Completed 2026-06-05)
 Goal: Close active vulnerabilities and add the ballot-secrecy + audit guarantees a credible election requires. Surfaced by a security/integrity review of the codebase.
 
 Priority order: Phase A (active holes) → Phase B (integrity/trust) → Phase C (correctness/process).
 
 #### Phase A: Critical — active vulnerabilities
-- [ ] A1: Protect `GET /api/polls/[slug]/tokens` — unauthenticated, leaks every voting token by slug. Require canManagePoll; stop returning raw token values.
-- [ ] A2: Fix token-gen authz bypass — `session?.user?.id && !canManagePoll` lets anonymous requests through on draft polls. Require session AND canManagePoll; audit all `session?.user?.id && …` guards.
-- [ ] A3: Separate ballot content from voter identity — ballots store userId + voterToken (fully linkable). Sever the link at cast time. Schema change.
+- [x] A1: Protect `GET /api/polls/[slug]/tokens` — unauthenticated, leaks every voting token by slug. Require canManagePoll; stop returning raw token values.
+- [x] A2: Fix token-gen authz bypass — `session?.user?.id && !canManagePoll` lets anonymous requests through on draft polls. Require session AND canManagePoll; audit all `session?.user?.id && …` guards.
+- [x] A3: Separate ballot content from voter identity — ballots store userId + voterToken (fully linkable). Sever the link at cast time. Schema change.
 
 #### Phase B: Integrity & trust
-- [ ] B1: Implement AuditLog writes (token batch, poll open/close, roll changes, ballot cast time, results viewed); append-only / hash-chained.
-- [ ] B2: Replace deterministic receipt (sha256 of ballotId+AUTH_SECRET, 'dev-secret' fallback) with random 128-bit code; fail fast if AUTH_SECRET unset.
-- [ ] B3: Store token hashes, not plaintext UUIDs.
-- [ ] B4: Rate-limit login, ballot casting, /api/verify.
+- [x] B1: Implement AuditLog writes (token batch, poll open/close, roll changes, ballot cast time, results viewed); append-only / hash-chained.
+- [x] B2: Replace deterministic receipt (sha256 of ballotId+AUTH_SECRET, 'dev-secret' fallback) with random 128-bit code; fail fast if AUTH_SECRET unset.
+- [x] B3: Store token hashes, not plaintext UUIDs.
+- [x] B4: Rate-limit login, ballot casting, /api/verify.
 
 #### Phase C: Correctness & process
-- [ ] C1: Deterministic, documented tie-breaking (RCV/STV/approval).
-- [ ] C2: Shuffle ballots on results page; gate per-ballot dump behind closure.
-- [ ] C3: Finish or remove proxy voting (no double-vote).
-- [ ] C4: Email verification before roll eligibility.
+- [x] C1: Deterministic, documented tie-breaking (RCV/STV/approval).
+- [x] C2: Shuffle ballots on results page; gate per-ballot dump behind closure.
+- [x] C3: Finish or remove proxy voting (no double-vote).
+- [x] C4: Email verification before roll eligibility.
 
 ### Milestone 1: Core Voting Engine (Completed 2026-06-04)
 Goal: Anonymous polls with ranked-choice voting and instant-runoff tally.
@@ -157,6 +157,7 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 
 - 2026-06-04: Initial stack — TypeScript + Next.js + PostgreSQL + Prisma + Tailwind + Vitest + Biome. Rationale: full-stack in one language, RDBMS for ballot integrity, mature ecosystem.
 - 2026-06-04: Deep-plan validated M2.5 (Organization Accounts). Key decisions: optional org affiliation on User/Poll, atomic org+admin creation, org-level poll authorization, member management included. Fresh schema start.
+- 2026-06-05: Deep-plan validated Milestone 5 (Election Security & Audit Hardening). Key decisions: fix auth holes first (A1/A2), then ballot secrecy refactor (A3), then integrity features (B1-B4), then correctness (C1-C4). A3 uses separate VoterEligibility table to prevent double-vote while severing ballot→voter link.
 
 ## [PROGRESS]
 
@@ -178,6 +179,18 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 |  |    - Create email templates and send vote invite emails via Resend or SMTP |
 |  |    - Update tests and run full test suite |
 | 2026-06-05 | Security/election-integrity review of the codebase. Opened Milestone 5 (Election Security & Audit Hardening) in PLAN.md + CONTINUITY with 11 tracked items across 3 priority phases. No code changes yet. |
+| 2026-06-05 | Completed Milestone 5: Election Security & Audit Hardening. All 11 items (A1-A3, B1-B4, C1-C4) implemented and tested. Issue #7, branch feature/7-milestone-5-election-security-audit-hardening. |
+|  |    ✓ A1: Protect GET /api/polls/[slug]/tokens with canManagePoll |
+|  |    ✓ A2: Fix token-generation authz bypass (session?.user?.id && pattern) |
+|  |    ✓ A3: Separate ballot content from voter identity |
+|  |    ✓ B1: Implement AuditLog writes |
+|  |    ✓ B2: Replace deterministic receipt code |
+|  |    ✓ B3: Store token hashes, not plaintext |
+|  |    ✓ B4: Add rate limiting |
+|  |    ✓ C1: Deterministic tie-breaking |
+|  |    ✓ C2: Shuffle ballots on results page |
+|  |    ✓ C3: Finish or remove proxy voting |
+|  |    ✓ C4: Require email verification before roll eligibility |
 
 ## [DISCOVERIES]
 
@@ -189,3 +202,13 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 ## [OUTCOMES]
 
 - M1 (2026-06-04): Core Voting Engine delivered — poll CRUD, status lifecycle, voter token system, drag-and-drop voting, RCV instant-runoff tally (10 unit tests), public results with anonymized ballots, vote receipt verification. PR: #1.
+
+### Milestone 5: Election Security & Audit Hardening (2026-06-05)
+- Closed 11 security holes and added election integrity guarantees across 3 phases
+- Secured tokens route, fixed authz bypasses across all poll management routes
+- Separated ballot content from voter identity (removed userId/voterToken from Ballot)
+- Implemented audit logging for all significant election events
+- Added random 128-bit receipt codes, SHA-256 token hashing, and rate limiting
+- Deterministic tie-breaking for RCV/STV, ballot privacy on results page
+- Removed incomplete proxy voting system, required email verification for voter rolls
+- PR: #8 | Issue: #7

@@ -34,18 +34,16 @@ model OrganizationMember {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  name         String
-  passwordHash String
-  createdAt    DateTime @default(now())
+  id             String    @id @default(uuid())
+  email          String    @unique
+  emailVerified  DateTime?
+  name           String
+  passwordHash   String
+  createdAt      DateTime  @default(now())
 
   memberships  OrganizationMember[]
   polls        Poll[]
-  ballots      Ballot[]
   rolls        VoterRoll[]
-  principalFor Proxy[]  @relation("Principal")
-  proxyFor     Proxy[]  @relation("Proxy")
 }
 
 model Poll {
@@ -71,7 +69,6 @@ model Poll {
   tokens       VoterToken[]
   rolls        VoterRoll[]
   auditLogs    AuditLog[]
-  proxies      Proxy[]
 }
 
 model PollOption {
@@ -89,37 +86,35 @@ model PollOption {
 model Ballot {
   id          String   @id @default(uuid())
   pollId      String
-  userId      String?
-  voterToken  String
   rankings    Json
   receiptCode String   @unique
   castAt      DateTime @default(now())
   verifiedAt  DateTime?
 
   poll Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
-  user User? @relation(fields: [userId], references: [id])
 
-  @@unique([pollId, voterToken])
   @@index([pollId])
 }
 
 model VoterToken {
-  id        String    @id @default(uuid())
-  pollId    String
-  token     String
-  usedAt    DateTime?
-  createdAt DateTime  @default(now())
+  id         String    @id @default(uuid())
+  pollId     String
+  tokenHash  String
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
 
   poll Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
 
-  @@unique([pollId, token])
+  @@unique([pollId, tokenHash])
   @@index([pollId])
 }
 
 model VoterRoll {
-  id     String @id @default(uuid())
-  pollId String
-  userId String
+  id        String    @id @default(uuid())
+  pollId    String
+  userId    String
+  hasVoted  Boolean   @default(false)
+  votedAt   DateTime?
 
   poll Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id])
@@ -140,17 +135,4 @@ model AuditLog {
   @@index([pollId])
 }
 
-model Proxy {
-  id          String   @id @default(uuid())
-  pollId      String
-  principalId String
-  proxyId     String
-  createdAt   DateTime @default(now())
 
-  poll      Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
-  principal User @relation("Principal", fields: [principalId], references: [id])
-  proxy     User @relation("Proxy", fields: [proxyId], references: [id])
-
-  @@unique([pollId, principalId])
-  @@index([pollId])
-}

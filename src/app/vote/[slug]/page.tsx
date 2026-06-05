@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
+import { hashToken } from '@/lib/token'
 import VoteForm from './vote-form'
 
 export default async function VotePage({
@@ -40,11 +41,12 @@ export default async function VotePage({
 
   if (token) {
     // Token-based anonymous voting
+    const tokenHash = hashToken(token)
     const voterToken = await prisma.voterToken.findUnique({
       where: {
-        pollId_token: {
+        pollId_tokenHash: {
           pollId: poll.id,
-          token,
+          tokenHash,
         },
       },
     })
@@ -86,14 +88,7 @@ export default async function VotePage({
       )
     }
 
-    const alreadyVoted = await prisma.ballot.findFirst({
-      where: {
-        pollId: poll.id,
-        userId: session.user.id,
-      },
-    })
-
-    if (alreadyVoted) {
+    if (onRoll.hasVoted) {
       return (
         <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8 text-center">
           <h1 className="text-xl font-semibold">Already voted</h1>

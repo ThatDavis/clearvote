@@ -46,7 +46,9 @@ export default function OrgPollDistributor({ slug, orgSlug, locked }: Props) {
 
     fetch(`/api/polls/${slug}/roll`)
       .then((res) => res.json())
-      .then((data) => { if (Array.isArray(data)) setVoters(data) })
+      .then((data) => {
+        if (Array.isArray(data)) setVoters(data)
+      })
   }, [orgSlug, slug])
 
   async function handleDistribute() {
@@ -81,7 +83,9 @@ export default function OrgPollDistributor({ slug, orgSlug, locked }: Props) {
     // Refresh the voter roll
     fetch(`/api/polls/${slug}/roll`)
       .then((r) => r.json())
-      .then((d) => { if (Array.isArray(d)) setVoters(d) })
+      .then((d) => {
+        if (Array.isArray(d)) setVoters(d)
+      })
   }
 
   async function handleRemove(userId: string) {
@@ -185,7 +189,9 @@ export default function OrgPollDistributor({ slug, orgSlug, locked }: Props) {
                     Errors ({results.errors.length})
                   </p>
                   {results.errors.map((e) => (
-                    <p key={e} className="text-xs text-red-600">{e}</p>
+                    <p key={e} className="text-xs text-red-600">
+                      {e}
+                    </p>
                   ))}
                 </div>
               )}

@@ -85,12 +85,13 @@ export function tallyStv(
     // If all seats filled, break
     if (elected.size >= seats) break
 
-    // Find candidates to eliminate (lowest vote among non-elected)
+    // Find candidates to eliminate (lowest vote among non-elected; deterministic tie-break)
     const nonElected = voteList.filter((v) => !elected.has(v.optionId))
     if (nonElected.length === 0) break
 
     const minVotes = nonElected[nonElected.length - 1].count
-    const toEliminate = nonElected.filter((v) => v.count === minVotes).map((v) => v.optionId)
+    const tied = nonElected.filter((v) => v.count === minVotes).map((v) => v.optionId)
+    const toEliminate = tied.length > 1 ? [tied.sort()[0]] : tied
 
     // Don't eliminate if it would remove all remaining candidates
     if (toEliminate.length === remaining.length - roundElected.length) {

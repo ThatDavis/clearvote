@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
+import { auditLog } from '@/lib/audit'
 import { canManagePoll } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
@@ -33,12 +34,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
   }
 
-  if (session?.user?.id && !(await canManagePoll(poll.id, session.user.id))) {
+  if (!session?.user?.id || !(await canManagePoll(poll.id, session.user.id))) {
     return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
   }
 
   if (poll.status !== 'draft') {
-    return NextResponse.json({ error: 'Cannot modify voter roll after poll is open' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Cannot modify voter roll after poll is open' },
+      { status: 400 },
+    )
   }
 
   const body = await request.json()
@@ -54,6 +58,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
 
   if (!user) {
     return NextResponse.json({ error: 'No user found with that email' }, { status: 404 })
+  }
+
+  if (!user.emailVerified) {
+    return NextResponse.json(
+      { error: 'User must verify their email before being added to the voter roll' },
+      { status: 400 },
+    )
   }
 
   const existing = await prisma.voterRoll.findUnique({
@@ -81,6 +92,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     },
   })
 
+  await auditLog({
+    pollId: poll.id,
+    action: 'voter_added',
+    detail: `Added ${user.email} to voter roll`,
+  })
+
   return NextResponse.json(entry, { status: 201 })
 }
 
@@ -93,12 +110,15 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ s
     return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
   }
 
-  if (session?.user?.id && !(await canManagePoll(poll.id, session.user.id))) {
+  if (!session?.user?.id || !(await canManagePoll(poll.id, session.user.id))) {
     return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
   }
 
   if (poll.status !== 'draft') {
-    return NextResponse.json({ error: 'Cannot modify voter roll after poll is open' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Cannot modify voter roll after poll is open' },
+      { status: 400 },
+    )
   }
 
   const body = await request.json()
@@ -113,6 +133,12 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ s
       pollId: poll.id,
       userId,
     },
+  })
+
+  await auditLog({
+    pollId: poll.id,
+    action: 'voter_removed',
+    detail: `Removed user ${userId} from voter roll`,
   })
 
   return NextResponse.json({ success: true })

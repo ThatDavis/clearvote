@@ -23,24 +23,24 @@
 ## Milestone 5: Election Security & Audit Hardening
 
 **Goal:** Close active vulnerabilities and add the ballot-secrecy and audit guarantees a credible election requires. Surfaced by a security/integrity review on 2026-06-05.
-**Status:** In Progress
+**Status:** Complete
 
 ### Phase A: Critical — active vulnerabilities
-- [ ] A1: Protect `GET /api/polls/[slug]/tokens` — currently unauthenticated, returns every valid voting token by slug. Require `canManagePoll`; stop returning raw token values after creation. (`src/app/api/polls/[slug]/tokens/route.ts:7-21`)
-- [ ] A2: Fix token-generation authz bypass — guard is `session?.user?.id && !canManagePoll`, so anonymous requests skip the check entirely on draft polls. Require a valid session AND `canManagePoll`. Audit every `session?.user?.id && …` guard across routes for the same hole. (`src/app/api/polls/[slug]/tokens/route.ts:32-34`)
-- [ ] A3: Separate ballot content from voter identity — ballots store both `userId` and `voterToken`, making every vote linkable to a named voter. Sever the link at cast time (mark eligibility used in one table, write rankings + random receipt in another) so ballots are genuinely secret. (`src/app/api/ballots/route.ts:134-143`, schema change)
+- [x] A1: Protect `GET /api/polls/[slug]/tokens` — currently unauthenticated, returns every valid voting token by slug. Require `canManagePoll`; stop returning raw token values after creation. (`src/app/api/polls/[slug]/tokens/route.ts:7-21`)
+- [x] A2: Fix token-generation authz bypass — guard is `session?.user?.id && !canManagePoll`, so anonymous requests skip the check entirely on draft polls. Require a valid session AND `canManagePoll`. Audit every `session?.user?.id && …` guard across routes for the same hole. (`src/app/api/polls/[slug]/tokens/route.ts:32-34`)
+- [x] A3: Separate ballot content from voter identity — ballots store both `userId` and `voterToken`, making every vote linkable to a named voter. Sever the link at cast time (mark eligibility used in one table, write rankings + random receipt in another) so ballots are genuinely secret. (`src/app/api/ballots/route.ts:134-143`, schema change)
 
 ### Phase B: Integrity & trust
-- [ ] B1: Implement `AuditLog` writes — table exists but nothing logs to it. Record token-batch generation, poll open/close, voter-roll add/remove, ballot cast (timestamp only, not who→what), results first viewed. Append-only, ideally hash-chained.
-- [ ] B2: Replace deterministic receipt code — currently `sha256(ballotId:AUTH_SECRET).slice(0,12)` with a `'dev-secret'` fallback (forgeable, ~48 bits). Use `randomBytes(16)`, store it, never derive from a secret. Fail fast at startup if `AUTH_SECRET` is unset. (`src/app/api/ballots/route.ts:6-9`)
-- [ ] B3: Store token hashes, not plaintext — `VoterToken.token` is a raw UUID; hash it (SHA-256) and compare at redemption so a DB leak yields no usable credentials.
-- [ ] B4: Add rate limiting — login, ballot casting, and `/api/verify` have none (token/receipt enumeration, password brute-force).
+- [x] B1: Implement `AuditLog` writes — table exists but nothing logs to it. Record token-batch generation, poll open/close, voter-roll add/remove, ballot cast (timestamp only, not who→what), results first viewed. Append-only, ideally hash-chained.
+- [x] B2: Replace deterministic receipt code — currently `sha256(ballotId:AUTH_SECRET).slice(0,12)` with a `'dev-secret'` fallback (forgeable, ~48 bits). Use `randomBytes(16)`, store it, never derive from a secret. Fail fast at startup if `AUTH_SECRET` is unset. (`src/app/api/ballots/route.ts:6-9`)
+- [x] B3: Store token hashes, not plaintext — `VoterToken.token` is a raw UUID; hash it (SHA-256) and compare at redemption so a DB leak yields no usable credentials.
+- [x] B4: Add rate limiting — login, ballot casting, and `/api/verify` have none (token/receipt enumeration, password brute-force).
 
 ### Phase C: Correctness & process
-- [ ] C1: Deterministic, documented tie-breaking for RCV (returns no winner today), approval, and STV.
-- [ ] C2: Shuffle ballots on the results page and gate the per-ballot dump behind poll closure — insertion-order + small electorate can de-anonymize.
-- [ ] C3: Finish or remove proxy voting — `Proxy` model/routes exist but aren't wired into casting; nothing stops principal and proxy both voting.
-- [ ] C4: Require email verification before a signup can appear on a voter roll (roll eligibility keys off `user.email`).
+- [x] C1: Deterministic, documented tie-breaking for RCV (returns no winner today), approval, and STV.
+- [x] C2: Shuffle ballots on the results page and gate the per-ballot dump behind poll closure — insertion-order + small electorate can de-anonymize.
+- [x] C3: Finish or remove proxy voting — `Proxy` model/routes exist but aren't wired into casting; nothing stops principal and proxy both voting.
+- [x] C4: Require email verification before a signup can appear on a voter roll (roll eligibility keys off `user.email`).
 
 ---
 

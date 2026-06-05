@@ -1,9 +1,10 @@
-import { randomUUID } from 'node:crypto'
+import { randomBytes, randomUUID } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { canManagePoll } from '@/lib/auth'
 import { sendVoteInvite } from '@/lib/email'
 import { prisma } from '@/lib/prisma'
+import { hashToken } from '@/lib/token'
 
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -20,12 +21,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
   }
 
-  if (session?.user?.id && !(await canManagePoll(poll.id, session.user.id))) {
+  if (!session?.user?.id || !(await canManagePoll(poll.id, session.user.id))) {
     return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
   }
 
   if (poll.status !== 'draft') {
-    return NextResponse.json({ error: 'Cannot modify voter roll after poll is open' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Cannot modify voter roll after poll is open' },
+      { status: 400 },
+    )
   }
 
   const body = await request.json()
@@ -56,6 +60,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       })
 
       if (user) {
+        if (!user.emailVerified) {
+          results.errors.push(`${normalizedEmail} has not verified their email`)
+          continue
+        }
         // Add to voter roll
         try {
           await prisma.voterRoll.create({
@@ -71,11 +79,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
         }
       } else {
         // Generate token for non-registered user
-        const token = randomUUID()
+        const token = randomBytes(32).toString('hex')
         await prisma.voterToken.create({
           data: {
             pollId: poll.id,
-            token,
+            tokenHash: hashToken(token),
           },
         })
         results.tokensGenerated.push({ email: normalizedEmail, token })
@@ -100,6 +108,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   // Handle org memberIds
   if (memberIds && memberIds.length > 0) {
     for (const userId of memberIds) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+      })
+
+      if (!user) {
+        results.errors.push(`User ${userId} not found`)
+        continue
+      }
+
+      if (!user.emailVerified) {
+        results.errors.push(`${user.email} has not verified their email`)
+        continue
+      }
+
       try {
         await prisma.voterRoll.create({
           data: {
@@ -108,21 +130,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
           },
         })
 
-        // Get user email for notification
-        const user = await prisma.user.findUnique({
-          where: { id: userId },
-          select: { email: true },
+        const voteLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/vote/${slug}`
+        await sendVoteInvite({
+          to: user.email,
+          pollTitle: poll.title,
+          voteLink,
         })
-
-        if (user) {
-          const voteLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/vote/${slug}`
-          await sendVoteInvite({
-            to: user.email,
-            pollTitle: poll.title,
-            voteLink,
-          })
-          results.emailsSent.push(user.email)
-        }
+        results.emailsSent.push(user.email)
 
         results.addedToRoll.push(userId)
       } catch {

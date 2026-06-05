@@ -1,15 +1,31 @@
-import { createHash } from 'node:crypto'
+import { randomBytes } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
+import { auditLog } from '@/lib/audit'
 import { prisma } from '@/lib/prisma'
+import { rateLimit } from '@/lib/rate-limit'
+import { hashToken } from '@/lib/token'
 
-function generateReceipt(ballotId: string): string {
-  const secret = process.env.AUTH_SECRET || 'dev-secret'
-  return createHash('sha256').update(`${ballotId}:${secret}`).digest('hex').slice(0, 12)
+function generateReceipt(): string {
+  const secret = process.env.AUTH_SECRET
+  if (!secret) {
+    throw new Error('AUTH_SECRET is required for receipt generation')
+  }
+  return randomBytes(16).toString('hex')
 }
 
 export async function POST(request: Request) {
   try {
+    // Rate limit: 10 ballots per IP per minute
+    const ip = request.headers.get('x-forwarded-for') || 'unknown'
+    const limit = rateLimit({ key: `ballot:${ip}`, max: 10, windowMs: 60_000 })
+    if (!limit.success) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Please try again later.' },
+        { status: 429 },
+      )
+    }
+
     const session = await auth()
     const body = await request.json()
     const { pollSlug, token, rankings } = body as {
@@ -52,12 +68,18 @@ export async function POST(request: Request) {
 
     if (poll.votingMethod === 'yesno') {
       if (typeof rankings !== 'object' || Array.isArray(rankings)) {
-        return NextResponse.json({ error: 'Invalid rankings format for yes/no poll' }, { status: 400 })
+        return NextResponse.json(
+          { error: 'Invalid rankings format for yes/no poll' },
+          { status: 400 },
+        )
       }
       const validVotes = new Set(['yes', 'no', 'abstain'])
       for (const [id, vote] of Object.entries(rankings)) {
         if (!optionIds.has(id) || !validVotes.has(vote)) {
-          return NextResponse.json({ error: 'Invalid option or vote value in rankings' }, { status: 400 })
+          return NextResponse.json(
+            { error: 'Invalid option or vote value in rankings' },
+            { status: 400 },
+          )
         }
       }
     } else {
@@ -71,16 +93,14 @@ export async function POST(request: Request) {
       }
     }
 
-    let userId: string | null = null
-    let voterTokenValue = token || ''
-
     if (token) {
       // Token-based voting (anonymous)
+      const tokenHash = hashToken(token)
       const voterToken = await prisma.voterToken.findUnique({
         where: {
-          pollId_token: {
+          pollId_tokenHash: {
             pollId: poll.id,
-            token,
+            tokenHash,
           },
         },
       })
@@ -92,8 +112,6 @@ export async function POST(request: Request) {
       if (voterToken.usedAt) {
         return NextResponse.json({ error: 'This token has already been used' }, { status: 409 })
       }
-
-      voterTokenValue = token
     } else if (session?.user?.id) {
       // Authenticated voting
       const onRoll = await prisma.voterRoll.findUnique({
@@ -112,18 +130,9 @@ export async function POST(request: Request) {
         )
       }
 
-      const alreadyVoted = await prisma.ballot.findFirst({
-        where: {
-          pollId: poll.id,
-          userId: session.user.id,
-        },
-      })
-
-      if (alreadyVoted) {
+      if (onRoll.hasVoted) {
         return NextResponse.json({ error: 'You have already voted in this poll' }, { status: 409 })
       }
-
-      userId = session.user.id
     } else {
       return NextResponse.json(
         { error: 'A voting token or authenticated session is required' },
@@ -132,36 +141,47 @@ export async function POST(request: Request) {
     }
 
     const ballot = await prisma.$transaction(async (tx) => {
+      const receipt = generateReceipt()
+
       const b = await tx.ballot.create({
         data: {
           pollId: poll.id,
-          userId,
-          voterToken: voterTokenValue,
           rankings: rankings as unknown as string[],
-          receiptCode: '',
+          receiptCode: receipt,
         },
       })
 
-      const receipt = generateReceipt(b.id)
-
-      const updated = await tx.ballot.update({
-        where: { id: b.id },
-        data: { receiptCode: receipt },
-      })
-
       if (token) {
+        const tokenHash = hashToken(token)
         await tx.voterToken.update({
           where: {
-            pollId_token: {
+            pollId_tokenHash: {
               pollId: poll.id,
-              token,
+              tokenHash,
             },
           },
           data: { usedAt: new Date() },
         })
+      } else if (session?.user?.id) {
+        await tx.voterRoll.update({
+          where: {
+            pollId_userId: {
+              pollId: poll.id,
+              userId: session.user.id,
+            },
+          },
+          data: { hasVoted: true, votedAt: new Date() },
+        })
       }
 
-      return updated
+      await auditLog({
+        pollId: poll.id,
+        action: 'ballot_cast',
+        detail: `Ballot cast at ${new Date().toISOString()}`,
+        tx,
+      })
+
+      return b
     })
 
     return NextResponse.json(
@@ -172,7 +192,8 @@ export async function POST(request: Request) {
       },
       { status: 201 },
     )
-  } catch {
+  } catch (error) {
+    console.error('Ballot creation error:', error)
     return NextResponse.json({ error: 'Failed to cast vote' }, { status: 500 })
   }
 }

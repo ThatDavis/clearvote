@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
+import { auditLog } from '@/lib/audit'
 import { canManagePoll } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
@@ -37,10 +38,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
     return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
   }
 
-  if (session?.user?.id && !(await canManagePoll(poll.id, session.user.id))) {
-    return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
-  }
-  if (!session?.user?.id && poll.creatorId) {
+  if (!session?.user?.id || !(await canManagePoll(poll.id, session.user.id))) {
     return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
   }
 
@@ -93,6 +91,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
     where: { slug },
     data: { status },
     include: { options: { orderBy: { order: 'asc' } } },
+  })
+
+  await auditLog({
+    pollId: poll.id,
+    action: status === 'open' ? 'poll_opened' : 'poll_closed',
   })
 
   return NextResponse.json(updated)
