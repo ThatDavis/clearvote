@@ -68,23 +68,25 @@ The application will be available at `http://localhost:3000`.
 
 ### Environment variables
 
-Required variables (the container will fail to start without these):
+Required (the container will fail to start without these):
 
 | Variable | Purpose |
 |----------|---------|
-| `DATABASE_URL` | PostgreSQL connection string |
+| `DB_PASSWORD` | PostgreSQL password |
 | `AUTH_SECRET` | Random string for JWT signing (generate with `openssl rand -base64 32`) |
 | `NEXT_PUBLIC_APP_URL` | Public URL of your instance |
 
-Optional email configuration (for voter notifications):
+Optional:
 
-| Variable | Purpose |
-|----------|---------|
-| `EMAIL_PROVIDER` | `resend` or `smtp` |
-| `RESEND_API_KEY` | API key for Resend (cloud email) |
-| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` | SMTP server details |
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `DB_USER` | `clearvote` | PostgreSQL username |
+| `DB_NAME` | `clearvote` | PostgreSQL database name |
+| `EMAIL_PROVIDER` | `resend` | Email provider (`resend` or `smtp`) |
+| `RESEND_API_KEY` | - | API key for Resend |
+| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` | - | SMTP server details |
 
-See `docker-compose.prod.yml` for the complete list.
+The `DATABASE_URL` is constructed automatically from `DB_USER`, `DB_PASSWORD`, and `DB_NAME`. See `docker-compose.prod.yml` for the complete list.
 
 ### Updating
 
