@@ -97,6 +97,10 @@ v1 = Phases A, B, D, E, F. Phase C (ballot styles) is the fast-follow.
 - [x] Create optimized Dockerfile with multi-stage build
 - [x] Create container build pipeline with image tagging (git SHA + semver)
 - [x] Add docker-compose configuration for production
+- [x] Pin all GitHub Actions to commit SHA hashes (supply chain security)
+- [x] Add Trivy vulnerability scanning (filesystem + container) with SARIF upload
+- [x] Add pnpm audit for dependency vulnerabilities
+- [x] Add Dependabot config for automated action updates
 
 ---
 
