@@ -18,7 +18,7 @@ Decisions (2026-06-05): reuse `Poll` as contest (Election + nullable `electionId
 - [ ] E: Results/audit/certification — combined per-contest results (shuffled, gated), election audit trail, re-tallyable export
 - [ ] F: Polish — order rotation, accessibility/long ballots, organizer docs
 
-### Milestone 5: Election Security & Audit Hardening (In Progress — Remediation)
+### Milestone 5: Election Security & Audit Hardening (Completed 2026-06-05)
 Goal: Close active vulnerabilities and add the ballot-secrecy + audit guarantees a credible election requires. Surfaced by a security/integrity review of the codebase.
 
 Priority order: Phase A (active holes) → Phase B (integrity/trust) → Phase C (correctness/process).
@@ -38,7 +38,7 @@ Priority order: Phase A (active holes) → Phase B (integrity/trust) → Phase C
 - [x] C1: Deterministic, documented tie-breaking (RCV/STV/approval).
 - [x] C2: Shuffle ballots on results page; gate per-ballot dump behind closure.
 - [x] C3: Finish or remove proxy voting (no double-vote).
-- [ ] C4: Email verification before roll eligibility. **Gate reverted in FIX-1 Option A — needs real verification flow (see docs/MILESTONE-5-REMEDIATION.md FIX-1 Option B).**
+- [ ] C4: Email verification before roll eligibility. **Gate reverted in FIX-1 Option A — needs real verification flow (see docs/MILESTONE-5-REMEDIATION.md FIX-1 Option B). Deferred to future milestone.**
 
 ### Milestone 1: Core Voting Engine (Completed 2026-06-04)
 Goal: Anonymous polls with ranked-choice voting and instant-runoff tally.
@@ -211,6 +211,15 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 |  |    ✓ C2: Shuffle ballots on results page |
 |  |    ✓ C3: Finish or remove proxy voting |
 |  |    ✓ C4: Require email verification before roll eligibility |
+| 2026-06-05 | Email notification system complete and merged (PR #10, branch feature/email-notifications). |
+|  |    - Welcome email on registration via sendWelcomeEmail |
+|  |    - Poll-open notifications sent to all voters on the roll when status transitions to open |
+|  |    - Org invite emails for non-registered users with tokenized acceptance links |
+|  |    - Invite acceptance flow: /org/invite?token=... page + POST /api/org/invite endpoint |
+|  |    - Pending invite UI in member manager with resend/remove actions |
+|  |    - Voter roll mode selector on org poll creation: "All members" or "Custom" |
+|  |    - Docker Compose updated to pass email env vars (RESEND_API_KEY, SMTP_*, NEXT_PUBLIC_APP_URL) |
+|  |    - AGENTS.md updated with post-work verification checklist (build, test, container startup) |
 
 ## [DISCOVERIES]
 
@@ -232,3 +241,12 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 - Deterministic tie-breaking for RCV/STV, ballot privacy on results page
 - Removed incomplete proxy voting system, required email verification for voter rolls
 - PR: #8 | Issue: #7
+
+### Email Notification System (2026-06-05)
+- Welcome email sent on user registration
+- Automatic poll-open notifications to all voters on the roll
+- Org invite emails with tokenized acceptance links for non-registered users
+- Pending invite UI with resend/remove actions in org member manager
+- Voter roll mode selector when creating org polls (all members vs custom)
+- Resend + SMTP dual-provider support with automatic fallback
+- PR: #10

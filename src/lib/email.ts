@@ -68,6 +68,34 @@ async function sendEmail({
   return { success: false, error: 'No email provider configured' }
 }
 
+export async function sendVerificationEmail({
+  to,
+  verifyLink,
+}: {
+  to: string
+  verifyLink: string
+}) {
+  return sendEmail({
+    to,
+    subject: 'Verify your email address',
+    html: `
+      <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+        <h1 style="color: #1a1a1a; font-size: 20px; margin-bottom: 16px;">Verify your email address</h1>
+        <p style="color: #4a4a4a; line-height: 1.6; margin-bottom: 24px;">
+          Thanks for signing up for Clearvote. Click the link below to verify your email address and start voting.
+        </p>
+        <a href="${verifyLink}" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 500;">Verify email address</a>
+        <p style="color: #6a6a6a; font-size: 14px; margin-top: 24px;">
+          Or copy this link: ${verifyLink}
+        </p>
+        <p style="color: #6a6a6a; font-size: 14px; margin-top: 24px;">
+          This link expires in 24 hours.
+        </p>
+      </div>
+    `,
+  })
+}
+
 export async function sendVoteInvite({
   to,
   pollTitle,

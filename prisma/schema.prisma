@@ -56,9 +56,22 @@ model User {
   passwordHash   String
   createdAt      DateTime  @default(now())
 
-  memberships  OrganizationMember[]
-  polls        Poll[]
-  rolls        VoterRoll[]
+  memberships        OrganizationMember[]
+  polls              Poll[]
+  rolls              VoterRoll[]
+  verificationTokens EmailVerificationToken[]
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Poll {
