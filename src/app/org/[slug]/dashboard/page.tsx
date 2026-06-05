@@ -34,7 +34,7 @@ export default async function OrgDashboardPage({ params }: { params: Promise<{ s
   const isAdmin = org.members[0]?.role === 'admin'
 
   const orgPolls = await prisma.poll.findMany({
-    where: { organizationId: org.id },
+    where: { organizationId: org.id, electionId: null },
     include: {
       _count: { select: { ballots: true, tokens: true } },
     },
@@ -44,6 +44,19 @@ export default async function OrgDashboardPage({ params }: { params: Promise<{ s
   const openPolls = orgPolls.filter((p) => p.status === 'open')
   const closedPolls = orgPolls.filter((p) => p.status === 'closed')
   const draftPolls = orgPolls.filter((p) => p.status === 'draft')
+
+  const orgElections = await prisma.election.findMany({
+    where: { organizationId: org.id },
+    include: {
+      contests: { select: { id: true } },
+      _count: { select: { receipts: true, tokens: true, rolls: true } },
+    },
+    orderBy: { createdAt: 'desc' },
+  })
+
+  const openElections = orgElections.filter((e) => e.status === 'open')
+  const closedElections = orgElections.filter((e) => e.status === 'closed')
+  const draftElections = orgElections.filter((e) => e.status === 'draft')
 
   const methodConfig: Record<string, { label: string; color: string }> = {
     rcv: { label: 'RCV', color: 'text-chicago-blue bg-chicago-blue/10' },
@@ -96,26 +109,48 @@ export default async function OrgDashboardPage({ params }: { params: Promise<{ s
           <p className="mt-1 text-sm text-zinc-500">Organization polls</p>
         </div>
         {isAdmin && (
-          <Link
-            href={`/polls/new?org=${org.id}`}
-            className="inline-flex items-center gap-2 rounded-lg bg-chicago-red px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-chicago-red-dark hover:shadow-md"
-          >
-            <svg
-              aria-hidden="true"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          <div className="flex items-center gap-3">
+            <Link
+              href={`/elections/new?org=${org.id}`}
+              className="inline-flex items-center gap-2 rounded-lg bg-chicago-navy px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-chicago-navy/90 hover:shadow-md"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            New org poll
-          </Link>
+              <svg
+                aria-hidden="true"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              New election
+            </Link>
+            <Link
+              href={`/polls/new?org=${org.id}`}
+              className="inline-flex items-center gap-2 rounded-lg bg-chicago-red px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-chicago-red-dark hover:shadow-md"
+            >
+              <svg
+                aria-hidden="true"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              New org poll
+            </Link>
+          </div>
         )}
       </div>
 
@@ -309,6 +344,157 @@ export default async function OrgDashboardPage({ params }: { params: Promise<{ s
           </div>
         )}
       </section>
+
+      {orgElections.length > 0 && (
+        <div className="mb-6 border-t border-zinc-200 pt-6">
+          <h2 className="text-lg font-semibold text-zinc-900">Elections</h2>
+        </div>
+      )}
+
+      {openElections.length > 0 && (
+        <section className="mb-10">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-base font-semibold text-zinc-900">Open elections</h3>
+            <span className="text-sm text-zinc-500">{openElections.length} total</span>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {openElections.map((election) => {
+              const totalBallots = election._count.receipts
+              const eligible = election._count.rolls + election._count.tokens
+              const turnout = eligible > 0 ? Math.round((totalBallots / eligible) * 100) : 0
+              return (
+                <Link
+                  key={election.id}
+                  href={`/elections/${election.slug}`}
+                  className="group flex flex-col rounded-xl border-2 border-zinc-200 bg-white p-5 shadow-sm transition-all hover:border-chicago-navy/40 hover:shadow-md hover:-translate-y-0.5"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="min-w-0 flex-1 truncate text-sm font-semibold text-zinc-900 group-hover:text-chicago-navy transition-colors">
+                      {election.title}
+                    </p>
+                    <span className="inline-flex shrink-0 items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                      Open
+                    </span>
+                  </div>
+                  <div className="mt-2 text-xs text-zinc-500">
+                    {election.contests.length} contest{election.contests.length !== 1 ? 's' : ''}
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-3 rounded-lg bg-zinc-50 p-3">
+                    <div>
+                      <p className="text-xs text-zinc-500">Ballots cast</p>
+                      <p className="text-lg font-bold text-chicago-navy">{totalBallots}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-zinc-500">Turnout</p>
+                      <p className="text-lg font-bold text-chicago-navy">{turnout}%</p>
+                    </div>
+                  </div>
+                  {eligible > 0 && (
+                    <div className="mt-3">
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100">
+                        <div
+                          className="h-full rounded-full bg-chicago-blue transition-all"
+                          style={{ width: `${Math.min(turnout, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </Link>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
+      {closedElections.length > 0 && (
+        <section className="mb-10">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-base font-semibold text-zinc-900">Finished elections</h3>
+            <span className="text-sm text-zinc-500">{closedElections.length} total</span>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {closedElections.map((election) => (
+              <Link
+                key={election.id}
+                href={`/elections/${election.slug}/results`}
+                className="group flex items-center justify-between rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-all hover:border-chicago-navy/30 hover:shadow-md hover:-translate-y-0.5"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-zinc-900 group-hover:text-chicago-navy transition-colors">
+                    {election.title}
+                  </p>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <span className="text-xs text-zinc-400">
+                      {election._count.receipts} ballot
+                      {election._count.receipts !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                </div>
+                <span className="ml-3 flex items-center gap-1 text-xs font-medium text-chicago-blue transition-colors group-hover:text-chicago-blue-dark">
+                  Results
+                  <svg
+                    aria-hidden="true"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {draftElections.length > 0 && (
+        <section className="mb-10">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-base font-semibold text-zinc-900">Draft elections</h3>
+            <span className="text-sm text-zinc-500">{draftElections.length} total</span>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {draftElections.map((election) => (
+              <Link
+                key={election.id}
+                href={`/elections/${election.slug}`}
+                className="group flex items-center justify-between rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-all hover:border-chicago-navy/30 hover:shadow-md hover:-translate-y-0.5"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-zinc-900 group-hover:text-chicago-navy transition-colors">
+                    {election.title}
+                  </p>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                      Draft
+                    </span>
+                  </div>
+                </div>
+                <svg
+                  aria-hidden="true"
+                  className="h-5 w-5 text-zinc-300 transition-colors group-hover:text-chicago-blue"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   )
 }
