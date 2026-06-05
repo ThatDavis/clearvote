@@ -10,6 +10,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false)
 
   const registered = searchParams.get('registered')
+  const verify = searchParams.get('verify')
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -42,7 +43,9 @@ export default function LoginForm() {
 
       {registered && (
         <p className="mt-4 rounded-md bg-green-50 p-3 text-sm text-green-700">
-          Account created. Please log in.
+          {verify
+            ? 'Account created. Please check your email to verify your account.'
+            : 'Account created. Please log in.'}
         </p>
       )}
 

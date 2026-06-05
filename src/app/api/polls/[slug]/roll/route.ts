@@ -60,6 +60,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: 'No user found with that email' }, { status: 404 })
   }
 
+  if (!user.emailVerified) {
+    return NextResponse.json(
+      { error: 'User must verify their email before being added to the voter roll' },
+      { status: 400 },
+    )
+  }
+
   const existing = await prisma.voterRoll.findUnique({
     where: {
       pollId_userId: {

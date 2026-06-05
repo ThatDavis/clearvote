@@ -1,7 +1,9 @@
+import { randomBytes } from 'node:crypto'
 import { hash } from 'bcryptjs'
 import { redirect } from 'next/navigation'
-import { sendWelcomeEmail } from '@/lib/email'
+import { sendVerificationEmail, sendWelcomeEmail } from '@/lib/email'
 import { prisma } from '@/lib/prisma'
+import { hashToken } from '@/lib/token'
 
 export default function SignupPage() {
   async function signup(formData: FormData) {
@@ -26,13 +28,26 @@ export default function SignupPage() {
 
     const passwordHash = await hash(password, 12)
 
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: { email, name, passwordHash },
     })
 
+    // Generate verification token
+    const token = randomBytes(32).toString('hex')
+    await prisma.emailVerificationToken.create({
+      data: {
+        userId: user.id,
+        tokenHash: hashToken(token),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+      },
+    })
+
+    const verifyLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/verify?token=${token}`
+    await sendVerificationEmail({ to: email, verifyLink })
+
     await sendWelcomeEmail({ to: email, name })
 
-    redirect('/login?registered=true')
+    redirect('/login?registered=true&verify=1')
   }
 
   return (
