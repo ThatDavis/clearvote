@@ -7,16 +7,16 @@
 ## Milestone 1: Core Voting Engine
 
 **Goal:** Anonymous polls with ranked-choice voting and instant-runoff tally.
-**Status:** In Progress
+**Status:** Complete
 
 ### Features
-- [ ] Create a poll with title, description, and options
-- [ ] Generate unique voter token links for anonymous voting
-- [ ] Cast a ranked-choice vote (drag-and-drop or numeric ranking)
-- [ ] View results with standard RCV instant-runoff tally
-- [ ] Poll status lifecycle (draft → open → closed)
-- [ ] Public results page with anonymized ballot data
-- [ ] Vote receipts for voter verification
+- [x] Create a poll with title, description, and options
+- [x] Generate unique voter token links for anonymous voting
+- [x] Cast a ranked-choice vote (drag-and-drop or numeric ranking)
+- [x] View results with standard RCV instant-runoff tally
+- [x] Poll status lifecycle (draft → open → closed)
+- [x] Public results page with anonymized ballot data
+- [x] Vote receipts for voter verification
 
 ---
 
@@ -45,8 +45,8 @@
 
 ## Active Feature
 
-*No active feature. Run `/dev:start-feature` to begin.*
+*No active feature. Run `/dev:start-feature` to begin the next milestone.*
 
 ## Completed Features
 
-*None yet.*
+- Milestone 1 (2026-06-04): Core Voting Engine — poll creation, status lifecycle, RCV tally, voter tokens, drag-and-drop voting, results page, vote receipts.

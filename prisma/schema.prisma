@@ -21,6 +21,7 @@ model Poll {
 
   options PollOption[]
   ballots Ballot[]
+  tokens  VoterToken[]
   rolls   VoterRoll[]
 }
 
@@ -37,16 +38,30 @@ model PollOption {
 }
 
 model Ballot {
-  id         String   @id @default(uuid())
-  pollId     String
-  voterToken String
-  rankings   Json
-  castAt     DateTime @default(now())
-  verifiedAt DateTime?
+  id          String   @id @default(uuid())
+  pollId      String
+  voterToken  String
+  rankings    Json
+  receiptCode String   @unique
+  castAt      DateTime @default(now())
+  verifiedAt  DateTime?
 
   poll Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
 
   @@unique([pollId, voterToken])
+  @@index([pollId])
+}
+
+model VoterToken {
+  id        String    @id @default(uuid())
+  pollId    String
+  token     String
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  poll Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
+
+  @@unique([pollId, token])
   @@index([pollId])
 }
 
