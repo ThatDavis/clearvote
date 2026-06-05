@@ -33,7 +33,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
   }
 
-  if (session?.user?.id && !(await canManagePoll(poll.id, session.user.id))) {
+  if (!session?.user?.id || !(await canManagePoll(poll.id, session.user.id))) {
     return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
   }
 
@@ -93,7 +93,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ s
     return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
   }
 
-  if (session?.user?.id && !(await canManagePoll(poll.id, session.user.id))) {
+  if (!session?.user?.id || !(await canManagePoll(poll.id, session.user.id))) {
     return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
   }
 

@@ -37,10 +37,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
     return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
   }
 
-  if (session?.user?.id && !(await canManagePoll(poll.id, session.user.id))) {
-    return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
-  }
-  if (!session?.user?.id && poll.creatorId) {
+  if (!session?.user?.id || !(await canManagePoll(poll.id, session.user.id))) {
     return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
   }
 

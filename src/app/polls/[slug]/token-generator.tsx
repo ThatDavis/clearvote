@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from 'react'
 
-interface GeneratedToken {
+interface ExistingToken {
+  id: string
+  createdAt: string
+  usedAt: string | null
+}
+
+interface NewToken {
   id: string
   token: string
 }
@@ -51,14 +57,21 @@ function CopyButton({ text }: { text: string }) {
 export default function TokenGenerator({ slug, locked }: Props) {
   const [count, setCount] = useState(10)
   const [loading, setLoading] = useState(false)
-  const [tokens, setTokens] = useState<GeneratedToken[]>([])
+  const [existingTokens, setExistingTokens] = useState<ExistingToken[]>([])
+  const [newTokens, setNewTokens] = useState<NewToken[]>([])
   const [error, setError] = useState('')
 
   useEffect(() => {
     fetch(`/api/polls/${slug}/tokens`)
-      .then((res) => res.json())
+      .then((res) => {
+        if (res.status === 403) {
+          setError('Not authorized to view tokens')
+          return null
+        }
+        return res.json()
+      })
       .then((data) => {
-        if (data.tokens) setTokens(data.tokens)
+        if (data?.tokens) setExistingTokens(data.tokens)
       })
   }, [slug])
 
@@ -80,11 +93,13 @@ export default function TokenGenerator({ slug, locked }: Props) {
     }
 
     const data = await res.json()
-    setTokens((prev) => [...prev, ...data.tokens])
+    setNewTokens((prev) => [...prev, ...data.tokens])
     setLoading(false)
   }
 
   const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  const totalCount = existingTokens.length + newTokens.length
+  const usedCount = existingTokens.filter((t) => t.usedAt).length
 
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-5">
@@ -109,29 +124,42 @@ export default function TokenGenerator({ slug, locked }: Props) {
             disabled={loading}
             className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50"
           >
-            {loading ? 'Generating...' : tokens.length === 0 ? 'Generate' : 'Add tokens'}
+            {loading ? 'Generating...' : totalCount === 0 ? 'Generate' : 'Add tokens'}
           </button>
         </div>
       )}
 
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
-      {tokens.length > 0 && (
+      {totalCount > 0 && (
         <div className="mt-4">
           <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
-            {tokens.length} link{tokens.length !== 1 ? 's' : ''} total
+            {totalCount} link{totalCount !== 1 ? 's' : ''} total
+            {existingTokens.length > 0 && (
+              <span className="ml-2 normal-case text-zinc-400">
+                ({existingTokens.length - usedCount} unused, {usedCount} used)
+              </span>
+            )}
           </p>
-          <ul className="mt-2 max-h-56 space-y-1 overflow-y-auto rounded-lg border border-zinc-200 bg-zinc-50 p-3 font-mono text-xs">
-            {tokens.map((t) => {
-              const link = `${origin}/vote/${slug}?token=${t.token}`
-              return (
-                <li key={t.id} className="flex items-center gap-2">
-                  <code className="flex-1 truncate text-zinc-600">{link}</code>
-                  <CopyButton text={link} />
-                </li>
-              )
-            })}
-          </ul>
+
+          {newTokens.length > 0 && (
+            <div className="mt-2">
+              <p className="text-xs font-medium text-green-700 mb-1">
+                Newly generated — copy these now, they won't be shown again
+              </p>
+              <ul className="max-h-56 space-y-1 overflow-y-auto rounded-lg border border-green-200 bg-green-50 p-3 font-mono text-xs">
+                {newTokens.map((t) => {
+                  const link = `${origin}/vote/${slug}?token=${t.token}`
+                  return (
+                    <li key={t.id} className="flex items-center gap-2">
+                      <code className="flex-1 truncate text-zinc-600">{link}</code>
+                      <CopyButton text={link} />
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          )}
         </div>
       )}
     </div>

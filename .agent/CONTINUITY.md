@@ -157,6 +157,7 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 
 - 2026-06-04: Initial stack — TypeScript + Next.js + PostgreSQL + Prisma + Tailwind + Vitest + Biome. Rationale: full-stack in one language, RDBMS for ballot integrity, mature ecosystem.
 - 2026-06-04: Deep-plan validated M2.5 (Organization Accounts). Key decisions: optional org affiliation on User/Poll, atomic org+admin creation, org-level poll authorization, member management included. Fresh schema start.
+- 2026-06-05: Deep-plan validated Milestone 5 (Election Security & Audit Hardening). Key decisions: fix auth holes first (A1/A2), then ballot secrecy refactor (A3), then integrity features (B1-B4), then correctness (C1-C4). A3 uses separate VoterEligibility table to prevent double-vote while severing ballot→voter link.
 
 ## [PROGRESS]
 
@@ -178,6 +179,18 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 |  |    - Create email templates and send vote invite emails via Resend or SMTP |
 |  |    - Update tests and run full test suite |
 | 2026-06-05 | Security/election-integrity review of the codebase. Opened Milestone 5 (Election Security & Audit Hardening) in PLAN.md + CONTINUITY with 11 tracked items across 3 priority phases. No code changes yet. |
+| 2026-06-05 | Started Milestone 5 implementation. Issue #7, branch feature/7-milestone-5-election-security-audit-hardening. Deep-plan validated. Starting with A1+A2 (auth holes in tokens route). |
+|  |    — A1: Protect GET /api/polls/[slug]/tokens with canManagePoll |
+|  |    — A2: Fix token-generation authz bypass (session?.user?.id && pattern) |
+|  |    — A3: Separate ballot content from voter identity |
+|  |    — B1: Implement AuditLog writes |
+|  |    — B2: Replace deterministic receipt code |
+|  |    — B3: Store token hashes, not plaintext |
+|  |    — B4: Add rate limiting |
+|  |    — C1: Deterministic tie-breaking |
+|  |    — C2: Shuffle ballots on results page |
+|  |    — C3: Finish or remove proxy voting |
+|  |    — C4: Require email verification before roll eligibility |
 
 ## [DISCOVERIES]
 

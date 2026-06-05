@@ -6,10 +6,15 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
+  const session = await auth()
 
   const poll = await prisma.poll.findUnique({ where: { slug } })
   if (!poll) {
     return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
+  }
+
+  if (!session?.user?.id || !(await canManagePoll(poll.id, session.user.id))) {
+    return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
   }
 
   const tokens = await prisma.voterToken.findMany({
@@ -17,7 +22,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     orderBy: { createdAt: 'asc' },
   })
 
-  return NextResponse.json({ tokens: tokens.map((t) => ({ id: t.id, token: t.token })) })
+  return NextResponse.json({
+    tokens: tokens.map((t) => ({ id: t.id, createdAt: t.createdAt, usedAt: t.usedAt })),
+    count: tokens.length,
+  })
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
@@ -29,7 +37,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
   }
 
-  if (session?.user?.id && !(await canManagePoll(poll.id, session.user.id))) {
+  if (!session?.user?.id || !(await canManagePoll(poll.id, session.user.id))) {
     return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
   }
 
