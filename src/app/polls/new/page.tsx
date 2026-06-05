@@ -7,6 +7,9 @@ export default function NewPollPage() {
   const router = useRouter()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [votingMethod, setVotingMethod] = useState('rcv')
+  const [seats, setSeats] = useState(1)
+  const [threshold, setThreshold] = useState(50)
   const nextKey = useRef(2)
   const [options, setOptions] = useState([
     { key: '0', value: '' },
@@ -46,7 +49,14 @@ export default function NewPollPage() {
     const res = await fetch('/api/polls', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, description: description || undefined, options: filled }),
+      body: JSON.stringify({
+        title,
+        description: description || undefined,
+        options: filled,
+        votingMethod,
+        seats,
+        threshold: votingMethod === 'yesno' ? threshold : undefined,
+      }),
     })
 
     if (!res.ok) {
@@ -94,6 +104,59 @@ export default function NewPollPage() {
             placeholder="Add context so voters understand what this poll is about."
           />
         </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="votingMethod" className="block text-sm font-medium">
+              Voting method
+            </label>
+            <select
+              id="votingMethod"
+              value={votingMethod}
+              onChange={(e) => setVotingMethod(e.target.value)}
+              className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            >
+              <option value="rcv">Ranked Choice (RCV)</option>
+              <option value="stv">Multi-winner (STV)</option>
+              <option value="approval">Approval</option>
+              <option value="yesno">Yes / No</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="seats" className="block text-sm font-medium">
+              Winners
+            </label>
+            <input
+              id="seats"
+              type="number"
+              min={1}
+              max={20}
+              value={seats}
+              onChange={(e) => setSeats(Number(e.target.value))}
+              className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            />
+          </div>
+        </div>
+
+        {votingMethod === 'yesno' && (
+          <div>
+            <label htmlFor="threshold" className="block text-sm font-medium">
+              Pass threshold (%)
+            </label>
+            <input
+              id="threshold"
+              type="number"
+              min={1}
+              max={100}
+              value={threshold}
+              onChange={(e) => setThreshold(Number(e.target.value))}
+              className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            />
+            <p className="mt-1 text-xs text-zinc-400">
+              Percentage of yes votes required to pass. Default: 50%.
+            </p>
+          </div>
+        )}
 
         <fieldset>
           <legend className="block text-sm font-medium">Options</legend>

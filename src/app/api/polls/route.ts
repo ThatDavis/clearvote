@@ -11,10 +11,13 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { title, description, options } = body as {
+    const { title, description, options, votingMethod, seats, threshold } = body as {
       title?: string
       description?: string
       options?: string[]
+      votingMethod?: string
+      seats?: number
+      threshold?: number
     }
 
     if (!title || typeof title !== 'string' || title.trim().length === 0) {
@@ -32,6 +35,9 @@ export async function POST(request: Request) {
         title: title.trim(),
         description: description?.trim() || null,
         slug,
+        votingMethod: votingMethod || 'rcv',
+        seats: seats || 1,
+        threshold: threshold ?? 50,
         creatorId: session.user.id,
         organizationId: session.user.organizationId ?? null,
         options: {

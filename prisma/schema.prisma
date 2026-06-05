@@ -37,6 +37,8 @@ model Poll {
   description    String?
   slug           String        @unique
   seats          Int           @default(1)
+  votingMethod   String        @default("rcv")
+  threshold      Int           @default(50)
   status         String        @default("draft")
   creatorId      String?
   organizationId String?
