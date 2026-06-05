@@ -6,6 +6,11 @@
 
 ## [PLANS]
 
+### Milestone 7: CI/CD Pipeline (Complete)
+Goal: Automated CI/CD with container builds, image tagging, and deployment.
+
+- [x] Set up CI/CD pipelines including a build pipeline to create a container using image tags (Issue #12, branch feature/12-ci-cd-pipeline)
+
 ### Milestone 6: Multi-Poll Ballots (Elections) (Planned)
 Goal: One ballot containing several contests of mixed voting methods, cast in a single atomic session — a real election ballot. Design: `docs/MULTI-POLL-BALLOT-PLAN.md`. Build guide: `docs/MILESTONE-6-IMPLEMENTATION.md`. Depends on M5 remediations (esp. FIX-2 atomic claim, generalized to election scope) and a working voter-eligibility path (C4).
 
@@ -212,14 +217,20 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 |  |    ✓ C3: Finish or remove proxy voting |
 |  |    ✓ C4: Require email verification before roll eligibility |
 | 2026-06-05 | Email notification system complete and merged (PR #10, branch feature/email-notifications). |
-|  |    - Welcome email on registration via sendWelcomeEmail |
-|  |    - Poll-open notifications sent to all voters on the roll when status transitions to open |
-|  |    - Org invite emails for non-registered users with tokenized acceptance links |
-|  |    - Invite acceptance flow: /org/invite?token=... page + POST /api/org/invite endpoint |
-|  |    - Pending invite UI in member manager with resend/remove actions |
-|  |    - Voter roll mode selector on org poll creation: "All members" or "Custom" |
-|  |    - Docker Compose updated to pass email env vars (RESEND_API_KEY, SMTP_*, NEXT_PUBLIC_APP_URL) |
-|  |    - AGENTS.md updated with post-work verification checklist (build, test, container startup) |
+| 2026-06-05 | Started feature: Set up CI/CD pipelines including a build pipeline to create a container using image tags (Issue #12) on branch feature/12-ci-cd-pipeline. |
+|  |    ✓ Create GitHub Actions CI workflow (test, lint, typecheck on PR) |
+|  |    ✓ Create optimized Dockerfile with multi-stage build |
+|  |    ✓ Create GitHub Actions container build pipeline with image tagging |
+|  |    ✓ Add docker-compose configuration for production |
+| 2026-06-05 | Completed feature: Set up CI/CD pipelines including a build pipeline to create a container using image tags. |
+|  |    ✓ Create GitHub Actions CI workflow (test, lint, typecheck on PR) |
+|  |    ✓ Create optimized Dockerfile with multi-stage build |
+|  |    ✓ Create GitHub Actions container build pipeline with image tagging |
+|  |    ✓ Add docker-compose configuration for production |
+|  |    ✓ Pin all GitHub Actions to commit SHA hashes (supply chain security) |
+|  |    ✓ Add Trivy vulnerability scanning (filesystem + container) with SARIF upload |
+|  |    ✓ Add pnpm audit for dependency vulnerabilities |
+|  |    ✓ Add Dependabot config for automated action updates |
 
 ## [DISCOVERIES]
 
@@ -250,3 +261,13 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 - Voter roll mode selector when creating org polls (all members vs custom)
 - Resend + SMTP dual-provider support with automatic fallback
 - PR: #10
+
+### Milestone 7: CI/CD Pipeline (2026-06-05)
+- GitHub Actions CI workflow runs test, lint, typecheck, build, pnpm audit, and Trivy scans on PRs and main branch pushes
+- GitHub Actions container build pipeline pushes images to GHCR with git SHA and semver tags
+- Docker multi-stage build optimized with layer caching and BuildKit
+- Production docker-compose configuration with required env var validation
+- All GitHub Actions pinned to specific commit SHA hashes for supply chain security
+- Trivy vulnerability scanner (filesystem + container) with HIGH/CRITICAL severity gating and SARIF upload to GitHub Security tab
+- Dependabot configured for weekly automated GitHub Actions update PRs
+- Issue: #12 | Branch: feature/12-ci-cd-pipeline

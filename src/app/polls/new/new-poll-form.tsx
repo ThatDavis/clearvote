@@ -67,11 +67,12 @@ export default function NewPollForm() {
 
   // Adjust options count when voting method changes
   useEffect(() => {
-    if (votingMethod === 'yesno' && options.length > 1) {
-      setOptions([options[0]])
-    } else if (votingMethod !== 'yesno' && options.length < 2) {
-      const key = String(nextKey.current++)
-      setOptions((prev) => [...prev, { key, value: '' }])
+    if (votingMethod === 'yesno') {
+      setOptions((prev) => (prev.length > 1 ? [prev[0]] : prev))
+    } else {
+      setOptions((prev) =>
+        prev.length < 2 ? [...prev, { key: String(nextKey.current++), value: '' }] : prev,
+      )
     }
   }, [votingMethod])
 

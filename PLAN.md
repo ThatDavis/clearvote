@@ -41,7 +41,7 @@
 - [x] C1-approval: Deterministic tie-breaking for approval voting (see docs/MILESTONE-5-REMEDIATION.md FIX-4).
 - [x] C2: Shuffle ballots on the results page and gate the per-ballot dump behind poll closure — insertion-order + small electorate can de-anonymize.
 - [x] C3: Finish or remove proxy voting — `Proxy` model/routes exist but aren't wired into casting; nothing stops principal and proxy both voting.
-- [ ] C4: Require email verification before a signup can appear on a voter roll (roll eligibility keys off `user.email`). **Gate reverted in FIX-1 Option A — needs real verification flow (see docs/MILESTONE-5-REMEDIATION.md FIX-1 Option B).**
+- [x] C4: Require email verification before a signup can appear on a voter roll (roll eligibility keys off `user.email`).
 
 ---
 
@@ -84,6 +84,23 @@ v1 = Phases A, B, D, E, F. Phase C (ballot styles) is the fast-follow.
 - [ ] F1: Optional contest/candidate order rotation
 - [ ] F2: Accessibility & long-ballot handling
 - [ ] F3: Organizer documentation
+
+---
+
+## Milestone 7: CI/CD Pipeline
+
+**Goal:** Automated CI/CD with container builds, image tagging, and deployment.
+**Status:** Complete
+
+### Features
+- [x] Create CI workflow (GitHub Actions) — test, lint, typecheck on PRs
+- [x] Create optimized Dockerfile with multi-stage build
+- [x] Create container build pipeline with image tagging (git SHA + semver)
+- [x] Add docker-compose configuration for production
+- [x] Pin all GitHub Actions to commit SHA hashes (supply chain security)
+- [x] Add Trivy vulnerability scanning (filesystem + container) with SARIF upload
+- [x] Add pnpm audit for dependency vulnerabilities
+- [x] Add Dependabot config for automated action updates
 
 ---
 

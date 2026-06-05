@@ -57,11 +57,20 @@ describe('POST /api/ballots', () => {
     vi.mocked(prisma.poll.findUnique).mockResolvedValue({
       id: pollId,
       slug: 'test-poll',
+      title: 'Test Poll',
+      description: null,
       status: 'open',
-      endsAt: null,
+      seats: 1,
       votingMethod: 'rcv',
+      threshold: 50,
+      creatorId: null,
+      organizationId: null,
+      startsAt: null,
+      endsAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
       options: [{ id: optionId, label: 'Option A' }],
-    } as unknown)
+    } as unknown as Awaited<ReturnType<typeof prisma.poll.findUnique>>)
 
     // Mock token lookup (exists and unused)
     vi.mocked(prisma.voterToken.findUnique).mockResolvedValue({
@@ -69,7 +78,8 @@ describe('POST /api/ballots', () => {
       pollId,
       tokenHash,
       usedAt: null,
-    } as unknown)
+      createdAt: new Date(),
+    } as unknown as Awaited<ReturnType<typeof prisma.voterToken.findUnique>>)
 
     // Simulate first call claiming the token, second call finding it already claimed
     let callCount = 0
