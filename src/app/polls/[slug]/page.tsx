@@ -4,6 +4,7 @@ import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import StatusControls from './status-controls'
 import TokenGenerator from './token-generator'
+import VoterRollManager from './voter-roll-manager'
 
 export default async function PollPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -70,6 +71,7 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
         <>
           <StatusControls slug={poll.slug} status={poll.status} />
           <TokenGenerator slug={poll.slug} />
+          <VoterRollManager slug={poll.slug} />
         </>
       )}
 
