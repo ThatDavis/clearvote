@@ -15,7 +15,7 @@ export default function NewPollPage() {
   // Form state
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [votingMethod, setVotingMethod] = useState('rcv')
+  const [votingMethod, setVotingMethodRaw] = useState('rcv')
   const [seats, setSeats] = useState(1)
   const [threshold, setThreshold] = useState(50)
   const [startsAt, setStartsAt] = useState('')
@@ -28,13 +28,26 @@ export default function NewPollPage() {
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
+  function setVotingMethod(method: string) {
+    setVotingMethodRaw(method)
+    if (method === 'yesno' && options.length > 1) {
+      // Yes/no defaults to a single proposition
+      setOptions([options[0]])
+    } else if (method !== 'yesno' && options.length < 2) {
+      // Other methods need at least 2 options
+      const key = String(nextKey.current++)
+      setOptions([...options, { key, value: '' }])
+    }
+  }
+
   function addOption() {
     const key = String(nextKey.current++)
     setOptions([...options, { key, value: '' }])
   }
 
   function removeOption(index: number) {
-    if (options.length <= 2) return
+    const minOptions = votingMethod === 'yesno' ? 1 : 2
+    if (options.length <= minOptions) return
     setOptions(options.filter((_, i) => i !== index))
   }
 
@@ -51,7 +64,8 @@ export default function NewPollPage() {
       case 2:
         return true
       case 3:
-        return options.filter((o) => o.value.trim()).length >= 2
+        const minOptions = votingMethod === 'yesno' ? 1 : 2
+        return options.filter((o) => o.value.trim()).length >= minOptions
       case 4:
         return true
       default:
@@ -76,8 +90,9 @@ export default function NewPollPage() {
   async function handleSubmit() {
     setError('')
     const filled = options.map((o) => o.value.trim()).filter(Boolean)
-    if (filled.length < 2) {
-      setError('At least 2 options are required')
+    const minOptions = votingMethod === 'yesno' ? 1 : 2
+    if (filled.length < minOptions) {
+      setError(`At least ${minOptions} option${minOptions === 1 ? '' : 's'} are required`)
       return
     }
 
@@ -225,7 +240,9 @@ export default function NewPollPage() {
             <div>
               <p className="block text-sm font-semibold text-zinc-900">Poll Options</p>
               <p className="mt-1 text-xs text-zinc-500">
-                Add at least 2 options. Voters will choose from these.
+                {votingMethod === 'yesno'
+                  ? 'Add the proposition or question voters will vote yes/no on.'
+                  : 'Add at least 2 options. Voters will choose from these.'}
               </p>
               <div className="mt-3 space-y-3">
                 {options.map((option, i) => (
@@ -241,7 +258,7 @@ export default function NewPollPage() {
                       className="block w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm shadow-sm transition-colors hover:border-zinc-400 focus:border-chicago-blue focus:outline-none focus:ring-2 focus:ring-chicago-blue/20"
                       placeholder={`Option ${i + 1}`}
                     />
-                    {options.length > 2 && (
+                    {options.length > (votingMethod === 'yesno' ? 1 : 2) && (
                       <button
                         type="button"
                         onClick={() => removeOption(i)}
