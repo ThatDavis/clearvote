@@ -136,7 +136,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ slug: 
                 Round {r.round}
                 {r.elected.length > 0 && (
                   <span className="ml-2 text-green-600">
-                    — Elected:{' '}
+                    - Elected:{' '}
                     {r.elected.map((id) => poll.options.find((o) => o.id === id)?.label).join(', ')}
                   </span>
                 )}
@@ -203,7 +203,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ slug: 
               <div key={r.round} className="rounded-lg border border-zinc-200 p-4">
                 <h3 className="text-sm font-medium">
                   Round {r.round}
-                  {r.winner && <span className="ml-2 text-green-600">— Winner</span>}
+                  {r.winner && <span className="ml-2 text-green-600">- Winner</span>}
                 </h3>
                 <ul className="mt-3 space-y-1">
                   {r.votes.map((v) => (

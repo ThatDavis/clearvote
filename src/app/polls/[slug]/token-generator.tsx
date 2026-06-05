@@ -122,7 +122,7 @@ export default function TokenGenerator({ slug, locked }: Props) {
     <div className="rounded-xl border border-zinc-200 bg-white p-5">
       <h2 className="text-sm font-semibold text-zinc-900">Anonymous voting links</h2>
       <p className="mt-1 text-sm text-zinc-500">
-        Generate one-time links for voters without accounts. Share however you like — print, email,
+        Generate one-time links for voters without accounts. Share however you like - print, email,
         or hand out at a meeting. Each link can only be used once.
       </p>
 
@@ -163,7 +163,7 @@ export default function TokenGenerator({ slug, locked }: Props) {
           {newTokens.length > 0 && (
             <div className="mt-2">
               <p className="text-xs font-medium text-green-700 mb-1">
-                Newly generated — copy these now, they won't be shown again
+                Newly generated - copy these now, they won't be shown again
               </p>
               <ul className="max-h-56 space-y-1 overflow-y-auto rounded-lg border border-green-200 bg-green-50 p-3 font-mono text-xs">
                 {newTokens.map((t) => {

@@ -38,7 +38,7 @@ describe('tallyRcv', () => {
 
     const result = tallyRcv(options, ballotsInput)
 
-    // Round 1: A=2, B=2, C=3 — no majority (4 needed), eliminate A (tied at 2, lexicographically smallest)
+    // Round 1: A=2, B=2, C=3 - no majority (4 needed), eliminate A (tied at 2, lexicographically smallest)
     // Round 2: A's ballots: [a,b,c] → B, [a,c,b] → C. B=3, C=4. C wins.
     expect(result.length).toBeGreaterThanOrEqual(1)
 
@@ -104,7 +104,7 @@ describe('tallyRcv', () => {
 
     const result = tallyRcv(options, ballotsInput)
 
-    // Round 1: A=3, B=3, C=4 — no majority (6 needed), eliminate A (tied at 3, lexicographically smallest)
+    // Round 1: A=3, B=3, C=4 - no majority (6 needed), eliminate A (tied at 3, lexicographically smallest)
     // Round 2: A's ballots: [a,b,c]×2 → B, [a,c,b] → C. B=5, C=5. Eliminate B (tied at 5).
     // Round 3: B's ballots go to C. C=8. C wins.
     const lastRound = result[result.length - 1]

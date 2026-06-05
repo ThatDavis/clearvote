@@ -69,7 +69,7 @@ export default async function VotePage({
       )
     }
   } else if (session?.user?.id) {
-    // Authenticated voting — check voter roll
+    // Authenticated voting - check voter roll
     const onRoll = await prisma.voterRoll.findUnique({
       where: {
         pollId_userId: {

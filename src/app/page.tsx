@@ -9,7 +9,7 @@ export default function Home() {
           <Image src="/logo.svg" alt="clearvote" width={144} height={144} priority />
         </div>
         <h1 className="text-4xl font-bold tracking-tight text-chicago-navy sm:text-5xl">
-          clearvote
+          ClearVote
         </h1>
         <p className="text-lg leading-8 text-zinc-600">
           A simple ranked-choice voting system for community-run spaces.
