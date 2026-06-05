@@ -39,9 +39,7 @@ export default function OrgPollDistributor({ slug, orgSlug }: Props) {
   }, [orgSlug])
 
   async function handleDistribute() {
-    const memberIds = distributeAll
-      ? members.map((m) => m.id)
-      : Array.from(selectedMembers)
+    const memberIds = distributeAll ? members.map((m) => m.id) : Array.from(selectedMembers)
 
     if (memberIds.length === 0) {
       setError('Please select at least one member')
@@ -156,8 +154,10 @@ export default function OrgPollDistributor({ slug, orgSlug }: Props) {
           {results.errors.length > 0 && (
             <div className="rounded-lg bg-red-50 p-3">
               <p className="text-sm font-medium text-red-800">Errors ({results.errors.length})</p>
-              {results.errors.map((error, i) => (
-                <p key={i} className="text-xs text-red-600">{error}</p>
+              {results.errors.map((error) => (
+                <p key={error} className="text-xs text-red-600">
+                  {error}
+                </p>
               ))}
             </div>
           )}

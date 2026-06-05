@@ -1,9 +1,9 @@
+import { randomUUID } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { canManagePoll } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
 import { sendVoteInvite } from '@/lib/email'
-import { randomUUID } from 'node:crypto'
+import { prisma } from '@/lib/prisma'
 
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -45,7 +45,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   if (emails && emails.length > 0) {
     for (const email of emails) {
       const normalizedEmail = email.toLowerCase().trim()
-      
+
       // Check if user exists
       const user = await prisma.user.findUnique({
         where: { email: normalizedEmail },
@@ -103,13 +103,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
             userId,
           },
         })
-        
+
         // Get user email for notification
         const user = await prisma.user.findUnique({
           where: { id: userId },
           select: { email: true },
         })
-        
+
         if (user) {
           const voteLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/vote/${slug}`
           await sendVoteInvite({
@@ -119,7 +119,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
           })
           results.emailsSent.push(user.email)
         }
-        
+
         results.addedToRoll.push(userId)
       } catch {
         // Already on roll

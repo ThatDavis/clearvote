@@ -49,9 +49,7 @@ export default async function OrgPage({ params }: { params: Promise<{ slug: stri
       </div>
 
       <h1 className="mt-4 text-2xl font-semibold tracking-tight">{org.name}</h1>
-      {org.description && (
-        <p className="mt-2 text-zinc-600">{org.description}</p>
-      )}
+      {org.description && <p className="mt-2 text-zinc-600">{org.description}</p>}
 
       <div className="mt-4">
         <Link

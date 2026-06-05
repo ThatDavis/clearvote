@@ -156,7 +156,7 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
           {poll.organizationId && poll.organization ? (
             <OrgPollDistributor slug={poll.slug} orgSlug={poll.organization.slug} />
           ) : (
-            <PollDistributor slug={poll.slug} pollId={poll.id} />
+            <PollDistributor slug={poll.slug} />
           )}
           <TokenGenerator slug={poll.slug} />
           <VoterRollManager slug={poll.slug} />

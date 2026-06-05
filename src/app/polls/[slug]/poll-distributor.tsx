@@ -4,11 +4,10 @@ import { useState } from 'react'
 
 interface Props {
   slug: string
-  pollId: string
   organizationId?: string | null
 }
 
-export default function PollDistributor({ slug, pollId, organizationId }: Props) {
+export default function PollDistributor({ slug, organizationId }: Props) {
   const [emailInput, setEmailInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -98,7 +97,7 @@ export default function PollDistributor({ slug, pollId, organizationId }: Props)
               <p className="text-xs text-green-600 mt-1">{results.addedToRoll.join(', ')}</p>
             </div>
           )}
-          
+
           {results.tokensGenerated.length > 0 && (
             <div className="rounded-lg bg-blue-50 p-3">
               <p className="text-sm font-medium text-blue-800">
@@ -108,7 +107,9 @@ export default function PollDistributor({ slug, pollId, organizationId }: Props)
                 {results.tokensGenerated.map(({ email, token }) => (
                   <div key={token} className="flex items-center gap-2 text-xs">
                     <span className="text-blue-700">{email}</span>
-                    <code className="bg-blue-100 px-1.5 py-0.5 rounded text-blue-800">{token.slice(0, 8)}...</code>
+                    <code className="bg-blue-100 px-1.5 py-0.5 rounded text-blue-800">
+                      {token.slice(0, 8)}...
+                    </code>
                   </div>
                 ))}
               </div>
@@ -126,8 +127,10 @@ export default function PollDistributor({ slug, pollId, organizationId }: Props)
           {results.errors.length > 0 && (
             <div className="rounded-lg bg-red-50 p-3">
               <p className="text-sm font-medium text-red-800">Errors ({results.errors.length})</p>
-              {results.errors.map((error, i) => (
-                <p key={i} className="text-xs text-red-600">{error}</p>
+              {results.errors.map((error) => (
+                <p key={error} className="text-xs text-red-600">
+                  {error}
+                </p>
               ))}
             </div>
           )}
