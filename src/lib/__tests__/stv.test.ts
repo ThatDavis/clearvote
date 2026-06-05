@@ -77,4 +77,16 @@ describe('tallyStv', () => {
     expect(result[0].elected).toContain('a')
     expect(result[0].elected).toContain('b')
   })
+
+  it('breaks elimination ties by weighted voter preference, reproducibly', () => {
+    const options = opts(['a', 'b', 'c'])
+    // A and B tie on first preferences; among the {A, B} pair voters prefer A, so
+    // B is the one eliminated. The full result must be reproducible run to run.
+    const votes = ballots([['a'], ['a'], ['b'], ['b'], ['c', 'a'], ['c', 'a'], ['c'], ['c']])
+
+    const result = tallyStv(options, votes, 1)
+
+    expect(result[0].eliminated).toEqual(['b'])
+    expect(tallyStv(options, votes, 1)).toEqual(result)
+  })
 })

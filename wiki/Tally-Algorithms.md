@@ -13,11 +13,26 @@ interface VoteCount { optionId: string; label: string; count: number }
 
 ## Tie-breaking
 
-Every method uses one deterministic rule so results never depend on input or insertion order:
+Tie-breaking is **never decided by candidate or database identifiers.** It either reflects voter preference or, as a last resort, is broken impartially by lot. The logic lives in `src/lib/tiebreak.ts`.
 
-> When candidates are tied, the **lexicographically smallest `optionId`** wins the tie.
+### Next-Preference Cascade (RCV and STV)
 
-For elimination ties (RCV/STV), the tied IDs are sorted and the smallest is the one eliminated. For approval, the sort is `count desc, then optionId asc`.
+When candidates are tied for elimination, we ask the ballots who voters actually prefer among the tied candidates:
+
+1. Restrict each ballot to just the still-tied candidates and find that voter's highest-ranked one - their preference within the tied set.
+2. Sum that support per candidate (in STV, weighted by the ballot's current weight). The candidate(s) with the **least** support are the elimination candidates.
+3. If that narrows to one, eliminate it. If it narrows to a smaller-but-still-tied subset, **cascade**: repeat step 1 on just that subset (ballots that backed a now-resolved candidate redistribute, which can separate the rest).
+4. If the subset stops shrinking - every remaining candidate is preferred equally often - the voters give no further signal. Break that residual tie by lot (below).
+
+This eliminates the candidate voters like least among those tied, using the whole ballot, and is blind to candidate id.
+
+### Final fallback: reproducible lot
+
+A genuine tie (e.g. a first-round 1-1-1, or perfectly symmetric ballots) has no voter signal to resolve it. It is broken **by lot**, drawn from a seed derived from the ballot data itself (`ballotSeed` + the seeded shuffle in `src/lib/shuffle.ts`). This is impartial like a coin toss, yet fully **reproducible** from the raw ballots - and still never uses a database id.
+
+### Approval
+
+Approval ballots carry no preference order, so a count tie has no cascade to run. Approval ties (including the seat cutoff and all-zero counts) go straight to the seeded lot.
 
 ---
 
@@ -41,7 +56,7 @@ Algorithm, per round:
 2. `totalActive = ballots.length - exhausted`.
 3. **Majority check**: `majorityThreshold = floor(totalActive / 2) + 1`. If the leader's count meets it, they win.
 4. If only one candidate remains, they win.
-5. Otherwise eliminate the lowest-count candidate (smallest `optionId` on a tie) and continue. The loop never eliminates the last remaining candidate(s).
+5. Otherwise eliminate the lowest-count candidate (ties broken by the [Next-Preference Cascade](#tie-breaking)) and continue. The loop never eliminates the last remaining candidate(s).
 
 Edge cases handled: first-round majority, exhausted ballots, elimination ties, and the guard against eliminating all remaining candidates.
 
@@ -64,7 +79,7 @@ Key mechanics:
 - **Ballot weights**: each ballot starts at weight `1`. Counts sum weights, not ballots.
 - **Election**: any candidate reaching the quota is elected (up to `seats`).
 - **Surplus transfer**: when an elected candidate has `surplus = count - quota > 0`, every ballot currently topped by that candidate is multiplied by `transferValue = surplus / count`. This passes only the *excess* value down to next preferences.
-- **Elimination**: if no one new is elected, the lowest non-elected candidate is eliminated (smallest `optionId` on a tie).
+- **Elimination**: if no one new is elected, the lowest non-elected candidate is eliminated (ties broken by the [Next-Preference Cascade](#tie-breaking), weighting each ballot by its current STV weight).
 - Counts are rounded to 4 decimal places for display stability.
 - The loop stops when `seats` are filled or candidates run out. If `seats <= 0` or `seats >= options.length`, `seats` is set to `options.length`.
 
@@ -75,7 +90,7 @@ Key mechanics:
 Each ballot's `rankings` array is treated as an unordered set of approvals.
 
 1. Count one vote per approved option.
-2. Sort by `count desc`, then `optionId asc` (tie-break).
+2. Sort by `count desc`, breaking ties by the [seeded lot](#tie-breaking) (approval has no preference order to cascade through).
 3. The top `seats` options are `elected`.
 
 Returns `{ votes, elected, totalVotes }`.

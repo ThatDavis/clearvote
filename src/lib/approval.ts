@@ -1,4 +1,5 @@
 import type { BallotInput, OptionInput, VoteCount } from './tally'
+import { ballotSeed, seededOrder } from './tiebreak'
 
 export interface ApprovalResult {
   votes: VoteCount[]
@@ -20,14 +21,28 @@ export function tallyApproval(
     }
   }
 
+  // Approval ballots carry no preference order, so a count tie has no voter
+  // signal to resolve it. Break ties impartially by lot, seeded from the ballot
+  // data - reproducible, and blind to candidate id. A lower lot rank wins.
+  const lotRank = new Map(
+    seededOrder(
+      options.map((o) => o.id),
+      ballotSeed(ballots),
+    ).map((id, i) => [id, i]),
+  )
+
   const voteList: VoteCount[] = options
     .map((o) => ({
       optionId: o.id,
       label: o.label,
       count: counts.get(o.id) || 0,
     }))
-    // Deterministic tie-break: higher count first, then smallest optionId.
-    .sort((a, b) => b.count - a.count || a.optionId.localeCompare(b.optionId))
+    // Higher count first; ties broken by the seeded lot rank.
+    .sort(
+      (a, b) =>
+        b.count - a.count ||
+        (lotRank.get(a.optionId) as number) - (lotRank.get(b.optionId) as number),
+    )
 
   const elected = voteList.slice(0, seats).map((v) => v.optionId)
 

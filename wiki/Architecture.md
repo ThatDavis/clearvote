@@ -56,9 +56,9 @@ docs/               # In-repo design notes (ADRs, specs, milestone plans)
 
 Every counting method (`tally.ts`, `stv.ts`, `approval.ts`, `yesno.ts`) takes plain options and ballots and returns a result. They never touch Prisma. This makes results **reproducible from raw anonymized ballot data**, which is a core non-functional requirement, and keeps the algorithms exhaustively unit-tested for edge cases (ties, exhausted ballots, surplus transfers).
 
-### Deterministic tie-breaking
+### Tie-breaking by voter preference
 
-All methods share one tie-break rule so results are reproducible regardless of input order: **the lexicographically smallest `optionId` wins a tie.** See [Tally Algorithms](Tally-Algorithms.md#tie-breaking).
+Tie-breaking reflects voter preference rather than candidate or database identifiers: elimination ties use a **Next-Preference Cascade** over the ballots, and a genuine tie with no voter signal is broken impartially by a **reproducible lot** seeded from the ballot data. Results stay reproducible regardless of input order. See [Tally Algorithms](Tally-Algorithms.md#tie-breaking).
 
 ### Rate limiting is in-process
 
