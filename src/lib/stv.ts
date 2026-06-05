@@ -17,7 +17,6 @@ export function tallyStv(
   const rounds: StvRound[] = []
   const eliminated = new Set<string>()
   const elected = new Set<string>()
-  const optionMap = new Map(options.map((o) => [o.id, o.label]))
 
   // Each ballot has a weight (starts at 1.0, decreases with surplus transfers)
   const ballotWeights = ballots.map(() => 1)
@@ -37,7 +36,7 @@ export function tallyStv(
       }
     }
 
-    const totalActive = ballotWeights.reduce((sum, w, i) => {
+    const totalActive = ballotWeights.reduce((sum, _w, i) => {
       const hasActive = ballots[i].rankings.some((id) => !eliminated.has(id) && !elected.has(id))
       return sum + (hasActive ? ballotWeights[i] : 0)
     }, 0)
