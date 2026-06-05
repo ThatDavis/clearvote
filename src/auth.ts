@@ -23,7 +23,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           include: {
             memberships: {
               include: {
-                organization: { select: { id: true, name: true } },
+                organization: { select: { id: true, name: true, slug: true } },
               },
             },
           },
@@ -40,6 +40,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           memberships: user.memberships.map((m) => ({
             organizationId: m.organization.id,
             organizationName: m.organization.name,
+            organizationSlug: m.organization.slug,
             role: m.role,
           })),
         }
@@ -56,6 +57,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               memberships?: Array<{
                 organizationId: string
                 organizationName: string
+                organizationSlug: string
                 role: string
               }>
             }
@@ -70,6 +72,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           (token.memberships as Array<{
             organizationId: string
             organizationName: string
+            organizationSlug: string
             role: string
           }>) ?? []
       }

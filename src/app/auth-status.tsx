@@ -54,7 +54,7 @@ export default function AuthStatus() {
               {memberships.map((m) => (
                 <Link
                   key={m.organizationId}
-                  href={`/org/${m.organizationName.toLowerCase().replace(/\s+/g, '-')}`}
+                  href={`/org/${m.organizationSlug}`}
                   className="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
                 >
                   {m.organizationName}
@@ -81,7 +81,10 @@ export default function AuthStatus() {
         </Link>
         <button
           type="button"
-          onClick={() => signOut({ callbackUrl: '/' })}
+          onClick={async () => {
+            await signOut({ redirect: false })
+            window.location.href = '/'
+          }}
           className="text-zinc-400 transition-colors hover:text-zinc-600"
         >
           Log out

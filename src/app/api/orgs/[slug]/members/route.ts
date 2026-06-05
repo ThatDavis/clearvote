@@ -14,6 +14,32 @@ async function isOrgAdmin(userId: string, orgId: string): Promise<boolean> {
   return membership?.role === 'admin'
 }
 
+export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const session = await auth()
+
+  const org = await prisma.organization.findUnique({ where: { slug } })
+  if (!org) {
+    return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
+  }
+
+  // Any member can view the member list
+  const isMember = session?.user?.memberships?.some((m) => m.organizationId === org.id)
+  if (!isMember) {
+    return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
+  }
+
+  const members = await prisma.organizationMember.findMany({
+    where: { organizationId: org.id },
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+    },
+    orderBy: { createdAt: 'asc' },
+  })
+
+  return NextResponse.json(members)
+}
+
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const session = await auth()

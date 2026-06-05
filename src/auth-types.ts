@@ -4,6 +4,7 @@ import type { DefaultJWT } from 'next-auth/jwt'
 interface Membership {
   organizationId: string
   organizationName: string
+  organizationSlug: string
   role: string
 }
 

@@ -33,7 +33,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="mx-auto max-w-sm px-6 py-32">
+    <div className="mx-auto max-w-md px-4 py-16 sm:px-6 lg:px-8 sm:py-24">
       <h1 className="text-2xl font-semibold tracking-tight">Create an account</h1>
 
       <form action={signup} className="mt-8 space-y-4">
