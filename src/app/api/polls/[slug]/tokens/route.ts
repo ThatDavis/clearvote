@@ -1,13 +1,19 @@
 import { randomUUID } from 'node:crypto'
 import { NextResponse } from 'next/server'
+import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
+  const session = await auth()
 
   const poll = await prisma.poll.findUnique({ where: { slug } })
   if (!poll) {
     return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
+  }
+
+  if (poll.creatorId && poll.creatorId !== session?.user?.id) {
+    return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
   }
 
   const body = await request.json()

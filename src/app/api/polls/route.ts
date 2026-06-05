@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server'
+import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { uniqueSlug } from '@/lib/slug'
 
 export async function POST(request: Request) {
   try {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+
     const body = await request.json()
     const { title, description, options } = body as {
       title?: string
@@ -26,6 +32,7 @@ export async function POST(request: Request) {
         title: title.trim(),
         description: description?.trim() || null,
         slug,
+        creatorId: session.user.id,
         options: {
           create: options.map((label, index) => ({
             label: label.trim(),
