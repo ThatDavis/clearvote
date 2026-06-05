@@ -25,7 +25,7 @@ interface Option {
 
 interface Props {
   pollSlug: string
-  token: string
+  token: string | null
   options: Option[]
 }
 
@@ -94,10 +94,15 @@ export default function VoteForm({ pollSlug, token, options }: Props) {
 
     const rankings = items.map((o) => o.id)
 
+    const body: Record<string, unknown> = { pollSlug, rankings }
+    if (token) {
+      body.token = token
+    }
+
     const res = await fetch('/api/ballots', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pollSlug, token, rankings }),
+      body: JSON.stringify(body),
     })
 
     if (!res.ok) {

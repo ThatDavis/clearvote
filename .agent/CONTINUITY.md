@@ -26,8 +26,53 @@ Dependency order: Poll → Status → Tokens → Voting → Tally → Results �
 - [x] C2: Vote Receipts — sha256 receipt code on ballot submission, verification page /verify
 
 ### Future Milestones
-- Milestone 2 — Auth & Voter Integrity: user accounts, authenticated voting, one-vote-per-person
 - Milestone 3 — Vote & Voter Management: dashboards, multi-winner STV, deadlines, proxy voting
+
+### Milestone 2.5: Organization Accounts (Completed 2026-06-04)
+Goal: Organizations can register alongside individuals. Polls scoped to orgs. Org admins manage members. Individual accounts remain fully functional.
+
+Deep-plan decisions:
+- Organization model (name, slug), `organizationId` on User (optional) and Poll (optional)
+- Users can be individual OR org members — org is additive, not restrictive
+- Org signup creates org + admin user atomically in one transaction
+- Org admins manage all org polls (not just their own), maintain a member roster
+- Org members can still vote in non-org polls and create personal polls
+- Fresh schema start (zero existing users)
+
+#### Phase A: Schema & Auth
+- [x] A1: Redesign schema — add Organization model, orgId on User/Poll
+- [x] A2: Update auth to carry organizationId in JWT session
+- [x] A3: Dual-path signup (individual vs. organization)
+
+#### Phase B: Org Management
+- [x] B1: Organization settings page — edit name, manage members, invite by email
+- [x] B2: Scope polls to organization, org-level authorization on poll management
+
+#### Phase C: Dashboard & Polish
+- [x] C1: Dashboard shows org polls + personal polls + votable polls
+- [x] C2: Org name displayed in poll pages and results
+
+### Milestone 2: Auth & Voter Integrity (Completed 2026-06-04)
+Goal: User accounts, authenticated voting, one-vote-per-person enforcement, voter roll management.
+
+Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT sessions — no database session tables.
+
+#### Phase A: Auth Foundation
+- [x] A1: Add User model, add creatorId to Poll, install next-auth + bcryptjs
+- [x] A2: Auth.js config (src/auth.ts), middleware, API route handler
+- [x] A3: Signup + login pages, session display in layout
+
+#### Phase B: Auth-Gated Poll Management
+- [x] B1: Protect poll creation (POST /api/polls) behind auth, set creatorId
+- [x] B2: Restrict poll management (status, tokens) to poll creator
+
+#### Phase C: Voter Rolls & Authenticated Voting
+- [x] C1: Update VoterRoll to use userId, add voter roll management UI
+- [x] C2: Add userId to Ballot (optional), auth-gated ballot submission
+- [x] C3: Enforce one-vote-per-person for authenticated votes
+
+#### Phase D: Dashboard
+- [x] D1: User dashboard — polls I created + polls I can vote on
 
 ### Open Questions
 - [ ] Should we support "equal ranking" where a voter gives two candidates the same rank?
@@ -36,7 +81,7 @@ Dependency order: Poll → Status → Tokens → Voting → Tally → Results �
 ## [DECISIONS]
 
 - 2026-06-04: Initial stack — TypeScript + Next.js + PostgreSQL + Prisma + Tailwind + Vitest + Biome. Rationale: full-stack in one language, RDBMS for ballot integrity, mature ecosystem.
-- 2026-06-04: Deep-plan validated scaffold. Planned features: anonymous polls with RCV (M1), auth + voter integrity (M2), dashboards + STV (M3). Added auditability, multi-winner STV, vote receipts, timed polls, and proxy voting to roadmap.
+- 2026-06-04: Deep-plan validated M2.5 (Organization Accounts). Key decisions: optional org affiliation on User/Poll, atomic org+admin creation, org-level poll authorization, member management included. Fresh schema start.
 
 ## [PROGRESS]
 
@@ -44,6 +89,8 @@ Dependency order: Poll → Status → Tokens → Voting → Tally → Results �
 |------|---------------|
 | 2026-06-04 | Initial scaffold. Stack: TypeScript + Next.js + PostgreSQL + Prisma + Tailwind + Vitest + Biome + Docker Compose. |
 | 2026-06-04 | M1 complete: poll creation, status lifecycle, RCV tally (10 tests), voter token generation, drag-and-drop voting, results page, vote receipts. |
+| 2026-06-04 | M2 complete: Auth.js v5 setup, signup/login, session management, auth-gated polls, voter roll management, authenticated voting, one-vote-per-person, user dashboard. |
+| 2026-06-04 | M2.5 complete: Organization accounts, dual-path signup, org-scoped polls, member management, org dashboard. |
 
 ## [DISCOVERIES]
 

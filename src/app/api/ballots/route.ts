@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto'
 import { NextResponse } from 'next/server'
+import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 
 function generateReceipt(ballotId: string): string {
@@ -9,6 +10,7 @@ function generateReceipt(ballotId: string): string {
 
 export async function POST(request: Request) {
   try {
+    const session = await auth()
     const body = await request.json()
     const { pollSlug, token, rankings } = body as {
       pollSlug?: string
@@ -16,15 +18,14 @@ export async function POST(request: Request) {
       rankings?: string[]
     }
 
-    if (!pollSlug || !token) {
-      return NextResponse.json({ error: 'Poll slug and token are required' }, { status: 400 })
+    if (!pollSlug) {
+      return NextResponse.json({ error: 'Poll slug is required' }, { status: 400 })
     }
 
     if (!rankings || !Array.isArray(rankings) || rankings.length === 0) {
       return NextResponse.json({ error: 'At least one ranking is required' }, { status: 400 })
     }
 
-    // Validate poll exists and is open
     const poll = await prisma.poll.findUnique({
       where: { slug: pollSlug },
       include: { options: true },
@@ -38,25 +39,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'This poll is not accepting votes' }, { status: 400 })
     }
 
-    // Validate token
-    const voterToken = await prisma.voterToken.findUnique({
-      where: {
-        pollId_token: {
-          pollId: poll.id,
-          token,
-        },
-      },
-    })
-
-    if (!voterToken) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 403 })
-    }
-
-    if (voterToken.usedAt) {
-      return NextResponse.json({ error: 'This token has already been used' }, { status: 409 })
-    }
-
-    // Validate all ranking IDs are valid options for this poll
     const optionIds = new Set(poll.options.map((o) => o.id))
     for (const id of rankings) {
       if (!optionIds.has(id)) {
@@ -64,14 +46,74 @@ export async function POST(request: Request) {
       }
     }
 
-    // Create ballot and mark token used in a transaction
+    let userId: string | null = null
+    let voterTokenValue = token || ''
+
+    if (token) {
+      // Token-based voting (anonymous)
+      const voterToken = await prisma.voterToken.findUnique({
+        where: {
+          pollId_token: {
+            pollId: poll.id,
+            token,
+          },
+        },
+      })
+
+      if (!voterToken) {
+        return NextResponse.json({ error: 'Invalid token' }, { status: 403 })
+      }
+
+      if (voterToken.usedAt) {
+        return NextResponse.json({ error: 'This token has already been used' }, { status: 409 })
+      }
+
+      voterTokenValue = token
+    } else if (session?.user?.id) {
+      // Authenticated voting
+      const onRoll = await prisma.voterRoll.findUnique({
+        where: {
+          pollId_userId: {
+            pollId: poll.id,
+            userId: session.user.id,
+          },
+        },
+      })
+
+      if (!onRoll) {
+        return NextResponse.json(
+          { error: 'You are not on the voter roll for this poll' },
+          { status: 403 },
+        )
+      }
+
+      const alreadyVoted = await prisma.ballot.findFirst({
+        where: {
+          pollId: poll.id,
+          userId: session.user.id,
+        },
+      })
+
+      if (alreadyVoted) {
+        return NextResponse.json({ error: 'You have already voted in this poll' }, { status: 409 })
+      }
+
+      userId = session.user.id
+    } else {
+      return NextResponse.json(
+        { error: 'A voting token or authenticated session is required' },
+        { status: 401 },
+      )
+    }
+
     const ballot = await prisma.$transaction(async (tx) => {
       const b = await tx.ballot.create({
         data: {
           pollId: poll.id,
-          voterToken: token,
+          userId,
+          voterToken: voterTokenValue,
           rankings: rankings as unknown as string[],
-          receiptCode: '', // placeholder, will update after getting the ID
+          receiptCode: '',
         },
       })
 
@@ -82,10 +124,17 @@ export async function POST(request: Request) {
         data: { receiptCode: receipt },
       })
 
-      await tx.voterToken.update({
-        where: { id: voterToken.id },
-        data: { usedAt: new Date() },
-      })
+      if (token) {
+        await tx.voterToken.update({
+          where: {
+            pollId_token: {
+              pollId: poll.id,
+              token,
+            },
+          },
+          data: { usedAt: new Date() },
+        })
+      }
 
       return updated
     })

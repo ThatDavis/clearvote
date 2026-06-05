@@ -1,4 +1,26 @@
 -- CreateTable
+CREATE TABLE "Organization" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Organization_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "passwordHash" TEXT NOT NULL,
+    "organizationId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Poll" (
     "id" TEXT NOT NULL,
     "title" TEXT NOT NULL,
@@ -6,6 +28,8 @@ CREATE TABLE "Poll" (
     "slug" TEXT NOT NULL,
     "seats" INTEGER NOT NULL DEFAULT 1,
     "status" TEXT NOT NULL DEFAULT 'draft',
+    "creatorId" TEXT,
+    "organizationId" TEXT,
     "startsAt" TIMESTAMP(3),
     "endsAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -29,6 +53,7 @@ CREATE TABLE "PollOption" (
 CREATE TABLE "Ballot" (
     "id" TEXT NOT NULL,
     "pollId" TEXT NOT NULL,
+    "userId" TEXT,
     "voterToken" TEXT NOT NULL,
     "rankings" JSONB NOT NULL,
     "receiptCode" TEXT NOT NULL,
@@ -53,10 +78,16 @@ CREATE TABLE "VoterToken" (
 CREATE TABLE "VoterRoll" (
     "id" TEXT NOT NULL,
     "pollId" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
 
     CONSTRAINT "VoterRoll_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Organization_slug_key" ON "Organization"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Poll_slug_key" ON "Poll"("slug");
@@ -83,7 +114,16 @@ CREATE UNIQUE INDEX "VoterToken_pollId_token_key" ON "VoterToken"("pollId", "tok
 CREATE INDEX "VoterRoll_pollId_idx" ON "VoterRoll"("pollId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "VoterRoll_pollId_email_key" ON "VoterRoll"("pollId", "email");
+CREATE UNIQUE INDEX "VoterRoll_pollId_userId_key" ON "VoterRoll"("pollId", "userId");
+
+-- AddForeignKey
+ALTER TABLE "User" ADD CONSTRAINT "User_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Poll" ADD CONSTRAINT "Poll_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Poll" ADD CONSTRAINT "Poll_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "PollOption" ADD CONSTRAINT "PollOption_pollId_fkey" FOREIGN KEY ("pollId") REFERENCES "Poll"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -92,7 +132,13 @@ ALTER TABLE "PollOption" ADD CONSTRAINT "PollOption_pollId_fkey" FOREIGN KEY ("p
 ALTER TABLE "Ballot" ADD CONSTRAINT "Ballot_pollId_fkey" FOREIGN KEY ("pollId") REFERENCES "Poll"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Ballot" ADD CONSTRAINT "Ballot_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "VoterToken" ADD CONSTRAINT "VoterToken_pollId_fkey" FOREIGN KEY ("pollId") REFERENCES "Poll"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "VoterRoll" ADD CONSTRAINT "VoterRoll_pollId_fkey" FOREIGN KEY ("pollId") REFERENCES "Poll"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VoterRoll" ADD CONSTRAINT "VoterRoll_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

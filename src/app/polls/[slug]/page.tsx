@@ -1,11 +1,14 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import StatusControls from './status-controls'
 import TokenGenerator from './token-generator'
+import VoterRollManager from './voter-roll-manager'
 
 export default async function PollPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
+  const session = await auth()
 
   const poll = await prisma.poll.findUnique({
     where: { slug },
@@ -22,6 +25,12 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
   if (!poll) {
     notFound()
   }
+
+  const isCreator =
+    session?.user?.id != null && poll.creatorId != null
+      ? session.user.id === poll.creatorId ||
+        (poll.organizationId != null && session.user.organizationId === poll.organizationId)
+      : false
 
   const statusLabel = {
     draft: 'Draft',
@@ -62,8 +71,13 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
         </p>
       </div>
 
-      <StatusControls slug={poll.slug} status={poll.status} />
-      <TokenGenerator slug={poll.slug} />
+      {isCreator && (
+        <>
+          <StatusControls slug={poll.slug} status={poll.status} />
+          <TokenGenerator slug={poll.slug} />
+          <VoterRollManager slug={poll.slug} />
+        </>
+      )}
 
       <div className="mt-8 border-t border-zinc-200 pt-6">
         <Link
