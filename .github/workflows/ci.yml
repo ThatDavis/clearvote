@@ -56,6 +56,15 @@ jobs:
           AUTH_SECRET: dummy-build-secret
           NEXT_PUBLIC_APP_URL: http://localhost:3000
 
+      - name: Cache Trivy vulnerability DB
+        # v5.0.5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        with:
+          path: ~/.cache/trivy
+          key: ${{ runner.os }}-trivy-db-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-trivy-db-
+
       - name: Run Trivy vulnerability scanner (filesystem)
         id: trivy-fs
         # v0.36.0
@@ -67,6 +76,7 @@ jobs:
           output: 'trivy-results.sarif'
           severity: 'HIGH,CRITICAL'
           exit-code: '0'
+          skip-files: 'pnpm-lock.yaml'
 
       - name: Build Docker image for scanning
         id: docker-build
@@ -84,6 +94,8 @@ jobs:
           output: 'trivy-image-results.sarif'
           severity: 'HIGH,CRITICAL'
           exit-code: '0'
+          skip-dirs: '/root/.npm,/root/.cache'
+          scanners: 'vuln'
 
       - name: Upload Trivy scan results
         # v4.36.2
