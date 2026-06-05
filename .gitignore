@@ -43,3 +43,19 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# LLM/Agent tooling
+AGENTS.md
+CLAUDE.md
+CURSOR.md
+PLAN.md
+.agent/
+.agents/
+.aider/
+.claude/
+.copilot/
+.cursor/
+.kimi/
+.opencode/
+.windsurf/
+docs/
