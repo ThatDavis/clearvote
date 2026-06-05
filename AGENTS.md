@@ -54,6 +54,18 @@ All agents follow this git discipline. It should be invisible to the user — no
 - If a milestone is fully complete, move its items to `## Completed Features` with the completion date.
 - New bugs or requirements discovered during work should be added to the appropriate milestone immediately.
 
+## Post-work verification
+
+Before declaring a task complete, run the full verification stack in this order:
+
+1. **Unit tests** — `pnpm test`
+2. **Lint & typecheck** — `pnpm lint` and `pnpm typecheck`
+3. **Production build** — `pnpm build` (catches Next.js prerender errors, missing Suspense boundaries, etc.)
+4. **Docker build** — `docker compose build` (or equivalent) to catch issues that only surface in the containerized environment
+5. **Container startup logs** — `docker compose up` and watch the first boot for runtime errors, migration failures, or missing env vars
+
+Only skip steps 4–5 if the user explicitly says so or if the change is trivial (e.g., a copy edit).
+
 ## Reference docs
 
 | File | Purpose |
