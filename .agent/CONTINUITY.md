@@ -6,6 +6,18 @@
 
 ## [PLANS]
 
+### Milestone 6: Multi-Poll Ballots (Elections) (Planned)
+Goal: One ballot containing several contests of mixed voting methods, cast in a single atomic session — a real election ballot. Design: `docs/MULTI-POLL-BALLOT-PLAN.md`. Build guide: `docs/MILESTONE-6-IMPLEMENTATION.md`. Depends on M5 remediations (esp. FIX-2 atomic claim, generalized to election scope) and a working voter-eligibility path (C4).
+
+Decisions (2026-06-05): reuse `Poll` as contest (Election + nullable `electionId`); ballot styles = fast-follow with `ballotStyleId` reserved in v1; blanks = empty ballot per contest; one `ElectionReceipt` per package. v1 = Phases A,B,D,E,F; Phase C (styles) is the fast-follow.
+
+- [ ] A: Data model & back-compat — Election/ElectionVoterToken/ElectionVoterRoll/ElectionReceipt/ElectionAuditLog models, `electionId`+`contestOrder` on Poll, deferral helpers, guard parented polls out of standalone routes
+- [ ] B: Admin — election CRUD + contests, election-scoped credentials/distribution (one per voter), lifecycle cascade + open-guard + auto-close
+- [ ] C: Ballot styles (FAST-FOLLOW) — BallotStyle model, assign+resolve+enforce, admin visibility
+- [ ] D: Voting session — extract per-method components, `/elect/[slug]` multi-contest page, review step, atomic `POST /api/elections/[slug]/ballots` with one receipt
+- [ ] E: Results/audit/certification — combined per-contest results (shuffled, gated), election audit trail, re-tallyable export
+- [ ] F: Polish — order rotation, accessibility/long ballots, organizer docs
+
 ### Milestone 5: Election Security & Audit Hardening (In Progress — Remediation)
 Goal: Close active vulnerabilities and add the ballot-secrecy + audit guarantees a credible election requires. Surfaced by a security/integrity review of the codebase.
 

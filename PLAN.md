@@ -45,6 +45,48 @@
 
 ---
 
+## Milestone 6: Multi-Poll Ballots (Elections)
+
+**Goal:** Let a voter cast one ballot containing several contests of mixed voting methods in a single atomic session — a real election ballot. Design rationale in `docs/MULTI-POLL-BALLOT-PLAN.md`; task-by-task build guide in `docs/MILESTONE-6-IMPLEMENTATION.md`.
+**Status:** Planned (depends on Milestone 5 remediations — see `docs/MILESTONE-5-REMEDIATION.md`; C4 verification flow still open)
+
+**Decisions (resolved 2026-06-05):** reuse `Poll` as the contest (Election container + nullable `electionId`); ballot styles are a fast-follow with the `ballotStyleId` column reserved in v1; blanks stored as an empty ballot per contest; one `ElectionReceipt` per package.
+
+v1 = Phases A, B, D, E, F. Phase C (ballot styles) is the fast-follow.
+
+### Phase A: Data model & back-compat
+- [ ] A1: Write the four decisions into `docs/SPEC.md`
+- [ ] A2: Schema — add Election, ElectionVoterToken, ElectionVoterRoll, ElectionReceipt, ElectionAuditLog; add `electionId` + `contestOrder` to Poll; additive migration
+- [ ] A3: Deferral helpers (`effectiveStatus`, `canManageElection`) + guard parented polls out of standalone token/roll/vote routes
+
+### Phase B: Admin — build an election
+- [ ] B1: Election CRUD + add/remove/reorder contests (contests = polls with `electionId`)
+- [ ] B2: Election-scoped credentials & distribution (one hashed token / roll entry per voter; links to `/elect/[slug]`)
+- [ ] B3: Lifecycle — draft→open→closed cascade, open-guard against incomplete contests, auto-close on `endsAt`
+
+### Phase C: Ballot styles (FAST-FOLLOW, post-v1)
+- [ ] C1: `BallotStyle` model + admin (named contest subsets)
+- [ ] C2: Assign styles to credentials; resolve + enforce at vote/submit
+- [ ] C3: Admin visibility of who gets which ballot
+
+### Phase D: Voting session
+- [ ] D0: Extract reusable per-method ballot components from `vote-form.tsx`
+- [ ] D1: `/elect/[slug]` multi-contest page — one credential check, all entitled contests, per-method UIs, blank/abstain affordances
+- [ ] D2: Review-and-confirm step (no identifiable partial state persisted)
+- [ ] D3: `POST /api/elections/[slug]/ballots` — atomic package submit (FIX-2 claim at election scope), per-contest validation, empty ballot for skips, one receipt
+
+### Phase E: Results, audit & certification
+- [ ] E1: Combined results page — per-contest tallies, turnout, shuffled ballots gated to closed, small-electorate suppression
+- [ ] E2: Election audit trail + admin view (cast = timestamp only)
+- [ ] E3: Certification bundle export (re-tallyable, anonymized)
+
+### Phase F: Polish
+- [ ] F1: Optional contest/candidate order rotation
+- [ ] F2: Accessibility & long-ballot handling
+- [ ] F3: Organizer documentation
+
+---
+
 ## Completed Features
 
 - Milestone 1 (2026-06-04): Core Voting Engine — poll creation, status lifecycle, RCV tally, voter tokens, drag-and-drop voting, results page, vote receipts.
