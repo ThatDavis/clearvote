@@ -1,4 +1,4 @@
-# rank
+# clearvote
 
 A simple ranked-choice voting system for community-run spaces.
 

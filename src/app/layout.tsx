@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'rank — ranked-choice voting for communities',
+  title: 'clearvote — ranked-choice voting for communities',
   description: 'A simple ranked-choice voting system for community-run spaces.',
 }
 

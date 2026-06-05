@@ -5,9 +5,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: rank
-      POSTGRES_PASSWORD: rank
-      POSTGRES_DB: rank
+      POSTGRES_USER: clearvote
+      POSTGRES_PASSWORD: clearvote
+      POSTGRES_DB: clearvote
     volumes:
       - pgdata:/var/lib/postgresql/data
 

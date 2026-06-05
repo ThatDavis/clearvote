@@ -1,10 +1,10 @@
-# AI Instructions for rank
+# AI Instructions for clearvote
 
 These instructions apply to every AI coding session in this project.
 
 ## Project context
 
-rank is a ranked-choice voting web app for community-run spaces — TypeScript + Next.js + PostgreSQL.
+clearvote is a ranked-choice voting web app for community-run spaces — TypeScript + Next.js + PostgreSQL.
 See `README.md` for an overview, `docs/ARCHITECTURE.md` for stack decisions and project structure, and `docs/SPEC.md` for feature specs.
 
 ## Priorities

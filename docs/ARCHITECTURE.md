@@ -1,4 +1,4 @@
-# Architecture — rank
+# Architecture — clearvote
 
 > Last updated: 2026-06-04
 

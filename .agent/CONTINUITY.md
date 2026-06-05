@@ -1,4 +1,4 @@
-# CONTINUITY — rank
+# CONTINUITY — clearvote
 
 > Canonical project briefing. Read at session start.
 > Stack: TypeScript + Next.js + PostgreSQL

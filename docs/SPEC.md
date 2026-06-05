@@ -1,10 +1,10 @@
-# Specification — rank
+# Specification — clearvote
 
 > Last updated: 2026-06-04
 
 ## Overview
 
-rank is a web application that lets community-run spaces (co-ops, HOAs, unions, clubs) run secure, fair elections using ranked-choice voting. Voters can participate via anonymous one-time links or through authenticated accounts with full vote management.
+clearvote is a web application that lets community-run spaces (co-ops, HOAs, unions, clubs) run secure, fair elections using ranked-choice voting. Voters can participate via anonymous one-time links or through authenticated accounts with full vote management.
 
 ## Milestone 1 — Core Voting Engine
 
