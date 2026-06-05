@@ -11,8 +11,14 @@ export default function AuthStatus() {
   }
 
   if (session) {
+    const org = session.user.organizationName
     return (
       <div className="flex items-center gap-4 text-sm">
+        {org && (
+          <Link href={`/org/${org.toLowerCase().replace(/\s+/g, '-')}`} className="text-zinc-500">
+            {org}
+          </Link>
+        )}
         <Link href="/dashboard" className="text-zinc-600 hover:text-zinc-900">
           {session.user?.name}
         </Link>

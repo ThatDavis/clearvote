@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
+import { canManagePoll } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
@@ -12,7 +13,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
   }
 
-  if (poll.creatorId && poll.creatorId !== session?.user?.id) {
+  if (session?.user?.id && !(await canManagePoll(poll.id, session.user.id))) {
     return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
   }
 

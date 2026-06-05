@@ -26,7 +26,11 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
     notFound()
   }
 
-  const isCreator = session?.user?.id === poll.creatorId
+  const isCreator =
+    session?.user?.id != null && poll.creatorId != null
+      ? session.user.id === poll.creatorId ||
+        (poll.organizationId != null && session.user.organizationId === poll.organizationId)
+      : false
 
   const statusLabel = {
     draft: 'Draft',

@@ -17,6 +17,22 @@ export default async function DashboardPage() {
     orderBy: { createdAt: 'desc' },
   })
 
+  let org = null
+  let orgPolls: typeof myPolls = []
+
+  if (session.user.organizationId) {
+    org = await prisma.organization.findUnique({
+      where: { id: session.user.organizationId },
+    })
+    orgPolls = await prisma.poll.findMany({
+      where: { organizationId: session.user.organizationId },
+      include: {
+        _count: { select: { ballots: true, tokens: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+  }
+
   const myRolls = await prisma.voterRoll.findMany({
     where: { userId: session.user.id },
     include: {
@@ -58,6 +74,38 @@ export default async function DashboardPage() {
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
       <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+
+      {org && (
+        <div className="mt-10">
+          <h2 className="text-lg font-medium">
+            <Link href={`/org/${org.slug}`} className="hover:underline">
+              {org.name}
+            </Link>
+          </h2>
+          {orgPolls.length === 0 ? (
+            <p className="mt-2 text-sm text-zinc-500">No polls yet.</p>
+          ) : (
+            <ul className="mt-4 divide-y divide-zinc-200 rounded-lg border border-zinc-200">
+              {orgPolls.map((poll) => (
+                <li key={poll.id}>
+                  <Link
+                    href={`/polls/${poll.slug}`}
+                    className="flex items-center justify-between px-4 py-3 hover:bg-zinc-50"
+                  >
+                    <div>
+                      <span className="text-sm font-medium">{poll.title}</span>
+                      <span className="ml-2 text-xs text-zinc-500">{statusLabel(poll.status)}</span>
+                    </div>
+                    <span className="text-xs text-zinc-400">
+                      {poll._count.ballots} vote{poll._count.ballots !== 1 ? 's' : ''}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       <div className="mt-10">
         <h2 className="text-lg font-medium">My polls</h2>

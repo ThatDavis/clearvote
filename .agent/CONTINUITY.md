@@ -28,6 +28,30 @@ Dependency order: Poll → Status → Tokens → Voting → Tally → Results �
 ### Future Milestones
 - Milestone 3 — Vote & Voter Management: dashboards, multi-winner STV, deadlines, proxy voting
 
+### Milestone 2.5: Organization Accounts (In Progress)
+Goal: Organizations can register alongside individuals. Polls scoped to orgs. Org admins manage members. Individual accounts remain fully functional.
+
+Deep-plan decisions:
+- Organization model (name, slug), `organizationId` on User (optional) and Poll (optional)
+- Users can be individual OR org members — org is additive, not restrictive
+- Org signup creates org + admin user atomically in one transaction
+- Org admins manage all org polls (not just their own), maintain a member roster
+- Org members can still vote in non-org polls and create personal polls
+- Fresh schema start (zero existing users)
+
+#### Phase A: Schema & Auth
+- [ ] A1: Redesign schema — add Organization model, orgId on User/Poll
+- [ ] A2: Update auth to carry organizationId in JWT session
+- [ ] A3: Dual-path signup (individual vs. organization)
+
+#### Phase B: Org Management
+- [ ] B1: Organization settings page — edit name, manage members, invite by email
+- [ ] B2: Scope polls to organization, org-level authorization on poll management
+
+#### Phase C: Dashboard & Polish
+- [ ] C1: Dashboard shows org polls + personal polls + votable polls
+- [ ] C2: Org name displayed in poll pages and results
+
 ### Milestone 2: Auth & Voter Integrity (Completed 2026-06-04)
 Goal: User accounts, authenticated voting, one-vote-per-person enforcement, voter roll management.
 
@@ -57,7 +81,7 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 ## [DECISIONS]
 
 - 2026-06-04: Initial stack — TypeScript + Next.js + PostgreSQL + Prisma + Tailwind + Vitest + Biome. Rationale: full-stack in one language, RDBMS for ballot integrity, mature ecosystem.
-- 2026-06-04: Deep-plan validated scaffold. Planned features: anonymous polls with RCV (M1), auth + voter integrity (M2), dashboards + STV (M3). Added auditability, multi-winner STV, vote receipts, timed polls, and proxy voting to roadmap.
+- 2026-06-04: Deep-plan validated M2.5 (Organization Accounts). Key decisions: optional org affiliation on User/Poll, atomic org+admin creation, org-level poll authorization, member management included. Fresh schema start.
 
 ## [PROGRESS]
 

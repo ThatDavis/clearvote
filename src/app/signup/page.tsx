@@ -1,6 +1,9 @@
 import { hash } from 'bcryptjs'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
+import { uniqueSlug } from '@/lib/slug'
+
+import OrgNameToggle from './org-name-toggle'
 
 export default function SignupPage() {
   async function signup(formData: FormData) {
@@ -9,6 +12,8 @@ export default function SignupPage() {
     const email = (formData.get('email') as string).toLowerCase().trim()
     const name = (formData.get('name') as string).trim()
     const password = formData.get('password') as string
+    const accountType = formData.get('accountType') as string
+    const orgName = (formData.get('orgName') as string).trim()
 
     if (!email || !name || !password) {
       return redirect('/signup?error=All fields are required')
@@ -25,9 +30,27 @@ export default function SignupPage() {
 
     const passwordHash = await hash(password, 12)
 
-    await prisma.user.create({
-      data: { email, name, passwordHash },
-    })
+    if (accountType === 'organization') {
+      if (!orgName) {
+        return redirect('/signup?error=Organization name is required')
+      }
+
+      const orgSlug = await uniqueSlug(orgName)
+
+      await prisma.$transaction(async (tx) => {
+        const org = await tx.organization.create({
+          data: { name: orgName, slug: orgSlug },
+        })
+
+        await tx.user.create({
+          data: { email, name, passwordHash, organizationId: org.id },
+        })
+      })
+    } else {
+      await prisma.user.create({
+        data: { email, name, passwordHash },
+      })
+    }
 
     redirect('/login?registered=true')
   }
@@ -37,9 +60,23 @@ export default function SignupPage() {
       <h1 className="text-2xl font-semibold tracking-tight">Create an account</h1>
 
       <form action={signup} className="mt-8 space-y-4">
+        <fieldset>
+          <legend className="block text-sm font-medium">Account type</legend>
+          <div className="mt-2 flex gap-4">
+            <label className="flex items-center gap-2 text-sm">
+              <input type="radio" name="accountType" value="individual" defaultChecked />
+              Individual
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="radio" name="accountType" value="organization" />
+              Organization
+            </label>
+          </div>
+        </fieldset>
+
         <div>
           <label htmlFor="name" className="block text-sm font-medium">
-            Name
+            Your name
           </label>
           <input
             id="name"
@@ -47,6 +84,19 @@ export default function SignupPage() {
             type="text"
             required
             className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+          />
+        </div>
+
+        <div id="orgNameField" className="hidden">
+          <label htmlFor="orgName" className="block text-sm font-medium">
+            Organization name
+          </label>
+          <input
+            id="orgName"
+            name="orgName"
+            type="text"
+            className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            placeholder="Your co-op, HOA, or union name"
           />
         </div>
 
@@ -92,6 +142,8 @@ export default function SignupPage() {
           Log in
         </a>
       </p>
+
+      <OrgNameToggle />
     </div>
   )
 }
