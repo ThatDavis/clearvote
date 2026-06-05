@@ -21,6 +21,7 @@ export async function POST(request: Request) {
       startsAt,
       endsAt,
       organizationId,
+      voterRollMode,
     } = body as {
       title?: string
       description?: string
@@ -31,6 +32,7 @@ export async function POST(request: Request) {
       startsAt?: string
       endsAt?: string
       organizationId?: string
+      voterRollMode?: 'all' | 'custom'
     }
 
     if (!title || typeof title !== 'string' || title.trim().length === 0) {
@@ -91,6 +93,27 @@ export async function POST(request: Request) {
           },
         },
       })
+
+      // Auto-populate voter roll with all org members
+      if (organizationId && voterRollMode === 'all') {
+        const members = await tx.organizationMember.findMany({
+          where: { organizationId },
+          select: { userId: true },
+        })
+
+        for (const member of members) {
+          await tx.voterRoll
+            .create({
+              data: {
+                pollId: p.id,
+                userId: member.userId,
+              },
+            })
+            .catch(() => {
+              // Ignore duplicate entries
+            })
+        }
+      }
 
       return p
     })
