@@ -68,6 +68,21 @@ async function sendEmail({
   return { success: false, error: 'No email provider configured' }
 }
 
+const emailHeader = `
+  <div style="background: #dc2626; padding: 20px 24px; margin: -24px -24px 24px -24px; border-radius: 8px 8px 0 0;">
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td style="vertical-align: middle;">
+          <span style="color: white; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">ClearVote</span>
+        </td>
+        <td style="text-align: right; vertical-align: middle;">
+          <span style="color: rgba(255,255,255,0.8); font-size: 13px;">Ranked-choice voting</span>
+        </td>
+      </tr>
+    </table>
+  </div>
+`
+
 export async function sendVerificationEmail({
   to,
   verifyLink,
@@ -80,6 +95,7 @@ export async function sendVerificationEmail({
     subject: 'Verify your email address',
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+        ${emailHeader}
         <h1 style="color: #1a1a1a; font-size: 20px; margin-bottom: 16px;">Verify your email address</h1>
         <p style="color: #4a4a4a; line-height: 1.6; margin-bottom: 24px;">
           Thanks for signing up for Clearvote. Click the link below to verify your email address and start voting.
@@ -110,6 +126,7 @@ export async function sendVoteInvite({
     subject: `You're invited to vote: ${pollTitle}`,
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+        ${emailHeader}
         <h1 style="color: #1a1a1a; font-size: 20px; margin-bottom: 16px;">You've been invited to vote</h1>
         <p style="color: #4a4a4a; line-height: 1.6; margin-bottom: 24px;">
           You've been invited to participate in a poll on Clearvote:
@@ -132,6 +149,7 @@ export async function sendWelcomeEmail({ to, name }: { to: string; name: string 
     subject: 'Welcome to Clearvote',
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+        ${emailHeader}
         <h1 style="color: #1a1a1a; font-size: 20px; margin-bottom: 16px;">Welcome to Clearvote, ${name}</h1>
         <p style="color: #4a4a4a; line-height: 1.6; margin-bottom: 24px;">
           Your account has been created. You can now participate in ranked-choice polls and elections run by your community.
@@ -156,6 +174,7 @@ export async function sendPollOpenNotification({
     subject: `Voting has started: ${pollTitle}`,
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+        ${emailHeader}
         <h1 style="color: #1a1a1a; font-size: 20px; margin-bottom: 16px;">Voting is now open</h1>
         <p style="color: #4a4a4a; line-height: 1.6; margin-bottom: 24px;">
           The poll <strong>${pollTitle}</strong> has opened and your vote is ready to be cast.
@@ -183,6 +202,7 @@ export async function sendOrgInvite({
     subject: `You're invited to join ${orgName} on Clearvote`,
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+        ${emailHeader}
         <h1 style="color: #1a1a1a; font-size: 20px; margin-bottom: 16px;">You're invited to join ${orgName}</h1>
         <p style="color: #4a4a4a; line-height: 1.6; margin-bottom: 24px;">
           You've been invited to join <strong>${orgName}</strong> on Clearvote. Click the link below to accept the invitation.
