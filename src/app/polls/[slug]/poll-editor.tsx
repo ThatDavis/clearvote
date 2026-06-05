@@ -115,8 +115,11 @@ export default function PollEditor({
 
       <div className="mt-4 space-y-4">
         <div>
-          <label className="block text-xs font-medium text-zinc-700 mb-1">Title</label>
+          <label htmlFor="poll-title" className="block text-xs font-medium text-zinc-700 mb-1">
+            Title
+          </label>
           <input
+            id="poll-title"
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -125,8 +128,14 @@ export default function PollEditor({
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-zinc-700 mb-1">Description</label>
+          <label
+            htmlFor="poll-description"
+            className="block text-xs font-medium text-zinc-700 mb-1"
+          >
+            Description
+          </label>
           <textarea
+            id="poll-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
@@ -136,10 +145,10 @@ export default function PollEditor({
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-zinc-700 mb-2">Options</label>
+          <p className="block text-xs font-medium text-zinc-700 mb-2">Options</p>
           <div className="space-y-2">
             {options.map((opt, i) => (
-              <div key={i} className="flex items-center gap-2">
+              <div key={opt} className="flex items-center gap-2">
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-chicago-blue/10 text-xs font-bold text-chicago-blue">
                   {i + 1}
                 </span>
@@ -157,6 +166,7 @@ export default function PollEditor({
                   aria-label="Remove option"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <title>Remove option</title>
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"

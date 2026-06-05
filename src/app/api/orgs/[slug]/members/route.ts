@@ -187,6 +187,10 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ s
   }
 
   // Handle member deletion
+  if (!userId) {
+    return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
+  }
+
   const membership = await prisma.organizationMember.findUnique({
     where: {
       userId_organizationId: {
@@ -208,7 +212,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ s
   await prisma.organizationMember.delete({
     where: {
       userId_organizationId: {
-        userId: userId!,
+        userId: userId,
         organizationId: org.id,
       },
     },
