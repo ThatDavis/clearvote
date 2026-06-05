@@ -40,15 +40,7 @@ export default async function DashboardPage() {
     },
   })
 
-  const votedPollIds = (
-    await prisma.ballot.findMany({
-      where: {
-        userId: session.user.id,
-        pollId: { in: myRolls.map((r) => r.pollId) },
-      },
-      select: { pollId: true },
-    })
-  ).map((b) => b.pollId)
+  const votedPollIds = myRolls.filter((r) => r.hasVoted).map((r) => r.pollId)
 
   const canVote = myRolls.filter(
     (r) => r.poll.status === 'open' && !votedPollIds.includes(r.pollId),

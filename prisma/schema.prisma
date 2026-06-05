@@ -42,7 +42,6 @@ model User {
 
   memberships  OrganizationMember[]
   polls        Poll[]
-  ballots      Ballot[]
   rolls        VoterRoll[]
   principalFor Proxy[]  @relation("Principal")
   proxyFor     Proxy[]  @relation("Proxy")
@@ -89,17 +88,13 @@ model PollOption {
 model Ballot {
   id          String   @id @default(uuid())
   pollId      String
-  userId      String?
-  voterToken  String
   rankings    Json
   receiptCode String   @unique
   castAt      DateTime @default(now())
   verifiedAt  DateTime?
 
   poll Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
-  user User? @relation(fields: [userId], references: [id])
 
-  @@unique([pollId, voterToken])
   @@index([pollId])
 }
 
@@ -117,9 +112,11 @@ model VoterToken {
 }
 
 model VoterRoll {
-  id     String @id @default(uuid())
-  pollId String
-  userId String
+  id        String    @id @default(uuid())
+  pollId    String
+  userId    String
+  hasVoted  Boolean   @default(false)
+  votedAt   DateTime?
 
   poll Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id])

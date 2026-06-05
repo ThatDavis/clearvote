@@ -86,14 +86,7 @@ export default async function VotePage({
       )
     }
 
-    const alreadyVoted = await prisma.ballot.findFirst({
-      where: {
-        pollId: poll.id,
-        userId: session.user.id,
-      },
-    })
-
-    if (alreadyVoted) {
+    if (onRoll.hasVoted) {
       return (
         <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8 text-center">
           <h1 className="text-xl font-semibold">Already voted</h1>
