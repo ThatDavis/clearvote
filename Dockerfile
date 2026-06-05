@@ -1,4 +1,4 @@
-FROM node:22 AS base
+FROM node:22-alpine AS base
 RUN corepack enable && corepack prepare pnpm@11.3.0 --activate
 WORKDIR /app
 
@@ -15,7 +15,7 @@ ENV AUTH_SECRET=dummy-build-secret
 RUN pnpm build
 
 FROM base AS runner
-RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache openssl
 
 # Install prisma globally for migrations; add dotenv so prisma.config.ts can find it
 ENV NODE_PATH=/usr/local/lib/node_modules
