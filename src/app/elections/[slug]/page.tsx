@@ -4,10 +4,11 @@ import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import ContestManager from './contest-manager'
 import ElectionAuditTrail from './audit-trail'
+import ElectionDistributor from './election-distributor'
 import ElectionEditor from './election-editor'
 import ElectionStatusControls from './status-controls'
 import ElectionTokenGenerator from './token-generator'
-import ElectionVoterRollManager from './voter-roll-manager'
+import OrgElectionDistributor from './org-election-distributor'
 
 export default async function ElectionPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -151,15 +152,19 @@ export default async function ElectionPage({ params }: { params: Promise<{ slug:
           </div>
 
           <div className="mt-8 space-y-4">
+            {election.organizationId && election.organization ? (
+              <OrgElectionDistributor
+                slug={slug}
+                orgSlug={election.organization.slug}
+                locked={locked}
+              />
+            ) : (
+              <ElectionDistributor slug={slug} locked={locked} />
+            )}
             <ElectionTokenGenerator slug={slug} locked={locked} />
-            <ElectionVoterRollManager slug={slug} locked={locked} />
-          </div>
-
-          <div className="mt-8">
             <ElectionStatusControls slug={slug} status={election.status} />
+            <ElectionAuditTrail slug={slug} />
           </div>
-
-          <ElectionAuditTrail slug={slug} />
         </>
       )}
 
