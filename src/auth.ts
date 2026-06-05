@@ -1,7 +1,6 @@
 import { compare } from 'bcryptjs'
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
-import { prisma } from '@/lib/prisma'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -12,6 +11,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
+
+        // Dynamic import to keep prisma out of edge runtime bundle (middleware)
+        const { prisma } = await import('@/lib/prisma')
 
         const email = (credentials.email as string).toLowerCase().trim()
         const password = credentials.password as string
