@@ -49,6 +49,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
     }
 
+    if (poll.electionId) {
+      return NextResponse.json(
+        { error: 'This poll is a contest within an election; vote via the election ballot.' },
+        { status: 400 },
+      )
+    }
+
     // Auto-close if past end date
     if (poll.status === 'open' && poll.endsAt && new Date(poll.endsAt) < new Date()) {
       await prisma.poll.update({

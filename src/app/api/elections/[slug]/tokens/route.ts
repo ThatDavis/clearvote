@@ -1,8 +1,8 @@
 import { randomBytes, randomUUID } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { auditLog } from '@/lib/audit'
-import { canManagePoll } from '@/lib/auth'
+import { canManageElection } from '@/lib/election'
+import { electionAuditLog } from '@/lib/election-audit'
 import { prisma } from '@/lib/prisma'
 import { hashToken } from '@/lib/token'
 
@@ -10,24 +10,17 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
   const { slug } = await params
   const session = await auth()
 
-  const poll = await prisma.poll.findUnique({ where: { slug } })
-  if (!poll) {
-    return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
+  const election = await prisma.election.findUnique({ where: { slug } })
+  if (!election) {
+    return NextResponse.json({ error: 'Election not found' }, { status: 404 })
   }
 
-  if (poll.electionId) {
-    return NextResponse.json(
-      { error: 'This poll is a contest within an election; manage via the election.' },
-      { status: 400 },
-    )
-  }
-
-  if (!session?.user?.id || !(await canManagePoll(poll.id, session.user.id))) {
+  if (!session?.user?.id || !(await canManageElection(election.id, session.user.id))) {
     return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
   }
 
-  const tokens = await prisma.voterToken.findMany({
-    where: { pollId: poll.id },
+  const tokens = await prisma.electionVoterToken.findMany({
+    where: { electionId: election.id },
     orderBy: { createdAt: 'asc' },
   })
 
@@ -41,25 +34,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   const { slug } = await params
   const session = await auth()
 
-  const poll = await prisma.poll.findUnique({ where: { slug } })
-  if (!poll) {
-    return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
+  const election = await prisma.election.findUnique({ where: { slug } })
+  if (!election) {
+    return NextResponse.json({ error: 'Election not found' }, { status: 404 })
   }
 
-  if (poll.electionId) {
-    return NextResponse.json(
-      { error: 'This poll is a contest within an election; manage via the election.' },
-      { status: 400 },
-    )
-  }
-
-  if (!session?.user?.id || !(await canManagePoll(poll.id, session.user.id))) {
+  if (!session?.user?.id || !(await canManageElection(election.id, session.user.id))) {
     return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
   }
 
-  if (poll.status !== 'draft') {
+  if (election.status !== 'draft') {
     return NextResponse.json(
-      { error: 'Cannot generate tokens after poll is open' },
+      { error: 'Cannot generate tokens after election is open' },
       { status: 400 },
     )
   }
@@ -74,14 +60,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
 
   const dbTokens = rawTokens.map((t) => ({
     id: t.id,
-    pollId: poll.id,
+    electionId: election.id,
     tokenHash: hashToken(t.raw),
   }))
 
-  await prisma.voterToken.createMany({ data: dbTokens })
+  await prisma.electionVoterToken.createMany({ data: dbTokens })
 
-  await auditLog({
-    pollId: poll.id,
+  await electionAuditLog({
+    electionId: election.id,
     action: 'tokens_generated',
     detail: `Generated ${count} token(s)`,
   })
@@ -89,7 +75,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   return NextResponse.json(
     {
       tokens: rawTokens.map((t) => ({ id: t.id, token: t.raw })),
-      pollSlug: poll.slug,
+      electionSlug: election.slug,
     },
     { status: 201 },
   )
