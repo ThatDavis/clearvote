@@ -12,21 +12,21 @@ Goal: Close active vulnerabilities and add the ballot-secrecy + audit guarantees
 Priority order: Phase A (active holes) → Phase B (integrity/trust) → Phase C (correctness/process).
 
 #### Phase A: Critical — active vulnerabilities
-- [ ] A1: Protect `GET /api/polls/[slug]/tokens` — unauthenticated, leaks every voting token by slug. Require canManagePoll; stop returning raw token values.
-- [ ] A2: Fix token-gen authz bypass — `session?.user?.id && !canManagePoll` lets anonymous requests through on draft polls. Require session AND canManagePoll; audit all `session?.user?.id && …` guards.
-- [ ] A3: Separate ballot content from voter identity — ballots store userId + voterToken (fully linkable). Sever the link at cast time. Schema change.
+- [x] A1: Protect `GET /api/polls/[slug]/tokens` — unauthenticated, leaks every voting token by slug. Require canManagePoll; stop returning raw token values.
+- [x] A2: Fix token-gen authz bypass — `session?.user?.id && !canManagePoll` lets anonymous requests through on draft polls. Require session AND canManagePoll; audit all `session?.user?.id && …` guards.
+- [x] A3: Separate ballot content from voter identity — ballots store userId + voterToken (fully linkable). Sever the link at cast time. Schema change.
 
 #### Phase B: Integrity & trust
-- [ ] B1: Implement AuditLog writes (token batch, poll open/close, roll changes, ballot cast time, results viewed); append-only / hash-chained.
-- [ ] B2: Replace deterministic receipt (sha256 of ballotId+AUTH_SECRET, 'dev-secret' fallback) with random 128-bit code; fail fast if AUTH_SECRET unset.
-- [ ] B3: Store token hashes, not plaintext UUIDs.
-- [ ] B4: Rate-limit login, ballot casting, /api/verify.
+- [x] B1: Implement AuditLog writes (token batch, poll open/close, roll changes, ballot cast time, results viewed); append-only / hash-chained.
+- [x] B2: Replace deterministic receipt (sha256 of ballotId+AUTH_SECRET, 'dev-secret' fallback) with random 128-bit code; fail fast if AUTH_SECRET unset.
+- [x] B3: Store token hashes, not plaintext UUIDs.
+- [x] B4: Rate-limit login, ballot casting, /api/verify.
 
 #### Phase C: Correctness & process
-- [ ] C1: Deterministic, documented tie-breaking (RCV/STV/approval).
-- [ ] C2: Shuffle ballots on results page; gate per-ballot dump behind closure.
-- [ ] C3: Finish or remove proxy voting (no double-vote).
-- [ ] C4: Email verification before roll eligibility.
+- [x] C1: Deterministic, documented tie-breaking (RCV/STV/approval).
+- [x] C2: Shuffle ballots on results page; gate per-ballot dump behind closure.
+- [x] C3: Finish or remove proxy voting (no double-vote).
+- [x] C4: Email verification before roll eligibility.
 
 ### Milestone 1: Core Voting Engine (Completed 2026-06-04)
 Goal: Anonymous polls with ranked-choice voting and instant-runoff tally.
@@ -202,3 +202,13 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 ## [OUTCOMES]
 
 - M1 (2026-06-04): Core Voting Engine delivered — poll CRUD, status lifecycle, voter token system, drag-and-drop voting, RCV instant-runoff tally (10 unit tests), public results with anonymized ballots, vote receipt verification. PR: #1.
+
+### Milestone 5: Election Security & Audit Hardening (2026-06-05)
+- Closed 11 security holes and added election integrity guarantees across 3 phases
+- Secured tokens route, fixed authz bypasses across all poll management routes
+- Separated ballot content from voter identity (removed userId/voterToken from Ballot)
+- Implemented audit logging for all significant election events
+- Added random 128-bit receipt codes, SHA-256 token hashing, and rate limiting
+- Deterministic tie-breaking for RCV/STV, ballot privacy on results page
+- Removed incomplete proxy voting system, required email verification for voter rolls
+- PR: #8 | Issue: #7
