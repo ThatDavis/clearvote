@@ -185,7 +185,7 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 |  |    ✓ A3: Separate ballot content from voter identity |
 |  |    ✓ B1: Implement AuditLog writes |
 |  |    ✓ B2: Replace deterministic receipt code |
-|  |    — B3: Store token hashes, not plaintext |
+|  |    ✓ B3: Store token hashes, not plaintext |
 |  |    — B4: Add rate limiting |
 |  |    — C1: Deterministic tie-breaking |
 |  |    — C2: Shuffle ballots on results page |

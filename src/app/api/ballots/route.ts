@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { auditLog } from '@/lib/audit'
+import { rateLimit } from '@/lib/rate-limit'
 import { hashToken } from '@/lib/token'
 import { prisma } from '@/lib/prisma'
 
@@ -15,6 +16,16 @@ function generateReceipt(): string {
 
 export async function POST(request: Request) {
   try {
+    // Rate limit: 10 ballots per IP per minute
+    const ip = request.headers.get('x-forwarded-for') || 'unknown'
+    const limit = rateLimit({ key: `ballot:${ip}`, max: 10, windowMs: 60_000 })
+    if (!limit.success) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Please try again later.' },
+        { status: 429 },
+      )
+    }
+
     const session = await auth()
     const body = await request.json()
     const { pollSlug, token, rankings } = body as {

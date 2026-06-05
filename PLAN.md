@@ -33,7 +33,7 @@
 ### Phase B: Integrity & trust
 - [x] B1: Implement `AuditLog` writes — table exists but nothing logs to it. Record token-batch generation, poll open/close, voter-roll add/remove, ballot cast (timestamp only, not who→what), results first viewed. Append-only, ideally hash-chained.
 - [x] B2: Replace deterministic receipt code — currently `sha256(ballotId:AUTH_SECRET).slice(0,12)` with a `'dev-secret'` fallback (forgeable, ~48 bits). Use `randomBytes(16)`, store it, never derive from a secret. Fail fast at startup if `AUTH_SECRET` is unset. (`src/app/api/ballots/route.ts:6-9`)
-- [ ] B3: Store token hashes, not plaintext — `VoterToken.token` is a raw UUID; hash it (SHA-256) and compare at redemption so a DB leak yields no usable credentials.
+- [x] B3: Store token hashes, not plaintext — `VoterToken.token` is a raw UUID; hash it (SHA-256) and compare at redemption so a DB leak yields no usable credentials.
 - [ ] B4: Add rate limiting — login, ballot casting, and `/api/verify` have none (token/receipt enumeration, password brute-force).
 
 ### Phase C: Correctness & process
