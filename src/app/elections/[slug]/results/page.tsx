@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { tallyApproval } from '@/lib/approval'
+import { electionAuditLog } from '@/lib/election-audit'
 import { prisma } from '@/lib/prisma'
 import { seededShuffle } from '@/lib/shuffle'
 import { tallyStv } from '@/lib/stv'
@@ -36,6 +37,17 @@ export default async function ElectionResultsPage({
 
   if (!election) {
     notFound()
+  }
+
+  // Log first results view
+  const alreadyViewed = await prisma.electionAuditLog.findFirst({
+    where: { electionId: election.id, action: 'results_viewed' },
+  })
+  if (!alreadyViewed) {
+    await electionAuditLog({
+      electionId: election.id,
+      action: 'results_viewed',
+    })
   }
 
   const statusLabel = { draft: 'Draft', open: 'Open', closed: 'Closed' }[election.status]
