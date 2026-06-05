@@ -40,22 +40,71 @@ Built as a Next.js application with intentional tradeoffs:
 | Docker multi-stage build | Optimized production image with layer caching |
 | GitHub Actions + GHCR | CI runs tests, lint, and vulnerability scans. Container images are tagged with git SHA and semver. |
 
-## Getting started
+## Quick start
+
+The fastest way to run clearvote is with Docker Compose.
 
 ### Prerequisites
 
-- Node.js 22+
-- pnpm 9+
 - Docker and Docker Compose
+- A GitHub personal access token (to pull from GHCR)
 
-### Setup
+### Deploy
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/ThatDavis/clearvote.git
+cd clearvote
+
+# 2. Copy and configure environment variables
+cp .env.example .env
+# Edit .env with your values (see Environment variables below)
+
+# 3. Start with Docker Compose
+docker compose -f docker-compose.prod.yml up -d
+```
+
+The application will be available at `http://localhost:3000`.
+
+### Environment variables
+
+Required variables (the container will fail to start without these):
+
+| Variable | Purpose |
+|----------|---------|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `AUTH_SECRET` | Random string for JWT signing (generate with `openssl rand -base64 32`) |
+| `NEXT_PUBLIC_APP_URL` | Public URL of your instance |
+
+Optional email configuration (for voter notifications):
+
+| Variable | Purpose |
+|----------|---------|
+| `EMAIL_PROVIDER` | `resend` or `smtp` |
+| `RESEND_API_KEY` | API key for Resend (cloud email) |
+| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` | SMTP server details |
+
+See `docker-compose.prod.yml` for the complete list.
+
+### Updating
+
+Pull the latest image and restart:
+
+```bash
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
+```
+
+## Development
+
+If you want to hack on clearvote locally:
 
 ```bash
 # Install dependencies
 pnpm install
 
 # Start PostgreSQL
-docker compose up -d
+docker compose up -d db
 
 # Copy environment variables
 cp .env.example .env
@@ -71,24 +120,10 @@ pnpm dev
 ### Running tests
 
 ```bash
-# Unit tests
-pnpm test
-
-# Lint and typecheck
-pnpm lint
-pnpm typecheck
+pnpm test        # Unit tests
+pnpm lint        # Lint check
+pnpm typecheck   # TypeScript check
 ```
-
-## Deployment
-
-Production uses the container image built by GitHub Actions:
-
-```bash
-# Pull and run with docker-compose
-docker compose -f docker-compose.prod.yml up -d
-```
-
-Required environment variables are validated at startup. See `docker-compose.prod.yml` for the full list.
 
 ## Project structure
 
