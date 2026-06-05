@@ -52,4 +52,4 @@ Dependency order: Poll → Status → Tokens → Voting → Tally → Results �
 
 ## [OUTCOMES]
 
-*None yet.*
+- M1 (2026-06-04): Core Voting Engine delivered — poll CRUD, status lifecycle, voter token system, drag-and-drop voting, RCV instant-runoff tally (10 unit tests), public results with anonymized ballots, vote receipt verification. PR: #1.
