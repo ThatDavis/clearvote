@@ -50,7 +50,7 @@ export default function AuthStatus() {
                 />
               </svg>
             </button>
-            <div className="absolute right-0 top-full mt-1 hidden w-48 rounded-lg border border-zinc-200 bg-white py-1 shadow-lg group-hover:block">
+            <div className="absolute right-0 top-full hidden w-48 rounded-lg border border-zinc-200 bg-white py-1 shadow-lg group-hover:block">
               {memberships.map((m) => (
                 <Link
                   key={m.organizationId}
