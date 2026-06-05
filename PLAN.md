@@ -87,6 +87,19 @@ v1 = Phases A, B, D, E, F. Phase C (ballot styles) is the fast-follow.
 
 ---
 
+## Milestone 7: CI/CD Pipeline
+
+**Goal:** Automated CI/CD with container builds, image tagging, and deployment.
+**Status:** In Progress
+
+### Features
+- [ ] Create CI workflow (GitHub Actions) — test, lint, typecheck on PRs
+- [ ] Create optimized Dockerfile with multi-stage build
+- [ ] Create container build pipeline with image tagging (git SHA + semver)
+- [ ] Add docker-compose configuration for production
+
+---
+
 ## Completed Features
 
 - Milestone 1 (2026-06-04): Core Voting Engine — poll creation, status lifecycle, RCV tally, voter tokens, drag-and-drop voting, results page, vote receipts.

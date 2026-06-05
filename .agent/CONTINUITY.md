@@ -6,6 +6,11 @@
 
 ## [PLANS]
 
+### Milestone 7: CI/CD Pipeline (In Progress)
+Goal: Automated CI/CD with container builds, image tagging, and deployment.
+
+- [ ] Set up CI/CD pipelines including a build pipeline to create a container using image tags (Issue #12, branch feature/12-ci-cd-pipeline)
+
 ### Milestone 6: Multi-Poll Ballots (Elections) (Planned)
 Goal: One ballot containing several contests of mixed voting methods, cast in a single atomic session — a real election ballot. Design: `docs/MULTI-POLL-BALLOT-PLAN.md`. Build guide: `docs/MILESTONE-6-IMPLEMENTATION.md`. Depends on M5 remediations (esp. FIX-2 atomic claim, generalized to election scope) and a working voter-eligibility path (C4).
 
@@ -212,6 +217,11 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 |  |    ✓ C3: Finish or remove proxy voting |
 |  |    ✓ C4: Require email verification before roll eligibility |
 | 2026-06-05 | Email notification system complete and merged (PR #10, branch feature/email-notifications). |
+| 2026-06-05 | Started feature: Set up CI/CD pipelines including a build pipeline to create a container using image tags (Issue #12) on branch feature/12-ci-cd-pipeline. |
+|  |    ✓ Create GitHub Actions CI workflow (test, lint, typecheck on PR) |
+|  |    ✓ Create optimized Dockerfile with multi-stage build |
+|  |    ✓ Create GitHub Actions container build pipeline with image tagging |
+|  |    ✓ Add docker-compose configuration for production |
 |  |    - Welcome email on registration via sendWelcomeEmail |
 |  |    - Poll-open notifications sent to all voters on the roll when status transitions to open |
 |  |    - Org invite emails for non-registered users with tokenized acceptance links |
