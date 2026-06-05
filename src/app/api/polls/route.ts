@@ -21,7 +21,6 @@ export async function POST(request: Request) {
       startsAt,
       endsAt,
       organizationId,
-      memberIds,
     } = body as {
       title?: string
       description?: string
@@ -32,7 +31,6 @@ export async function POST(request: Request) {
       startsAt?: string
       endsAt?: string
       organizationId?: string
-      memberIds?: string[]
     }
 
     if (!title || typeof title !== 'string' || title.trim().length === 0) {
@@ -89,17 +87,6 @@ export async function POST(request: Request) {
           },
         },
       })
-
-      // If org poll with memberIds, add them to voter roll
-      if (organizationId && memberIds && memberIds.length > 0) {
-        await tx.voterRoll.createMany({
-          data: memberIds.map((userId) => ({
-            pollId: p.id,
-            userId,
-          })),
-          skipDuplicates: true,
-        })
-      }
 
       return p
     })
