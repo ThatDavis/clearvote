@@ -6,24 +6,24 @@
 
 ## [PLANS]
 
-### Milestone 1: Core Voting Engine (In Progress)
+### Milestone 1: Core Voting Engine (Completed 2026-06-04)
 Goal: Anonymous polls with ranked-choice voting and instant-runoff tally.
 
 Dependency order: Poll → Status → Tokens → Voting → Tally → Results → Receipts
 
 #### Phase A: Foundation
-- [ ] A1: Extend Prisma schema — add VoterToken model, add receiptCode to Ballot
-- [ ] A2: Create Poll — form at /polls/new, API POST /api/polls, slug generation
-- [ ] A3: Poll Status Lifecycle — API PATCH /api/polls/[id]/status (draft→open→closed)
-- [ ] A4: RCV Tally Algorithm — pure function tallyRcv() + comprehensive unit tests
+- [x] A1: Extend Prisma schema — add VoterToken model, add receiptCode to Ballot
+- [x] A2: Create Poll — form at /polls/new, API POST /api/polls, slug generation
+- [x] A3: Poll Status Lifecycle — API PATCH /api/polls/[id]/status (draft→open→closed)
+- [x] A4: RCV Tally Algorithm — pure function tallyRcv() + comprehensive unit tests (10 tests)
 
 #### Phase B: Voting Flow
-- [ ] B1: Voter Token Generation — API POST /api/polls/[id]/tokens, admin UI
-- [ ] B2: Cast Vote — token validation page, drag-and-drop ranking UI, API POST /api/ballots
+- [x] B1: Voter Token Generation — API POST /api/polls/[id]/tokens, admin UI
+- [x] B2: Cast Vote — token validation page, drag-and-drop ranking UI (@dnd-kit), API POST /api/ballots
 
 #### Phase C: Results & Verification
-- [ ] C1: Public Results Page — /polls/[slug]/results, round-by-round breakdown, anonymized ballots
-- [ ] C2: Vote Receipts — sha256 receipt code on ballot submission, verification page /verify
+- [x] C1: Public Results Page — /polls/[slug]/results, round-by-round breakdown, anonymized ballots
+- [x] C2: Vote Receipts — sha256 receipt code on ballot submission, verification page /verify
 
 ### Future Milestones
 - Milestone 2 — Auth & Voter Integrity: user accounts, authenticated voting, one-vote-per-person
@@ -43,10 +43,12 @@ Dependency order: Poll → Status → Tokens → Voting → Tally → Results �
 | Date | What was done |
 |------|---------------|
 | 2026-06-04 | Initial scaffold. Stack: TypeScript + Next.js + PostgreSQL + Prisma + Tailwind + Vitest + Biome + Docker Compose. |
+| 2026-06-04 | M1 complete: poll creation, status lifecycle, RCV tally (10 tests), voter token generation, drag-and-drop voting, results page, vote receipts. |
 
 ## [DISCOVERIES]
 
-*None yet.*
+- Prisma 7 requires an explicit database adapter (`@prisma/adapter-pg` for PostgreSQL). The old `new PrismaClient()` no-arg constructor is gone.
+- @dnd-kit works well for accessible drag-and-drop ranking with keyboard support.
 
 ## [OUTCOMES]
 

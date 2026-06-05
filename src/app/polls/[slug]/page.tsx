@@ -64,6 +64,15 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
 
       <StatusControls slug={poll.slug} status={poll.status} />
       <TokenGenerator slug={poll.slug} />
+
+      <div className="mt-8 border-t border-zinc-200 pt-6">
+        <Link
+          href={`/polls/${poll.slug}/results`}
+          className="text-sm text-zinc-600 hover:text-zinc-900"
+        >
+          View results &rarr;
+        </Link>
+      </div>
     </div>
   )
 }

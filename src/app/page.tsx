@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function Home() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-32">
@@ -6,7 +8,20 @@ export default function Home() {
         <p className="text-lg leading-8 text-zinc-600">
           A simple ranked-choice voting system for community-run spaces.
         </p>
-        <p className="text-sm text-zinc-400">scaffold in progress</p>
+        <div className="flex gap-4">
+          <Link
+            href="/polls/new"
+            className="rounded-md bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800"
+          >
+            Create a poll
+          </Link>
+          <Link
+            href="/verify"
+            className="rounded-md border border-zinc-300 px-4 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+          >
+            Verify a vote
+          </Link>
+        </div>
       </main>
     </div>
   )
