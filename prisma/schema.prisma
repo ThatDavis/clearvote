@@ -99,15 +99,15 @@ model Ballot {
 }
 
 model VoterToken {
-  id        String    @id @default(uuid())
-  pollId    String
-  token     String
-  usedAt    DateTime?
-  createdAt DateTime  @default(now())
+  id         String    @id @default(uuid())
+  pollId     String
+  tokenHash  String
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
 
   poll Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
 
-  @@unique([pollId, token])
+  @@unique([pollId, tokenHash])
   @@index([pollId])
 }
 

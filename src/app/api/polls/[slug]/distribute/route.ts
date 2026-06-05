@@ -1,8 +1,9 @@
-import { randomUUID } from 'node:crypto'
+import { randomUUID, randomBytes } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { canManagePoll } from '@/lib/auth'
 import { sendVoteInvite } from '@/lib/email'
+import { hashToken } from '@/lib/token'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
@@ -71,11 +72,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
         }
       } else {
         // Generate token for non-registered user
-        const token = randomUUID()
+        const token = randomBytes(32).toString('hex')
         await prisma.voterToken.create({
           data: {
             pollId: poll.id,
-            token,
+            tokenHash: hashToken(token),
           },
         })
         results.tokensGenerated.push({ email: normalizedEmail, token })

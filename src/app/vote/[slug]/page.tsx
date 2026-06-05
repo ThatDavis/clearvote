@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { auth } from '@/auth'
+import { hashToken } from '@/lib/token'
 import { prisma } from '@/lib/prisma'
 import VoteForm from './vote-form'
 
@@ -40,11 +41,12 @@ export default async function VotePage({
 
   if (token) {
     // Token-based anonymous voting
+    const tokenHash = hashToken(token)
     const voterToken = await prisma.voterToken.findUnique({
       where: {
-        pollId_token: {
+        pollId_tokenHash: {
           pollId: poll.id,
-          token,
+          tokenHash,
         },
       },
     })

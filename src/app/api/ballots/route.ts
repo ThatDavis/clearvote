@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { auditLog } from '@/lib/audit'
+import { hashToken } from '@/lib/token'
 import { prisma } from '@/lib/prisma'
 
 function generateReceipt(): string {
@@ -77,11 +78,12 @@ export async function POST(request: Request) {
 
     if (token) {
       // Token-based voting (anonymous)
+      const tokenHash = hashToken(token)
       const voterToken = await prisma.voterToken.findUnique({
         where: {
-          pollId_token: {
+          pollId_tokenHash: {
             pollId: poll.id,
-            token,
+            tokenHash,
           },
         },
       })
@@ -133,11 +135,12 @@ export async function POST(request: Request) {
       })
 
       if (token) {
+        const tokenHash = hashToken(token)
         await tx.voterToken.update({
           where: {
-            pollId_token: {
+            pollId_tokenHash: {
               pollId: poll.id,
-              token,
+              tokenHash,
             },
           },
           data: { usedAt: new Date() },

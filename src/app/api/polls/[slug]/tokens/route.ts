@@ -1,8 +1,9 @@
-import { randomUUID } from 'node:crypto'
+import { randomUUID, randomBytes } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { canManagePoll } from '@/lib/auth'
 import { auditLog } from '@/lib/audit'
+import { hashToken } from '@/lib/token'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
@@ -49,13 +50,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   const body = await request.json()
   const count = Math.min(Math.max(1, body.count || 1), 500)
 
-  const tokens = Array.from({ length: count }, () => ({
+  const rawTokens = Array.from({ length: count }, () => ({
     id: randomUUID(),
-    pollId: poll.id,
-    token: randomUUID(),
+    raw: randomBytes(32).toString('hex'),
   }))
 
-  await prisma.voterToken.createMany({ data: tokens })
+  const dbTokens = rawTokens.map((t) => ({
+    id: t.id,
+    pollId: poll.id,
+    tokenHash: hashToken(t.raw),
+  }))
+
+  await prisma.voterToken.createMany({ data: dbTokens })
 
   await auditLog({
     pollId: poll.id,
@@ -65,7 +71,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
 
   return NextResponse.json(
     {
-      tokens: tokens.map((t) => ({ id: t.id, token: t.token })),
+      tokens: rawTokens.map((t) => ({ id: t.id, token: t.raw })),
       pollSlug: poll.slug,
     },
     { status: 201 },
