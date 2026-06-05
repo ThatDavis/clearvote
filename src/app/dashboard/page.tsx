@@ -125,17 +125,48 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      {myOrganizations.length > 0 && (
-        <section className="mb-10">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-zinc-900">Your organizations</h2>
+      <section className="mb-10">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-zinc-900">Your organizations</h2>
+          {myOrganizations.length > 0 && (
             <Link
               href="/orgs/new"
               className="text-sm text-chicago-red hover:text-chicago-red-dark transition-colors"
             >
               + Create organization
             </Link>
-          </div>
+          )}
+        </div>
+
+        {myOrganizations.length === 0 ? (
+          <EmptyState
+            title="No organizations yet"
+            description="Organizations let you run polls with your community, co-op, or team."
+            icon="org"
+            action={
+              <Link
+                href="/orgs/new"
+                className="inline-flex items-center gap-2 rounded-lg bg-chicago-red px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-chicago-red-dark hover:shadow-md"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                Create organization
+              </Link>
+            }
+          />
+        ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {myOrganizations.map((org) => (
               <Link
@@ -169,8 +200,8 @@ export default async function DashboardPage() {
               </Link>
             ))}
           </div>
-        </section>
-      )}
+        )}
+      </section>
 
       <section className="mb-10">
         <div className="mb-4 flex items-center justify-between">
