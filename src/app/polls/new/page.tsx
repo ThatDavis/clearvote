@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
+import VotingMethodSelector from '@/components/voting-method-selector'
 
 export default function NewPollPage() {
   const router = useRouter()
@@ -109,23 +110,12 @@ export default function NewPollPage() {
           />
         </div>
 
+        <div>
+          <p className="block text-sm font-medium mb-2">Voting method</p>
+          <VotingMethodSelector value={votingMethod} onChange={setVotingMethod} />
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="votingMethod" className="block text-sm font-medium">
-              Voting method
-            </label>
-            <select
-              id="votingMethod"
-              value={votingMethod}
-              onChange={(e) => setVotingMethod(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
-            >
-              <option value="rcv">Ranked Choice (RCV)</option>
-              <option value="stv">Multi-winner (STV)</option>
-              <option value="approval">Approval</option>
-              <option value="yesno">Yes / No</option>
-            </select>
-          </div>
           <div>
             <label htmlFor="seats" className="block text-sm font-medium">
               Winners
