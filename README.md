@@ -113,7 +113,7 @@ public/             # Static assets
 
 ## Contributing
 
-See the project wiki for detailed documentation on architecture decisions, the tally algorithm implementation, and deployment guides.
+See the [project wiki](wiki/) for detailed documentation, including [architecture decisions](wiki/Architecture.md), the [tally algorithm implementation](wiki/Tally-Algorithms.md), the [security model](wiki/Security-Model.md), the [data model](wiki/Data-Model.md), and [deployment](wiki/Deployment.md) and [development](wiki/Development-Setup.md) guides.
 
 ## License
 
