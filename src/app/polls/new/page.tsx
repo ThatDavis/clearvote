@@ -59,8 +59,8 @@ export default function NewPollPage() {
         votingMethod,
         seats,
         threshold: votingMethod === 'yesno' ? threshold : undefined,
-        startsAt: startsAt || undefined,
-        endsAt: endsAt || undefined,
+        startsAt: startsAt ? `${startsAt}T00:00:00` : undefined,
+        endsAt: endsAt ? `${endsAt}T00:00:00` : undefined,
       }),
     })
 
@@ -155,11 +155,11 @@ export default function NewPollPage() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor="startsAt" className="block text-sm font-medium">
-              Start time <span className="text-zinc-400">(optional)</span>
+              Start date <span className="text-zinc-400">(optional)</span>
             </label>
             <input
               id="startsAt"
-              type="datetime-local"
+              type="date"
               value={startsAt}
               onChange={(e) => setStartsAt(e.target.value)}
               className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
@@ -167,11 +167,11 @@ export default function NewPollPage() {
           </div>
           <div>
             <label htmlFor="endsAt" className="block text-sm font-medium">
-              End time <span className="text-zinc-400">(optional)</span>
+              End date <span className="text-zinc-400">(optional)</span>
             </label>
             <input
               id="endsAt"
-              type="datetime-local"
+              type="date"
               value={endsAt}
               onChange={(e) => setEndsAt(e.target.value)}
               className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
