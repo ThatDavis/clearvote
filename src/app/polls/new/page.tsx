@@ -2,10 +2,17 @@
 
 import { useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
+import { useToast } from '@/components/toast-provider'
 import VotingMethodSelector from '@/components/voting-method-selector'
+
+type Step = 1 | 2 | 3 | 4
 
 export default function NewPollPage() {
   const router = useRouter()
+  const { showToast } = useToast()
+  const [step, setStep] = useState<Step>(1)
+
+  // Form state
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [votingMethod, setVotingMethod] = useState('rcv')
@@ -37,10 +44,37 @@ export default function NewPollPage() {
     setOptions(next)
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
+  function canProceed(): boolean {
+    switch (step) {
+      case 1:
+        return title.trim().length > 0
+      case 2:
+        return true
+      case 3:
+        return options.filter((o) => o.value.trim()).length >= 2
+      case 4:
+        return true
+      default:
+        return false
+    }
+  }
 
+  function nextStep() {
+    if (step < 4) {
+      setStep((s) => (s + 1) as Step)
+      setError('')
+    }
+  }
+
+  function prevStep() {
+    if (step > 1) {
+      setStep((s) => (s - 1) as Step)
+      setError('')
+    }
+  }
+
+  async function handleSubmit() {
+    setError('')
     const filled = options.map((o) => o.value.trim()).filter(Boolean)
     if (filled.length < 2) {
       setError('At least 2 options are required')
@@ -72,157 +106,285 @@ export default function NewPollPage() {
     }
 
     const poll = await res.json()
+    showToast('Poll created successfully!', 'success')
     router.push(`/polls/${poll.slug}`)
   }
 
+  const stepTitles = ['Basics', 'Voting Method', 'Options', 'Schedule & Review']
+
   return (
-    <div className="mx-auto max-w-lg px-6 py-16">
-      <h1 className="text-2xl font-semibold tracking-tight">Create a poll</h1>
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-12">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold tracking-tight text-chicago-navy">Create a poll</h1>
+        <p className="mt-1 text-sm text-zinc-500">
+          Step {step} of 4: {stepTitles[step - 1]}
+        </p>
+      </div>
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-        <div>
-          <label htmlFor="title" className="block text-sm font-medium">
-            Title
-          </label>
-          <input
-            id="title"
-            type="text"
-            required
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
-            placeholder="What are we deciding?"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="description" className="block text-sm font-medium">
-            Description
-            <span className="ml-1 text-zinc-400">(optional)</span>
-          </label>
-          <textarea
-            id="description"
-            rows={3}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
-            placeholder="Add context so voters understand what this poll is about."
-          />
-        </div>
-
-        <div>
-          <p className="block text-sm font-medium mb-2">Voting method</p>
-          <VotingMethodSelector value={votingMethod} onChange={setVotingMethod} />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="seats" className="block text-sm font-medium">
-              Winners
-            </label>
-            <input
-              id="seats"
-              type="number"
-              min={1}
-              max={20}
-              value={seats}
-              onChange={(e) => setSeats(Number(e.target.value))}
-              className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+      {/* Progress bar */}
+      <div className="mb-8">
+        <div className="flex gap-2">
+          {[1, 2, 3, 4].map((s) => (
+            <div
+              key={s}
+              className={`h-2 flex-1 rounded-full transition-all duration-300 ${
+                s <= step ? 'bg-chicago-red' : 'bg-zinc-200'
+              }`}
             />
-          </div>
+          ))}
         </div>
+      </div>
 
-        {votingMethod === 'yesno' && (
-          <div>
-            <label htmlFor="threshold" className="block text-sm font-medium">
-              Pass threshold (%)
-            </label>
-            <input
-              id="threshold"
-              type="number"
-              min={1}
-              max={100}
-              value={threshold}
-              onChange={(e) => setThreshold(Number(e.target.value))}
-              className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
-            />
-            <p className="mt-1 text-xs text-zinc-400">
-              Percentage of yes votes required to pass. Default: 50%.
-            </p>
+      {/* Step content */}
+      <div className="space-y-6">
+        {step === 1 && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+            <div>
+              <label htmlFor="title" className="block text-sm font-semibold text-zinc-900">
+                Title
+              </label>
+              <input
+                id="title"
+                type="text"
+                required
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="mt-2 block w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm shadow-sm transition-colors hover:border-zinc-400 focus:border-chicago-blue focus:outline-none focus:ring-2 focus:ring-chicago-blue/20"
+                placeholder="What are we deciding?"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="description" className="block text-sm font-semibold text-zinc-900">
+                Description
+                <span className="ml-1 font-normal text-zinc-400">(optional)</span>
+              </label>
+              <textarea
+                id="description"
+                rows={4}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="mt-2 block w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm shadow-sm transition-colors hover:border-zinc-400 focus:border-chicago-blue focus:outline-none focus:ring-2 focus:ring-chicago-blue/20"
+                placeholder="Add context so voters understand what this poll is about."
+              />
+            </div>
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="startsAt" className="block text-sm font-medium">
-              Start date <span className="text-zinc-400">(optional)</span>
-            </label>
-            <input
-              id="startsAt"
-              type="date"
-              value={startsAt}
-              onChange={(e) => setStartsAt(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
-            />
-          </div>
-          <div>
-            <label htmlFor="endsAt" className="block text-sm font-medium">
-              End date <span className="text-zinc-400">(optional)</span>
-            </label>
-            <input
-              id="endsAt"
-              type="date"
-              value={endsAt}
-              onChange={(e) => setEndsAt(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
-            />
-          </div>
-        </div>
+        {step === 2 && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+            <div>
+              <p className="block text-sm font-semibold text-zinc-900 mb-3">
+                How should people vote?
+              </p>
+              <VotingMethodSelector value={votingMethod} onChange={setVotingMethod} />
+            </div>
 
-        <fieldset>
-          <legend className="block text-sm font-medium">Options</legend>
-          <div className="mt-2 space-y-2">
-            {options.map((option, i) => (
-              <div key={option.key} className="flex gap-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="seats" className="block text-sm font-semibold text-zinc-900">
+                  Winners
+                </label>
                 <input
-                  type="text"
-                  required
-                  value={option.value}
-                  onChange={(e) => updateOption(i, e.target.value)}
-                  className="block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
-                  placeholder={`Option ${i + 1}`}
+                  id="seats"
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={seats}
+                  onChange={(e) => setSeats(Number(e.target.value))}
+                  className="mt-2 block w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm shadow-sm transition-colors hover:border-zinc-400 focus:border-chicago-blue focus:outline-none focus:ring-2 focus:ring-chicago-blue/20"
                 />
-                {options.length > 2 && (
-                  <button
-                    type="button"
-                    onClick={() => removeOption(i)}
-                    className="shrink-0 rounded-md px-2 py-1 text-sm text-red-600 hover:bg-red-50"
-                  >
-                    Remove
-                  </button>
-                )}
               </div>
-            ))}
+            </div>
+
+            {votingMethod === 'yesno' && (
+              <div>
+                <label htmlFor="threshold" className="block text-sm font-semibold text-zinc-900">
+                  Pass threshold (%)
+                </label>
+                <input
+                  id="threshold"
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={threshold}
+                  onChange={(e) => setThreshold(Number(e.target.value))}
+                  className="mt-2 block w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm shadow-sm transition-colors hover:border-zinc-400 focus:border-chicago-blue focus:outline-none focus:ring-2 focus:ring-chicago-blue/20"
+                />
+                <p className="mt-2 text-xs text-zinc-500">
+                  Percentage of yes votes required to pass. Default: 50%.
+                </p>
+              </div>
+            )}
           </div>
-          <button
-            type="button"
-            onClick={addOption}
-            className="mt-2 text-sm text-zinc-600 hover:text-zinc-900"
-          >
-            + Add option
-          </button>
-        </fieldset>
+        )}
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {step === 3 && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+            <div>
+              <p className="block text-sm font-semibold text-zinc-900">Poll Options</p>
+              <p className="mt-1 text-xs text-zinc-500">
+                Add at least 2 options. Voters will choose from these.
+              </p>
+              <div className="mt-3 space-y-3">
+                {options.map((option, i) => (
+                  <div key={option.key} className="flex gap-2">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-sm font-medium text-zinc-500">
+                      {i + 1}
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      value={option.value}
+                      onChange={(e) => updateOption(i, e.target.value)}
+                      className="block w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm shadow-sm transition-colors hover:border-zinc-400 focus:border-chicago-blue focus:outline-none focus:ring-2 focus:ring-chicago-blue/20"
+                      placeholder={`Option ${i + 1}`}
+                    />
+                    {options.length > 2 && (
+                      <button
+                        type="button"
+                        onClick={() => removeOption(i)}
+                        className="shrink-0 rounded-lg px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          className="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={addOption}
+                className="mt-3 inline-flex items-center gap-1 rounded-lg border border-dashed border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-600 transition-colors hover:border-chicago-blue hover:text-chicago-blue"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                Add option
+              </button>
+            </div>
+          </div>
+        )}
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full rounded-md bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
-        >
-          {submitting ? 'Creating...' : 'Create poll'}
-        </button>
-      </form>
+        {step === 4 && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label htmlFor="startsAt" className="block text-sm font-semibold text-zinc-900">
+                  Start date <span className="font-normal text-zinc-400">(optional)</span>
+                </label>
+                <input
+                  id="startsAt"
+                  type="date"
+                  value={startsAt}
+                  onChange={(e) => setStartsAt(e.target.value)}
+                  className="mt-2 block w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm shadow-sm transition-colors hover:border-zinc-400 focus:border-chicago-blue focus:outline-none focus:ring-2 focus:ring-chicago-blue/20"
+                />
+              </div>
+              <div>
+                <label htmlFor="endsAt" className="block text-sm font-semibold text-zinc-900">
+                  End date <span className="font-normal text-zinc-400">(optional)</span>
+                </label>
+                <input
+                  id="endsAt"
+                  type="date"
+                  value={endsAt}
+                  onChange={(e) => setEndsAt(e.target.value)}
+                  className="mt-2 block w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm shadow-sm transition-colors hover:border-zinc-400 focus:border-chicago-blue focus:outline-none focus:ring-2 focus:ring-chicago-blue/20"
+                />
+              </div>
+            </div>
+
+            {/* Review summary */}
+            <div className="rounded-xl border border-zinc-200 bg-zinc-50/50 p-5">
+              <h3 className="text-sm font-semibold text-zinc-900">Review</h3>
+              <dl className="mt-3 space-y-2">
+                <div className="flex justify-between">
+                  <dt className="text-sm text-zinc-500">Title</dt>
+                  <dd className="text-sm font-medium text-zinc-900">{title}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-sm text-zinc-500">Method</dt>
+                  <dd className="text-sm font-medium text-zinc-900 capitalize">{votingMethod}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-sm text-zinc-500">Winners</dt>
+                  <dd className="text-sm font-medium text-zinc-900">{seats}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-sm text-zinc-500">Options</dt>
+                  <dd className="text-sm font-medium text-zinc-900">
+                    {options.filter((o) => o.value.trim()).length}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
+
+        {/* Navigation buttons */}
+        <div className="flex gap-3 pt-4">
+          {step > 1 && (
+            <button
+              type="button"
+              onClick={prevStep}
+              className="rounded-lg border border-zinc-300 px-5 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 hover:border-zinc-400"
+            >
+              Back
+            </button>
+          )}
+          {step < 4 ? (
+            <button
+              type="button"
+              onClick={nextStep}
+              disabled={!canProceed()}
+              className="ml-auto rounded-lg bg-chicago-red px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-chicago-red-dark hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={submitting || !canProceed()}
+              className="ml-auto rounded-lg bg-chicago-red px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-chicago-red-dark hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {submitting ? 'Creating...' : 'Create poll'}
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
