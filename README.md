@@ -1,25 +1,52 @@
+<p align="center">
+  <img src="logo.svg" alt="clearvote logo" width="120" />
+</p>
+
 # clearvote
 
-A simple ranked-choice voting system for community-run spaces.
+A voting system for community-run spaces. Supports ranked-choice, approval, and yes/no voting methods with full audit trails.
 
-## Stack
+## Why clearvote exists
 
-- **Language:** TypeScript
-- **Runtime/Framework:** Next.js 16 (App Router)
-- **Frontend:** React 19 (via Next.js)
-- **Database:** PostgreSQL 17
-- **ORM:** Prisma 7
-- **CSS:** Tailwind CSS 4
-- **Testing:** Vitest (+ Playwright later)
-- **Hosting:** Docker Compose
+Most voting tools are either too simple (Google Forms) or too complex (enterprise election software). clearvote targets the middle: organizations that need credible elections without a PhD in cryptography.
 
-## Getting Started
+## How it works
+
+### Voting methods
+
+- **Ranked-choice (RCV)**: Instant-runoff for single-winner elections
+- **Single transferable vote (STV)**: Multi-winner with fractional surplus transfer
+- **Approval**: Select any number of options
+- **Yes/No**: Simple majority or configurable threshold
+
+### Security model
+
+Rather than trust a single administrator, clearvote separates roles and provides auditability:
+
+- **Ballot secrecy**: Votes are stored without voter identity. A separate eligibility table prevents double-voting without linking ballots to users.
+- **Token hashing**: Anonymous voting tokens are hashed with SHA-256 before storage. A database leak reveals nothing usable.
+- **Random receipts**: Each ballot gets a random 128-bit receipt code for voter verification, not derived from any secret.
+- **Audit logging**: Significant events (token generation, poll open/close, ballot cast) are logged append-only.
+
+### Architecture
+
+Built as a Next.js application with intentional tradeoffs:
+
+| Decision | Rationale |
+|----------|-----------|
+| Next.js App Router | Server components reduce client-side JavaScript for voting pages |
+| PostgreSQL + Prisma | Relational integrity for ballots; Prisma handles migrations and type safety |
+| JWT sessions (Auth.js) | No server-side session storage simplifies deployment and scaling |
+| Docker multi-stage build | Optimized production image with layer caching |
+| GitHub Actions + GHCR | CI runs tests, lint, and vulnerability scans. Container images are tagged with git SHA and semver. |
+
+## Getting started
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 22+
 - pnpm 9+
-- Docker & Docker Compose
+- Docker and Docker Compose
 
 ### Setup
 
@@ -33,37 +60,54 @@ docker compose up -d
 # Copy environment variables
 cp .env.example .env
 
-# Run database migrations
+# Generate Prisma client and run migrations
+pnpm db:generate
 pnpm db:migrate
 
 # Start development server
 pnpm dev
 ```
 
-### Running Tests
+### Running tests
 
 ```bash
+# Unit tests
 pnpm test
+
+# Lint and typecheck
+pnpm lint
+pnpm typecheck
 ```
 
-## Project Structure
+## Deployment
 
-```
-rank/
-  src/
-    app/           # Next.js App Router pages
-    generated/     # Generated code (Prisma client)
-    test/          # Test setup and utilities
-  prisma/
-    schema.prisma  # Database schema
-    migrations/    # Database migrations
-  docs/
-    adr/           # Architecture Decision Records
-    SPEC.md        # Feature specifications
-    ARCHITECTURE.md # Architecture decisions
-  public/          # Static assets
+Production uses the container image built by GitHub Actions:
+
+```bash
+# Pull and run with docker-compose
+docker compose -f docker-compose.prod.yml up -d
 ```
 
-## Features
+Required environment variables are validated at startup. See `docker-compose.prod.yml` for the full list.
 
-*No features implemented yet. See [PLAN.md](PLAN.md) for the roadmap.*
+## Project structure
+
+```
+src/
+  app/              # Next.js App Router (pages, API routes, layouts)
+  components/       # Shared React components
+  lib/              # Business logic (prisma, auth, tally algorithms, email)
+  generated/        # Prisma client (generated, not committed)
+prisma/
+  schema.prisma     # Database schema
+  migrations/       # Migration files
+public/             # Static assets
+```
+
+## Contributing
+
+See the project wiki for detailed documentation on architecture decisions, the tally algorithm implementation, and deployment guides.
+
+## License
+
+MIT
