@@ -23,7 +23,7 @@
 ## Milestone 5: Election Security & Audit Hardening
 
 **Goal:** Close active vulnerabilities and add the ballot-secrecy and audit guarantees a credible election requires. Surfaced by a security/integrity review on 2026-06-05.
-**Status:** In Progress
+**Status:** Complete
 
 ### Phase A: Critical — active vulnerabilities
 - [x] A1: Protect `GET /api/polls/[slug]/tokens` — currently unauthenticated, returns every valid voting token by slug. Require `canManagePoll`; stop returning raw token values after creation. (`src/app/api/polls/[slug]/tokens/route.ts:7-21`)
@@ -37,10 +37,10 @@
 - [x] B4: Add rate limiting — login, ballot casting, and `/api/verify` have none (token/receipt enumeration, password brute-force).
 
 ### Phase C: Correctness & process
-- [ ] C1: Deterministic, documented tie-breaking for RCV (returns no winner today), approval, and STV.
-- [ ] C2: Shuffle ballots on the results page and gate the per-ballot dump behind poll closure — insertion-order + small electorate can de-anonymize.
-- [ ] C3: Finish or remove proxy voting — `Proxy` model/routes exist but aren't wired into casting; nothing stops principal and proxy both voting.
-- [ ] C4: Require email verification before a signup can appear on a voter roll (roll eligibility keys off `user.email`).
+- [x] C1: Deterministic, documented tie-breaking for RCV (returns no winner today), approval, and STV.
+- [x] C2: Shuffle ballots on the results page and gate the per-ballot dump behind poll closure — insertion-order + small electorate can de-anonymize.
+- [x] C3: Finish or remove proxy voting — `Proxy` model/routes exist but aren't wired into casting; nothing stops principal and proxy both voting.
+- [x] C4: Require email verification before a signup can appear on a voter roll (roll eligibility keys off `user.email`).
 
 ---
 

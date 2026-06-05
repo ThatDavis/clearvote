@@ -6,7 +6,7 @@
 
 ## [PLANS]
 
-### Milestone 5: Election Security & Audit Hardening (In Progress, opened 2026-06-05)
+### Milestone 5: Election Security & Audit Hardening (Completed 2026-06-05)
 Goal: Close active vulnerabilities and add the ballot-secrecy + audit guarantees a credible election requires. Surfaced by a security/integrity review of the codebase.
 
 Priority order: Phase A (active holes) → Phase B (integrity/trust) → Phase C (correctness/process).
@@ -179,7 +179,7 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 |  |    - Create email templates and send vote invite emails via Resend or SMTP |
 |  |    - Update tests and run full test suite |
 | 2026-06-05 | Security/election-integrity review of the codebase. Opened Milestone 5 (Election Security & Audit Hardening) in PLAN.md + CONTINUITY with 11 tracked items across 3 priority phases. No code changes yet. |
-| 2026-06-05 | Started Milestone 5 implementation. Issue #7, branch feature/7-milestone-5-election-security-audit-hardening. Deep-plan validated. Starting with A1+A2 (auth holes in tokens route). |
+| 2026-06-05 | Completed Milestone 5: Election Security & Audit Hardening. All 11 items (A1-A3, B1-B4, C1-C4) implemented and tested. Issue #7, branch feature/7-milestone-5-election-security-audit-hardening. |
 |  |    ✓ A1: Protect GET /api/polls/[slug]/tokens with canManagePoll |
 |  |    ✓ A2: Fix token-generation authz bypass (session?.user?.id && pattern) |
 |  |    ✓ A3: Separate ballot content from voter identity |
@@ -187,10 +187,10 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 |  |    ✓ B2: Replace deterministic receipt code |
 |  |    ✓ B3: Store token hashes, not plaintext |
 |  |    ✓ B4: Add rate limiting |
-|  |    — C1: Deterministic tie-breaking |
-|  |    — C2: Shuffle ballots on results page |
-|  |    — C3: Finish or remove proxy voting |
-|  |    — C4: Require email verification before roll eligibility |
+|  |    ✓ C1: Deterministic tie-breaking |
+|  |    ✓ C2: Shuffle ballots on results page |
+|  |    ✓ C3: Finish or remove proxy voting |
+|  |    ✓ C4: Require email verification before roll eligibility |
 
 ## [DISCOVERIES]
 
