@@ -26,9 +26,11 @@ model User {
   createdAt      DateTime      @default(now())
 
   organization Organization? @relation(fields: [organizationId], references: [id])
-  polls        Poll[]
-  ballots      Ballot[]
-  rolls        VoterRoll[]
+  polls         Poll[]
+  ballots       Ballot[]
+  rolls         VoterRoll[]
+  principalFor  Proxy[]  @relation("Principal")
+  proxyFor      Proxy[]  @relation("Proxy")
 }
 
 model Poll {
@@ -51,8 +53,10 @@ model Poll {
   organization Organization? @relation(fields: [organizationId], references: [id])
   options      PollOption[]
   ballots      Ballot[]
-  tokens       VoterToken[]
-  rolls        VoterRoll[]
+  tokens     VoterToken[]
+  rolls      VoterRoll[]
+  auditLogs  AuditLog[]
+  proxies    Proxy[]
 }
 
 model PollOption {
@@ -106,5 +110,32 @@ model VoterRoll {
   user User @relation(fields: [userId], references: [id])
 
   @@unique([pollId, userId])
+  @@index([pollId])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  pollId    String
+  action    String
+  detail    String?
+  createdAt DateTime @default(now())
+
+  poll Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
+
+  @@index([pollId])
+}
+
+model Proxy {
+  id          String   @id @default(uuid())
+  pollId      String
+  principalId String
+  proxyId     String
+  createdAt   DateTime @default(now())
+
+  poll      Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  principal User @relation("Principal", fields: [principalId], references: [id])
+  proxy     User @relation("Proxy", fields: [proxyId], references: [id])
+
+  @@unique([pollId, principalId])
   @@index([pollId])
 }
