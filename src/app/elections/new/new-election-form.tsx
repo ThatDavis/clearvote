@@ -467,6 +467,18 @@ export default function NewElectionForm() {
                   <dt className="text-sm text-zinc-500">Contests</dt>
                   <dd className="text-sm font-medium text-zinc-900">{contests.length}</dd>
                 </div>
+                {startsAt && (
+                  <div className="flex justify-between">
+                    <dt className="text-sm text-zinc-500">Start date</dt>
+                    <dd className="text-sm font-medium text-zinc-900">{new Date(startsAt + 'T00:00:00').toLocaleDateString()}</dd>
+                  </div>
+                )}
+                {endsAt && (
+                  <div className="flex justify-between">
+                    <dt className="text-sm text-zinc-500">End date</dt>
+                    <dd className="text-sm font-medium text-zinc-900">{new Date(endsAt + 'T00:00:00').toLocaleDateString()}</dd>
+                  </div>
+                )}
               </dl>
 
               <div className="mt-4 space-y-3">
