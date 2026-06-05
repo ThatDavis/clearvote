@@ -36,6 +36,37 @@ export default function ContestManager({
   const [threshold, setThreshold] = useState(50)
   const [optionsText, setOptionsText] = useState('')
 
+  // Edit contest state
+  const [editingContestId, setEditingContestId] = useState<string | null>(null)
+  const [editTitle, setEditTitle] = useState('')
+  const [editDescription, setEditDescription] = useState('')
+  const [editVotingMethod, setEditVotingMethod] = useState('rcv')
+  const [editSeats, setEditSeats] = useState(1)
+  const [editThreshold, setEditThreshold] = useState(50)
+  const [editOptionsText, setEditOptionsText] = useState('')
+
+  function startEdit(contest: Contest) {
+    setEditingContestId(contest.id)
+    setEditTitle(contest.title)
+    setEditDescription(contest.description ?? '')
+    setEditVotingMethod(contest.votingMethod)
+    setEditSeats(contest.seats)
+    setEditThreshold(contest.threshold)
+    setEditOptionsText(contest.options.map((o) => o.label).join('\n'))
+    setError('')
+  }
+
+  function cancelEdit() {
+    setEditingContestId(null)
+    setEditTitle('')
+    setEditDescription('')
+    setEditVotingMethod('rcv')
+    setEditSeats(1)
+    setEditThreshold(50)
+    setEditOptionsText('')
+    setError('')
+  }
+
   async function handleAddContest(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
@@ -72,6 +103,46 @@ export default function ContestManager({
       setSeats(1)
       setThreshold(50)
       setOptionsText('')
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleEditContest(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editingContestId) return
+
+    setLoading(true)
+    setError('')
+
+    const options = editOptionsText
+      .split('\n')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0)
+
+    try {
+      const res = await fetch(`/api/elections/${electionSlug}/contests/${editingContestId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: editTitle.trim(),
+          description: editDescription.trim() || null,
+          votingMethod: editVotingMethod,
+          seats: editVotingMethod === 'stv' ? editSeats : undefined,
+          threshold: editVotingMethod === 'yesno' ? editThreshold : undefined,
+          options,
+        }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to update contest')
+      }
+
+      cancelEdit()
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
@@ -154,52 +225,184 @@ export default function ContestManager({
 
       <ol className="mt-3 space-y-3">
         {contests.map((contest, i) => (
-          <li
-            key={contest.id}
-            className="flex items-start justify-between rounded-lg border border-zinc-200 p-3"
-          >
-            <div>
-              <div className="font-medium">
-                {i + 1}. {contest.title}
-              </div>
-              <div className="mt-1 text-xs text-zinc-500">
-                {methodLabel[contest.votingMethod] || contest.votingMethod}
-                {contest.votingMethod === 'stv' && ` (${contest.seats} seats)`}
-                {contest.votingMethod === 'yesno' && ` (${contest.threshold}% threshold)`}
-                {' · '}
-                {contest.options.length} option{contest.options.length !== 1 ? 's' : ''}
-              </div>
-            </div>
+          <li key={contest.id}>
+            {editingContestId === contest.id ? (
+              <form
+                onSubmit={handleEditContest}
+                className="space-y-4 rounded-lg border border-chicago-blue/30 bg-white p-4"
+              >
+                <h3 className="text-sm font-semibold">Edit contest</h3>
 
-            {!locked && (
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => handleMoveContest(contest.id, 'up')}
-                  disabled={i === 0 || loading}
-                  className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 disabled:opacity-30"
-                  title="Move up"
-                >
-                  ↑
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleMoveContest(contest.id, 'down')}
-                  disabled={i === contests.length - 1 || loading}
-                  className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 disabled:opacity-30"
-                  title="Move down"
-                >
-                  ↓
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDeleteContest(contest.id)}
-                  disabled={loading}
-                  className="rounded p-1 text-red-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-30"
-                  title="Remove"
-                >
-                  ×
-                </button>
+                <div>
+                  <label htmlFor={`edit-title-${contest.id}`} className="block text-xs font-medium text-zinc-700">
+                    Title
+                  </label>
+                  <input
+                    id={`edit-title-${contest.id}`}
+                    type="text"
+                    required
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor={`edit-desc-${contest.id}`} className="block text-xs font-medium text-zinc-700">
+                    Description
+                  </label>
+                  <textarea
+                    id={`edit-desc-${contest.id}`}
+                    rows={2}
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor={`edit-method-${contest.id}`} className="block text-xs font-medium text-zinc-700">
+                      Method
+                    </label>
+                    <select
+                      id={`edit-method-${contest.id}`}
+                      value={editVotingMethod}
+                      onChange={(e) => setEditVotingMethod(e.target.value)}
+                      className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                    >
+                      <option value="rcv">Ranked Choice</option>
+                      <option value="stv">STV</option>
+                      <option value="approval">Approval</option>
+                      <option value="yesno">Yes/No</option>
+                    </select>
+                  </div>
+
+                  {editVotingMethod === 'stv' && (
+                    <div>
+                      <label htmlFor={`edit-seats-${contest.id}`} className="block text-xs font-medium text-zinc-700">
+                        Seats
+                      </label>
+                      <input
+                        id={`edit-seats-${contest.id}`}
+                        type="number"
+                        min={1}
+                        value={editSeats}
+                        onChange={(e) => setEditSeats(Number(e.target.value))}
+                        className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                      />
+                    </div>
+                  )}
+
+                  {editVotingMethod === 'yesno' && (
+                    <div>
+                      <label htmlFor={`edit-threshold-${contest.id}`} className="block text-xs font-medium text-zinc-700">
+                        Threshold (%)
+                      </label>
+                      <input
+                        id={`edit-threshold-${contest.id}`}
+                        type="number"
+                        min={1}
+                        max={100}
+                        value={editThreshold}
+                        onChange={(e) => setEditThreshold(Number(e.target.value))}
+                        className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor={`edit-options-${contest.id}`} className="block text-xs font-medium text-zinc-700">
+                    Options (one per line)
+                  </label>
+                  <textarea
+                    id={`edit-options-${contest.id}`}
+                    rows={4}
+                    required
+                    value={editOptionsText}
+                    onChange={(e) => setEditOptionsText(e.target.value)}
+                    placeholder="Option 1&#10;Option 2&#10;Option 3"
+                    className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                  />
+                </div>
+
+                {error && <p className="text-sm text-red-600">{error}</p>}
+
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="rounded-md bg-chicago-navy px-3 py-1.5 text-sm font-medium text-white hover:bg-chicago-navy/90 disabled:opacity-50"
+                  >
+                    {loading ? 'Saving...' : 'Save changes'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={cancelEdit}
+                    className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="flex items-start justify-between rounded-lg border border-zinc-200 p-3">
+                <div>
+                  <div className="font-medium">
+                    {i + 1}. {contest.title}
+                  </div>
+                  <div className="mt-1 text-xs text-zinc-500">
+                    {methodLabel[contest.votingMethod] || contest.votingMethod}
+                    {contest.votingMethod === 'stv' && ` (${contest.seats} seats)`}
+                    {contest.votingMethod === 'yesno' && ` (${contest.threshold}% threshold)`}
+                    {' · '}
+                    {contest.options.length} option{contest.options.length !== 1 ? 's' : ''}
+                  </div>
+                </div>
+
+                {!locked && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => startEdit(contest)}
+                      disabled={loading}
+                      className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 disabled:opacity-30"
+                      title="Edit"
+                    >
+                      <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleMoveContest(contest.id, 'up')}
+                      disabled={i === 0 || loading}
+                      className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 disabled:opacity-30"
+                      title="Move up"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleMoveContest(contest.id, 'down')}
+                      disabled={i === contests.length - 1 || loading}
+                      className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 disabled:opacity-30"
+                      title="Move down"
+                    >
+                      ↓
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteContest(contest.id)}
+                      disabled={loading}
+                      className="rounded p-1 text-red-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-30"
+                      title="Remove"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </li>
