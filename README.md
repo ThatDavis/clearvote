@@ -95,36 +95,6 @@ docker compose -f docker-compose.prod.yml pull
 docker compose -f docker-compose.prod.yml up -d
 ```
 
-## Development
-
-If you want to hack on ClearVote locally:
-
-```bash
-# Install dependencies
-pnpm install
-
-# Start PostgreSQL
-docker compose up -d db
-
-# Copy environment variables
-cp .env.example .env
-
-# Generate Prisma client and run migrations
-pnpm db:generate
-pnpm db:migrate
-
-# Start development server
-pnpm dev
-```
-
-### Running tests
-
-```bash
-pnpm test        # Unit tests
-pnpm lint        # Lint check
-pnpm typecheck   # TypeScript check
-```
-
 ## Project structure
 
 ```
