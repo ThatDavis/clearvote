@@ -8,13 +8,22 @@
 
 ### Milestone 1: Core Voting Engine (In Progress)
 Goal: Anonymous polls with ranked-choice voting and instant-runoff tally.
-- [ ] Create a poll with title, description, and options
-- [ ] Generate unique voter token links for anonymous voting
-- [ ] Cast a ranked-choice vote
-- [ ] View results with standard RCV instant-runoff tally
-- [ ] Poll status lifecycle (draft → open → closed)
-- [ ] Public results page with anonymized ballot data
-- [ ] Vote receipts for voter verification
+
+Dependency order: Poll → Status → Tokens → Voting → Tally → Results → Receipts
+
+#### Phase A: Foundation
+- [ ] A1: Extend Prisma schema — add VoterToken model, add receiptCode to Ballot
+- [ ] A2: Create Poll — form at /polls/new, API POST /api/polls, slug generation
+- [ ] A3: Poll Status Lifecycle — API PATCH /api/polls/[id]/status (draft→open→closed)
+- [ ] A4: RCV Tally Algorithm — pure function tallyRcv() + comprehensive unit tests
+
+#### Phase B: Voting Flow
+- [ ] B1: Voter Token Generation — API POST /api/polls/[id]/tokens, admin UI
+- [ ] B2: Cast Vote — token validation page, drag-and-drop ranking UI, API POST /api/ballots
+
+#### Phase C: Results & Verification
+- [ ] C1: Public Results Page — /polls/[slug]/results, round-by-round breakdown, anonymized ballots
+- [ ] C2: Vote Receipts — sha256 receipt code on ballot submission, verification page /verify
 
 ### Future Milestones
 - Milestone 2 — Auth & Voter Integrity: user accounts, authenticated voting, one-vote-per-person
