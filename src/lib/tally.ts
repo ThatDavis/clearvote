@@ -1,3 +1,5 @@
+import { ballotSeed, breakEliminationTie } from './tiebreak'
+
 export interface OptionInput {
   id: string
   label: string
@@ -30,6 +32,7 @@ function majorityThreshold(totalActive: number): number {
 export function tallyRcv(options: OptionInput[], ballots: BallotInput[]): Round[] {
   const rounds: Round[] = []
   const eliminated = new Set<string>()
+  const seed = ballotSeed(ballots)
 
   let round = 1
   let winner: string | undefined
@@ -82,10 +85,11 @@ export function tallyRcv(options: OptionInput[], ballots: BallotInput[]): Round[
 
     if (winner) break
 
-    // Find candidates to eliminate (deterministic tie-break: lexicographically smallest ID)
+    // Find candidates to eliminate. Ties are broken by the Next-Preference
+    // Cascade (voter preference among the tied candidates), not by candidate id.
     const minVotes = voteList[voteList.length - 1].count
     const tied = voteList.filter((v) => v.count === minVotes).map((v) => v.optionId)
-    const toEliminate = tied.length > 1 ? [tied.sort()[0]] : tied
+    const toEliminate = [breakEliminationTie(tied, ballots, seed)]
 
     // Don't eliminate if it would remove all remaining candidates
     if (toEliminate.length === remaining.length) {

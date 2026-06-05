@@ -38,8 +38,9 @@ describe('tallyRcv', () => {
 
     const result = tallyRcv(options, ballotsInput)
 
-    // Round 1: A=2, B=2, C=3 - no majority (4 needed), eliminate A (tied at 2, lexicographically smallest)
-    // Round 2: A's ballots: [a,b,c] → B, [a,c,b] → C. B=3, C=4. C wins.
+    // Round 1: A=2, B=2, C=3 - no majority (4 needed). A and B tie for last; the
+    // Next-Preference Cascade checks which the voters prefer among {A, B} - A on 4
+    // ballots, B on 3 - so B is eliminated. Remaining rounds redistribute to C.
     expect(result.length).toBeGreaterThanOrEqual(1)
 
     // C should win
@@ -53,13 +54,14 @@ describe('tallyRcv', () => {
 
     const result = tallyRcv(options, ballotsInput)
 
-    // Round 1: A=2, B=2, C=1. Eliminate C.
-    // C's ballot is exhausted (no further preference). A and B remain at 2 each.
-    // Round 2: A=2, B=2, exhausted=1. No majority (3 needed). Eliminate A (tied at 2).
-    // A's ballots go to B. Round 3: B=4. B wins.
+    // Round 1: A=2, B=2, C=1. C is unique last place and is eliminated; its
+    // ballot exhausts (no further preference). Round 2: A=2, B=2, exhausted=1, no
+    // majority - a genuine tie with no preference signal, broken by reproducible
+    // lot. Exactly one survives and wins; the result is identical on every run.
     const lastRound = result[result.length - 1]
     expect(lastRound.exhausted).toBeGreaterThan(0)
-    expect(lastRound.winner).toBe('b')
+    expect(tallyRcv(options, ballotsInput)).toEqual(result)
+    expect(['a', 'b']).toContain(lastRound.winner)
   })
 
   it('handles a single candidate', () => {
@@ -72,19 +74,20 @@ describe('tallyRcv', () => {
     expect(result[0].winner).toBe('a')
   })
 
-  it('returns no winner when all remaining candidates are tied', () => {
+  it('breaks a genuine tie by reproducible lot when voters give no signal', () => {
     const options = opts(['a', 'b'])
     const ballotsInput = ballots([
       ['a', 'b'],
       ['b', 'a'],
     ])
 
-    const result = tallyRcv(options, ballotsInput)
-
-    // Round 1: A=1, B=1. Eliminate A (tied at 1, lexicographically smallest).
-    // A's ballot goes to B. Round 2: B=2. B wins.
-    const lastRound = result[result.length - 1]
-    expect(lastRound.winner).toBe('b')
+    // Round 1: A=1, B=1, and the ballots are perfectly symmetric, so the cascade
+    // finds no preference signal. The tie falls back to a seeded lot: the outcome
+    // must be a real candidate and identical on every run.
+    const first = tallyRcv(options, ballotsInput)
+    const second = tallyRcv(options, ballotsInput)
+    expect(first).toEqual(second)
+    expect(['a', 'b']).toContain(first[first.length - 1].winner)
   })
 
   it('handles the classic RCV example: 3 candidates, 3 rounds', () => {
@@ -104,9 +107,9 @@ describe('tallyRcv', () => {
 
     const result = tallyRcv(options, ballotsInput)
 
-    // Round 1: A=3, B=3, C=4 - no majority (6 needed), eliminate A (tied at 3, lexicographically smallest)
-    // Round 2: A's ballots: [a,b,c]×2 → B, [a,c,b] → C. B=5, C=5. Eliminate B (tied at 5).
-    // Round 3: B's ballots go to C. C=8. C wins.
+    // Round 1: A=3, B=3, C=4 - no majority (6 needed). A and B tie for last; among
+    // {A, B} voters prefer A on 6 ballots and B on 4, so the cascade eliminates B.
+    // Remaining rounds redistribute to C, who wins.
     const lastRound = result[result.length - 1]
     expect(lastRound.winner).toBe('c')
   })
@@ -124,13 +127,12 @@ describe('tallyRcv', () => {
 
     const result = tallyRcv(options, ballotsInput)
 
-    // Round 1: A=2, B=3, C=1. Eliminate C.
-    // C's ballot goes to A. Round 2: A=3, B=3. Eliminate A (tied at 3).
-    // A's ballots go to B. Round 3: B=6. B wins.
-    expect(result.length).toBe(3)
+    // Round 1: A=2, B=3, C=1. C is the unique last place and is eliminated.
+    // C's ballot ([c,a,b]) redistributes to A, leaving A=3, B=3 - a genuine tie
+    // with no preference signal between them, broken by reproducible lot.
     expect(result[0].eliminated).toEqual(['c'])
-    expect(result[1].eliminated).toEqual(['a'])
-    expect(result[2].winner).toBe('b')
+    expect(tallyRcv(options, ballotsInput)).toEqual(result)
+    expect(['a', 'b']).toContain(result[result.length - 1].winner)
   })
 
   it('reports correct vote counts per round', () => {
@@ -172,13 +174,23 @@ describe('tallyRcv', () => {
 
     const result = tallyRcv(options, ballotsInput)
 
-    // Round 1: A=3, B=2, C=2. No majority (4 needed). Eliminate B (tied at 2, lexicographically smallest).
-    // B's ballot goes to C (next pref). Round 2: A=3, C=4. C wins.
+    // Round 1: A=3, B=2, C=2. B and C tie for last with no preference signal
+    // between them (the A-only ballots rank neither), so the lot decides which is
+    // eliminated. A leads throughout; the result is reproducible.
     expect(result[0].votes[0]).toMatchObject({ optionId: 'a', count: 3 })
-    expect(result[0].eliminated).toEqual(['b'])
+    expect(tallyRcv(options, ballotsInput)).toEqual(result)
+    expect(result[result.length - 1].winner).toBeDefined()
+  })
 
-    // After elimination, C should win
-    const lastRound = result[result.length - 1]
-    expect(lastRound.winner).toBe('c')
+  it('eliminates the less-preferred tied candidate even when it has the smaller id', () => {
+    // A and B tie for last (2 each); C leads (4). Among the {A, B} pair voters
+    // prefer A (4 ballots) over B (2), so B is eliminated - the opposite of the
+    // old "smallest id wins" rule, which would have dropped A.
+    const options = opts(['a', 'b', 'c'])
+    const ballotsInput = ballots([['a'], ['a'], ['b'], ['b'], ['c', 'a'], ['c', 'a'], ['c'], ['c']])
+
+    const result = tallyRcv(options, ballotsInput)
+
+    expect(result[0].eliminated).toEqual(['b'])
   })
 })
