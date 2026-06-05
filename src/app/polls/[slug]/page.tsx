@@ -66,7 +66,7 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
           : 'RCV'
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8 sm:py-12">
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 sm:py-12">
       <div className="flex items-center gap-3">
         <Link
           href="/"
