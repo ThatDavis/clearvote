@@ -1,6 +1,9 @@
+import { randomBytes } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
+import { sendOrgInvite } from '@/lib/email'
 import { prisma } from '@/lib/prisma'
+import { hashToken } from '@/lib/token'
 
 async function isOrgAdmin(userId: string, orgId: string): Promise<boolean> {
   const membership = await prisma.organizationMember.findUnique({
@@ -66,11 +69,43 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   })
 
   if (!user) {
-    // User doesn't exist yet — we could send an invite email here
-    // For now, return a specific error so the UI can show a "send invite" option
+    // Create an invite for non-registered users
+    const existingInvite = await prisma.organizationInvite.findUnique({
+      where: {
+        email_organizationId: {
+          email: normalizedEmail,
+          organizationId: org.id,
+        },
+      },
+    })
+
+    if (existingInvite) {
+      return NextResponse.json(
+        { error: 'An invite has already been sent to this email' },
+        { status: 409 },
+      )
+    }
+
+    const token = randomBytes(32).toString('hex')
+    const invite = await prisma.organizationInvite.create({
+      data: {
+        email: normalizedEmail,
+        organizationId: org.id,
+        tokenHash: hashToken(token),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      },
+    })
+
+    const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/org/invite?token=${token}`
+    await sendOrgInvite({
+      to: normalizedEmail,
+      orgName: org.name,
+      inviteLink,
+    })
+
     return NextResponse.json(
-      { error: 'No user found with that email', invite: true },
-      { status: 404 },
+      { id: invite.id, email: invite.email, invited: true },
+      { status: 201 },
     )
   }
 

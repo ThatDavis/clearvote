@@ -36,17 +36,20 @@ export default function MemberManager({ slug, members: initialMembers }: Props) 
 
     if (!res.ok) {
       const data = await res.json()
-      if (data.invite) {
-        setError('User not found. Invite feature coming soon.')
-      } else {
-        setError(data.error || 'Failed to add member')
-      }
+      setError(data.error || 'Failed to add member')
       setLoading(false)
       return
     }
 
-    const member = await res.json()
-    setMembers([...members, member])
+    const data = await res.json()
+    if (data.invited) {
+      setEmail('')
+      setLoading(false)
+      // Could show a success toast here; for now we just clear the form
+      return
+    }
+
+    setMembers([...members, data])
     setEmail('')
     setLoading(false)
   }

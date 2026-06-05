@@ -14,8 +14,9 @@ model Organization {
   slug        String   @unique
   createdAt   DateTime @default(now())
 
-  members OrganizationMember[]
-  polls   Poll[]
+  members  OrganizationMember[]
+  invites  OrganizationInvite[]
+  polls    Poll[]
 }
 
 model OrganizationMember {
@@ -30,6 +31,20 @@ model OrganizationMember {
 
   @@unique([userId, organizationId])
   @@index([userId])
+  @@index([organizationId])
+}
+
+model OrganizationInvite {
+  id             String   @id @default(uuid())
+  email          String
+  organizationId String
+  tokenHash      String   @unique
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([email, organizationId])
   @@index([organizationId])
 }
 
