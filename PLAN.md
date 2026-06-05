@@ -23,12 +23,13 @@
 ## Future Milestones
 
 ### Milestone 3: Vote & Voter Management
+- [ ] Multi-winner STV election support (fractional surplus transfer)
+- [ ] Approval voting (check all that apply, most approvals wins)
+- [ ] Yes/No referendums (binary vote with configurable threshold)
 - [ ] User dashboard (past, present, and future votes)
-- [ ] Admin panel for managing voter rolls per poll
-- [ ] Vote history and audit trail
-- [ ] Multi-winner STV election support
 - [ ] Voting deadlines and timed auto-close
 - [ ] Delegate / proxy voting
+- [ ] Audit trail and export
 
 ---
 

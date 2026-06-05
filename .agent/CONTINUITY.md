@@ -26,7 +26,28 @@ Dependency order: Poll → Status → Tokens → Voting → Tally → Results �
 - [x] C2: Vote Receipts — sha256 receipt code on ballot submission, verification page /verify
 
 ### Future Milestones
-- Milestone 3 — Vote & Voter Management: dashboards, multi-winner STV, deadlines, proxy voting
+*None — all planned milestones complete.*
+
+### Milestone 3: Advanced Voting & Management (In Progress)
+Goal: Multi-winner STV, approval voting, yes/no referendums, timed polls, enhanced dashboard, audit trail, proxy voting.
+
+#### Phase A: Voting Methods
+- [ ] A1: Add `votingMethod` to Poll (rcv, stv, approval, yesno), update creation form
+- [ ] A2: STV tally algorithm — fractional surplus transfer, quota-based, multi-winner + tests
+- [ ] A3: Approval voting tally + checkbox ballot UI
+- [ ] A4: Yes/No referendum tally + yes/no ballot UI + configurable threshold
+
+#### Phase B: Timed Voting
+- [ ] B1: Auto-close polls based on `endsAt` (check on page load + API guard)
+- [ ] B2: Display start/end times on poll pages and dashboard
+
+#### Phase C: Dashboard & Audit
+- [ ] C1: Enhanced dashboard — method badges, upcoming polls, filter by status
+- [ ] C2: Audit trail — `AuditLog` model, history view, CSV/JSON export
+
+#### Phase D: Proxy Voting
+- [ ] D1: `Proxy` model (principalId, proxyId, pollId), designate proxy UI
+- [ ] D2: Proxy vote casting — proxy's ballot counts for principal
 
 ### Milestone 2.5: Organization Accounts (Completed 2026-06-04)
 Goal: Organizations can register alongside individuals. Polls scoped to orgs. Org admins manage members. Individual accounts remain fully functional.
