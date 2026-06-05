@@ -98,13 +98,7 @@ export async function sendVoteInvite({
   })
 }
 
-export async function sendWelcomeEmail({
-  to,
-  name,
-}: {
-  to: string
-  name: string
-}) {
+export async function sendWelcomeEmail({ to, name }: { to: string; name: string }) {
   return sendEmail({
     to,
     subject: 'Welcome to Clearvote',

@@ -103,10 +103,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       inviteLink,
     })
 
-    return NextResponse.json(
-      { id: invite.id, email: invite.email, invited: true },
-      { status: 201 },
-    )
+    return NextResponse.json({ id: invite.id, email: invite.email, invited: true }, { status: 201 })
   }
 
   // Check if already a member

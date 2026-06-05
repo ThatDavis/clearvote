@@ -38,7 +38,9 @@ export default function InvitePage() {
   if (!token) {
     return (
       <div className="mx-auto max-w-md px-4 py-16">
-        <p className="text-red-600">Invalid invite link. Please check your email for the correct link.</p>
+        <p className="text-red-600">
+          Invalid invite link. Please check your email for the correct link.
+        </p>
       </div>
     )
   }
@@ -47,8 +49,13 @@ export default function InvitePage() {
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center">
         <h1 className="text-2xl font-semibold">Welcome aboard!</h1>
-        <p className="mt-4 text-zinc-600">Your account has been created and you've joined the organization.</p>
-        <a href="/dashboard" className="mt-6 inline-block rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800">
+        <p className="mt-4 text-zinc-600">
+          Your account has been created and you've joined the organization.
+        </p>
+        <a
+          href="/dashboard"
+          className="mt-6 inline-block rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+        >
           Go to dashboard
         </a>
       </div>
@@ -62,7 +69,9 @@ export default function InvitePage() {
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium">Your name</label>
+          <label htmlFor="name" className="block text-sm font-medium">
+            Your name
+          </label>
           <input
             id="name"
             type="text"
@@ -74,7 +83,9 @@ export default function InvitePage() {
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium">Password</label>
+          <label htmlFor="password" className="block text-sm font-medium">
+            Password
+          </label>
           <input
             id="password"
             type="password"

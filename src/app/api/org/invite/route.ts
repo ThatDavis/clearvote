@@ -46,7 +46,10 @@ export async function POST(request: Request) {
 
     if (alreadyMember) {
       await prisma.organizationInvite.delete({ where: { id: invite.id } })
-      return NextResponse.json({ error: 'You are already a member of this organization' }, { status: 409 })
+      return NextResponse.json(
+        { error: 'You are already a member of this organization' },
+        { status: 409 },
+      )
     }
 
     await prisma.organizationMember.create({
