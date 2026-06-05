@@ -22,14 +22,6 @@
 
 ## Future Milestones
 
-### Milestone 2.5: Organization Accounts
-- [ ] Signup with two paths: individual + organization
-- [ ] Organization model (name, slug) with member management
-- [ ] Polls scoped to organization, org-level authorization
-- [ ] Individual accounts preserved alongside org accounts
-- [ ] Organization dashboard with member roster
-- [ ] Org members vote in any poll (org or external)
-
 ### Milestone 3: Vote & Voter Management
 - [ ] User dashboard (past, present, and future votes)
 - [ ] Admin panel for managing voter rolls per poll
@@ -53,3 +45,4 @@
 
 - Milestone 1 (2026-06-04): Core Voting Engine — poll creation, status lifecycle, RCV tally, voter tokens, drag-and-drop voting, results page, vote receipts.
 - Milestone 2 (2026-06-04): Auth & Voter Integrity — user accounts (Auth.js v5), signup/login, session management, auth-gated poll management, voter roll management, authenticated voting, one-vote-per-person enforcement, user dashboard.
+- Milestone 2.5 (2026-06-04): Organization Accounts — dual-path signup (individual + org), Organization model, org-scoped polls, org-level authorization, member management, org dashboard. Fresh schema.

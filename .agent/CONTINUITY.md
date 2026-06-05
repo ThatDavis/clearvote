@@ -28,7 +28,7 @@ Dependency order: Poll → Status → Tokens → Voting → Tally → Results �
 ### Future Milestones
 - Milestone 3 — Vote & Voter Management: dashboards, multi-winner STV, deadlines, proxy voting
 
-### Milestone 2.5: Organization Accounts (In Progress)
+### Milestone 2.5: Organization Accounts (Completed 2026-06-04)
 Goal: Organizations can register alongside individuals. Polls scoped to orgs. Org admins manage members. Individual accounts remain fully functional.
 
 Deep-plan decisions:
@@ -40,17 +40,17 @@ Deep-plan decisions:
 - Fresh schema start (zero existing users)
 
 #### Phase A: Schema & Auth
-- [ ] A1: Redesign schema — add Organization model, orgId on User/Poll
-- [ ] A2: Update auth to carry organizationId in JWT session
-- [ ] A3: Dual-path signup (individual vs. organization)
+- [x] A1: Redesign schema — add Organization model, orgId on User/Poll
+- [x] A2: Update auth to carry organizationId in JWT session
+- [x] A3: Dual-path signup (individual vs. organization)
 
 #### Phase B: Org Management
-- [ ] B1: Organization settings page — edit name, manage members, invite by email
-- [ ] B2: Scope polls to organization, org-level authorization on poll management
+- [x] B1: Organization settings page — edit name, manage members, invite by email
+- [x] B2: Scope polls to organization, org-level authorization on poll management
 
 #### Phase C: Dashboard & Polish
-- [ ] C1: Dashboard shows org polls + personal polls + votable polls
-- [ ] C2: Org name displayed in poll pages and results
+- [x] C1: Dashboard shows org polls + personal polls + votable polls
+- [x] C2: Org name displayed in poll pages and results
 
 ### Milestone 2: Auth & Voter Integrity (Completed 2026-06-04)
 Goal: User accounts, authenticated voting, one-vote-per-person enforcement, voter roll management.
@@ -90,6 +90,7 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 | 2026-06-04 | Initial scaffold. Stack: TypeScript + Next.js + PostgreSQL + Prisma + Tailwind + Vitest + Biome + Docker Compose. |
 | 2026-06-04 | M1 complete: poll creation, status lifecycle, RCV tally (10 tests), voter token generation, drag-and-drop voting, results page, vote receipts. |
 | 2026-06-04 | M2 complete: Auth.js v5 setup, signup/login, session management, auth-gated polls, voter roll management, authenticated voting, one-vote-per-person, user dashboard. |
+| 2026-06-04 | M2.5 complete: Organization accounts, dual-path signup, org-scoped polls, member management, org dashboard. |
 
 ## [DISCOVERIES]
 
