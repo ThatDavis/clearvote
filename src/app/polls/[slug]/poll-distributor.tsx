@@ -70,7 +70,9 @@ export default function PollDistributor({ slug, locked }: Props) {
     // Refresh the voter roll
     fetch(`/api/polls/${slug}/roll`)
       .then((r) => r.json())
-      .then((d) => { if (Array.isArray(d)) setVoters(d) })
+      .then((d) => {
+        if (Array.isArray(d)) setVoters(d)
+      })
   }
 
   async function handleRemove(userId: string) {
@@ -150,7 +152,9 @@ export default function PollDistributor({ slug, locked }: Props) {
                     Errors ({results.errors.length})
                   </p>
                   {results.errors.map((e) => (
-                    <p key={e} className="text-xs text-red-600">{e}</p>
+                    <p key={e} className="text-xs text-red-600">
+                      {e}
+                    </p>
                   ))}
                 </div>
               )}

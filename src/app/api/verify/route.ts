@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { rateLimit } from '@/lib/rate-limit'
 import { prisma } from '@/lib/prisma'
+import { rateLimit } from '@/lib/rate-limit'
 
 export async function GET(request: Request) {
   // Rate limit: 30 verify requests per IP per minute

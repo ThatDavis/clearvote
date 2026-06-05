@@ -1,10 +1,10 @@
-import { randomUUID, randomBytes } from 'node:crypto'
+import { randomBytes, randomUUID } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { canManagePoll } from '@/lib/auth'
 import { auditLog } from '@/lib/audit'
-import { hashToken } from '@/lib/token'
+import { canManagePoll } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { hashToken } from '@/lib/token'
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -44,7 +44,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   }
 
   if (poll.status !== 'draft') {
-    return NextResponse.json({ error: 'Cannot generate tokens after poll is open' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Cannot generate tokens after poll is open' },
+      { status: 400 },
+    )
   }
 
   const body = await request.json()

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { canManagePoll } from '@/lib/auth'
 import { auditLog } from '@/lib/audit'
+import { canManagePoll } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {

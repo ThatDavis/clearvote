@@ -2,9 +2,9 @@ import { randomBytes } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { auditLog } from '@/lib/audit'
+import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
 import { hashToken } from '@/lib/token'
-import { prisma } from '@/lib/prisma'
 
 function generateReceipt(): string {
   const secret = process.env.AUTH_SECRET
@@ -68,12 +68,18 @@ export async function POST(request: Request) {
 
     if (poll.votingMethod === 'yesno') {
       if (typeof rankings !== 'object' || Array.isArray(rankings)) {
-        return NextResponse.json({ error: 'Invalid rankings format for yes/no poll' }, { status: 400 })
+        return NextResponse.json(
+          { error: 'Invalid rankings format for yes/no poll' },
+          { status: 400 },
+        )
       }
       const validVotes = new Set(['yes', 'no', 'abstain'])
       for (const [id, vote] of Object.entries(rankings)) {
         if (!optionIds.has(id) || !validVotes.has(vote)) {
-          return NextResponse.json({ error: 'Invalid option or vote value in rankings' }, { status: 400 })
+          return NextResponse.json(
+            { error: 'Invalid option or vote value in rankings' },
+            { status: 400 },
+          )
         }
       }
     } else {

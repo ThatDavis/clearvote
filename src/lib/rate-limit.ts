@@ -5,15 +5,10 @@ interface RateLimitEntry {
 
 const store = new Map<string, RateLimitEntry>()
 
-export function rateLimit({
-  key,
-  max,
-  windowMs,
-}: {
-  key: string
-  max: number
-  windowMs: number
-}): { success: boolean; resetAt: number } {
+export function rateLimit({ key, max, windowMs }: { key: string; max: number; windowMs: number }): {
+  success: boolean
+  resetAt: number
+} {
   const now = Date.now()
   const entry = store.get(key)
 

@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { auth } from '@/auth'
-import { hashToken } from '@/lib/token'
 import { prisma } from '@/lib/prisma'
+import { hashToken } from '@/lib/token'
 import VoteForm from './vote-form'
 
 export default async function VotePage({

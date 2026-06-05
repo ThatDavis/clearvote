@@ -37,15 +37,32 @@ function CopyButton({ text }: { text: string }) {
     >
       {copied ? (
         <span className="flex items-center gap-1">
-          <svg aria-hidden="true" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg
+            aria-hidden="true"
+            className="h-3 w-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
           Copied
         </span>
       ) : (
         <span className="flex items-center gap-1">
-          <svg aria-hidden="true" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          <svg
+            aria-hidden="true"
+            className="h-3 w-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+            />
           </svg>
           Copy
         </span>
@@ -105,7 +122,8 @@ export default function TokenGenerator({ slug, locked }: Props) {
     <div className="rounded-xl border border-zinc-200 bg-white p-5">
       <h2 className="text-sm font-semibold text-zinc-900">Anonymous voting links</h2>
       <p className="mt-1 text-sm text-zinc-500">
-        Generate one-time links for voters without accounts. Share however you like — print, email, or hand out at a meeting. Each link can only be used once.
+        Generate one-time links for voters without accounts. Share however you like — print, email,
+        or hand out at a meeting. Each link can only be used once.
       </p>
 
       {!locked && (

@@ -64,7 +64,8 @@ export default function StatusControls({ slug, status }: Props) {
           <div>
             <p className="text-sm font-semibold text-red-900">Close this poll?</p>
             <p className="mt-0.5 text-xs text-red-700">
-              No new ballots will be accepted. Results will be visible publicly. This cannot be undone.
+              No new ballots will be accepted. Results will be visible publicly. This cannot be
+              undone.
             </p>
           </div>
           <button

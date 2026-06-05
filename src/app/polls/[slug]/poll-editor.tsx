@@ -16,7 +16,12 @@ interface Props {
   initialOptions: Option[]
 }
 
-export default function PollEditor({ slug, initialTitle, initialDescription, initialOptions }: Props) {
+export default function PollEditor({
+  slug,
+  initialTitle,
+  initialDescription,
+  initialOptions,
+}: Props) {
   const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [title, setTitle] = useState(initialTitle)
@@ -152,7 +157,12 @@ export default function PollEditor({ slug, initialTitle, initialDescription, ini
                   aria-label="Remove option"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
