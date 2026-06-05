@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { canManagePoll } from '@/lib/auth'
+import { auditLog } from '@/lib/audit'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
@@ -90,6 +91,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
     where: { slug },
     data: { status },
     include: { options: { orderBy: { order: 'asc' } } },
+  })
+
+  await auditLog({
+    pollId: poll.id,
+    action: status === 'open' ? 'poll_opened' : 'poll_closed',
   })
 
   return NextResponse.json(updated)

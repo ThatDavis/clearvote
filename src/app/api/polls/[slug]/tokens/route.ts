@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { canManagePoll } from '@/lib/auth'
+import { auditLog } from '@/lib/audit'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
@@ -55,6 +56,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   }))
 
   await prisma.voterToken.createMany({ data: tokens })
+
+  await auditLog({
+    pollId: poll.id,
+    action: 'tokens_generated',
+    detail: `Generated ${count} token(s)`,
+  })
 
   return NextResponse.json(
     {

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { canManagePoll } from '@/lib/auth'
+import { auditLog } from '@/lib/audit'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
@@ -81,6 +82,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     },
   })
 
+  await auditLog({
+    pollId: poll.id,
+    action: 'voter_added',
+    detail: `Added ${user.email} to voter roll`,
+  })
+
   return NextResponse.json(entry, { status: 201 })
 }
 
@@ -113,6 +120,12 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ s
       pollId: poll.id,
       userId,
     },
+  })
+
+  await auditLog({
+    pollId: poll.id,
+    action: 'voter_removed',
+    detail: `Removed user ${userId} from voter roll`,
   })
 
   return NextResponse.json({ success: true })

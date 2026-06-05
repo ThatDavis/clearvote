@@ -182,7 +182,7 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 | 2026-06-05 | Started Milestone 5 implementation. Issue #7, branch feature/7-milestone-5-election-security-audit-hardening. Deep-plan validated. Starting with A1+A2 (auth holes in tokens route). |
 |  |    ✓ A1: Protect GET /api/polls/[slug]/tokens with canManagePoll |
 |  |    ✓ A2: Fix token-generation authz bypass (session?.user?.id && pattern) |
-|  |    — A3: Separate ballot content from voter identity |
+|  |    ✓ A3: Separate ballot content from voter identity |
 |  |    — B1: Implement AuditLog writes |
 |  |    — B2: Replace deterministic receipt code |
 |  |    — B3: Store token hashes, not plaintext |

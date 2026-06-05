@@ -28,7 +28,7 @@
 ### Phase A: Critical — active vulnerabilities
 - [x] A1: Protect `GET /api/polls/[slug]/tokens` — currently unauthenticated, returns every valid voting token by slug. Require `canManagePoll`; stop returning raw token values after creation. (`src/app/api/polls/[slug]/tokens/route.ts:7-21`)
 - [x] A2: Fix token-generation authz bypass — guard is `session?.user?.id && !canManagePoll`, so anonymous requests skip the check entirely on draft polls. Require a valid session AND `canManagePoll`. Audit every `session?.user?.id && …` guard across routes for the same hole. (`src/app/api/polls/[slug]/tokens/route.ts:32-34`)
-- [ ] A3: Separate ballot content from voter identity — ballots store both `userId` and `voterToken`, making every vote linkable to a named voter. Sever the link at cast time (mark eligibility used in one table, write rankings + random receipt in another) so ballots are genuinely secret. (`src/app/api/ballots/route.ts:134-143`, schema change)
+- [x] A3: Separate ballot content from voter identity — ballots store both `userId` and `voterToken`, making every vote linkable to a named voter. Sever the link at cast time (mark eligibility used in one table, write rankings + random receipt in another) so ballots are genuinely secret. (`src/app/api/ballots/route.ts:134-143`, schema change)
 
 ### Phase B: Integrity & trust
 - [ ] B1: Implement `AuditLog` writes — table exists but nothing logs to it. Record token-batch generation, poll open/close, voter-roll add/remove, ballot cast (timestamp only, not who→what), results first viewed. Append-only, ideally hash-chained.

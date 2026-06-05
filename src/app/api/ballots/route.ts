@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
+import { auditLog } from '@/lib/audit'
 import { prisma } from '@/lib/prisma'
 
 function generateReceipt(): string {
@@ -152,6 +153,13 @@ export async function POST(request: Request) {
           data: { hasVoted: true, votedAt: new Date() },
         })
       }
+
+      await auditLog({
+        pollId: poll.id,
+        action: 'ballot_cast',
+        detail: `Ballot cast at ${new Date().toISOString()}`,
+        tx,
+      })
 
       return b
     })

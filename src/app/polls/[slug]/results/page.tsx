@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { tallyApproval } from '@/lib/approval'
+import { auditLog } from '@/lib/audit'
 import { prisma } from '@/lib/prisma'
 import { tallyStv } from '@/lib/stv'
 import type { BallotInput } from '@/lib/tally'
@@ -23,6 +24,17 @@ export default async function ResultsPage({ params }: { params: Promise<{ slug: 
 
   if (!poll) {
     notFound()
+  }
+
+  // Log first results view
+  const alreadyViewed = await prisma.auditLog.findFirst({
+    where: { pollId: poll.id, action: 'results_viewed' },
+  })
+  if (!alreadyViewed) {
+    await auditLog({
+      pollId: poll.id,
+      action: 'results_viewed',
+    })
   }
 
   const method = poll.votingMethod as string
