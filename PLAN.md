@@ -41,7 +41,7 @@
 - [x] C1-approval: Deterministic tie-breaking for approval voting (see docs/MILESTONE-5-REMEDIATION.md FIX-4).
 - [x] C2: Shuffle ballots on the results page and gate the per-ballot dump behind poll closure — insertion-order + small electorate can de-anonymize.
 - [x] C3: Finish or remove proxy voting — `Proxy` model/routes exist but aren't wired into casting; nothing stops principal and proxy both voting.
-- [ ] C4: Require email verification before a signup can appear on a voter roll (roll eligibility keys off `user.email`). **Gate reverted in FIX-1 Option A — needs real verification flow (see docs/MILESTONE-5-REMEDIATION.md FIX-1 Option B).**
+- [x] C4: Require email verification before a signup can appear on a voter roll (roll eligibility keys off `user.email`).
 
 ---
 
