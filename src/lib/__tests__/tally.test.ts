@@ -38,8 +38,8 @@ describe('tallyRcv', () => {
 
     const result = tallyRcv(options, ballotsInput)
 
-    // Round 1: A=2, B=2, C=3 — no majority (4 needed), eliminate A and B (tied at 2?)
-    // Actually A=2, B=2, C=3 — min is 2 (both A and B). Eliminating both leaves C as only candidate.
+    // Round 1: A=2, B=2, C=3 — no majority (4 needed), eliminate A (tied at 2, lexicographically smallest)
+    // Round 2: A's ballots: [a,b,c] → B, [a,c,b] → C. B=3, C=4. C wins.
     expect(result.length).toBeGreaterThanOrEqual(1)
 
     // C should win
@@ -55,10 +55,11 @@ describe('tallyRcv', () => {
 
     // Round 1: A=2, B=2, C=1. Eliminate C.
     // C's ballot is exhausted (no further preference). A and B remain at 2 each.
-    // Round 2: A=2, B=2, exhausted=1. No majority (3 needed). All remaining tied (A and B).
+    // Round 2: A=2, B=2, exhausted=1. No majority (3 needed). Eliminate A (tied at 2).
+    // A's ballots go to B. Round 3: B=4. B wins.
     const lastRound = result[result.length - 1]
     expect(lastRound.exhausted).toBeGreaterThan(0)
-    expect(lastRound.winner).toBeUndefined()
+    expect(lastRound.winner).toBe('b')
   })
 
   it('handles a single candidate', () => {
@@ -80,8 +81,10 @@ describe('tallyRcv', () => {
 
     const result = tallyRcv(options, ballotsInput)
 
+    // Round 1: A=1, B=1. Eliminate A (tied at 1, lexicographically smallest).
+    // A's ballot goes to B. Round 2: B=2. B wins.
     const lastRound = result[result.length - 1]
-    expect(lastRound.winner).toBeUndefined()
+    expect(lastRound.winner).toBe('b')
   })
 
   it('handles the classic RCV example: 3 candidates, 3 rounds', () => {
@@ -101,8 +104,9 @@ describe('tallyRcv', () => {
 
     const result = tallyRcv(options, ballotsInput)
 
-    // Round 1: A=3, B=3, C=4 — no majority (6 needed), eliminate A and B (tied)
-    // C has 4 and is the only one left — C wins
+    // Round 1: A=3, B=3, C=4 — no majority (6 needed), eliminate A (tied at 3, lexicographically smallest)
+    // Round 2: A's ballots: [a,b,c]×2 → B, [a,c,b] → C. B=5, C=5. Eliminate B (tied at 5).
+    // Round 3: B's ballots go to C. C=8. C wins.
     const lastRound = result[result.length - 1]
     expect(lastRound.winner).toBe('c')
   })
@@ -121,9 +125,12 @@ describe('tallyRcv', () => {
     const result = tallyRcv(options, ballotsInput)
 
     // Round 1: A=2, B=3, C=1. Eliminate C.
-    // C's ballot goes to A (next preference). Round 2: A=3, B=3 — tie, no winner.
-    expect(result.length).toBe(2)
+    // C's ballot goes to A. Round 2: A=3, B=3. Eliminate A (tied at 3).
+    // A's ballots go to B. Round 3: B=6. B wins.
+    expect(result.length).toBe(3)
     expect(result[0].eliminated).toEqual(['c'])
+    expect(result[1].eliminated).toEqual(['a'])
+    expect(result[2].winner).toBe('b')
   })
 
   it('reports correct vote counts per round', () => {
@@ -165,14 +172,13 @@ describe('tallyRcv', () => {
 
     const result = tallyRcv(options, ballotsInput)
 
-    // Round 1: A=3, B=2, C=2. No majority (4 needed). Eliminate B and C (tied at 2).
-    // But wait — if we eliminate both B and C, A wins as the only remaining.
+    // Round 1: A=3, B=2, C=2. No majority (4 needed). Eliminate B (tied at 2, lexicographically smallest).
+    // B's ballot goes to C (next pref). Round 2: A=3, C=4. C wins.
     expect(result[0].votes[0]).toMatchObject({ optionId: 'a', count: 3 })
-    expect(result[0].eliminated).toContain('b')
-    expect(result[0].eliminated).toContain('c')
+    expect(result[0].eliminated).toEqual(['b'])
 
-    // After elimination, A should win
+    // After elimination, C should win
     const lastRound = result[result.length - 1]
-    expect(lastRound.winner).toBe('a')
+    expect(lastRound.winner).toBe('c')
   })
 })

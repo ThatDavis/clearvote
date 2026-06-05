@@ -57,6 +57,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       })
 
       if (user) {
+        if (!user.emailVerified) {
+          results.errors.push(`${normalizedEmail} has not verified their email`)
+          continue
+        }
         // Add to voter roll
         try {
           await prisma.voterRoll.create({
@@ -101,6 +105,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   // Handle org memberIds
   if (memberIds && memberIds.length > 0) {
     for (const userId of memberIds) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+      })
+
+      if (!user) {
+        results.errors.push(`User ${userId} not found`)
+        continue
+      }
+
+      if (!user.emailVerified) {
+        results.errors.push(`${user.email} has not verified their email`)
+        continue
+      }
+
       try {
         await prisma.voterRoll.create({
           data: {
@@ -109,21 +127,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
           },
         })
 
-        // Get user email for notification
-        const user = await prisma.user.findUnique({
-          where: { id: userId },
-          select: { email: true },
+        const voteLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/vote/${slug}`
+        await sendVoteInvite({
+          to: user.email,
+          pollTitle: poll.title,
+          voteLink,
         })
-
-        if (user) {
-          const voteLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/vote/${slug}`
-          await sendVoteInvite({
-            to: user.email,
-            pollTitle: poll.title,
-            voteLink,
-          })
-          results.emailsSent.push(user.email)
-        }
+        results.emailsSent.push(user.email)
 
         results.addedToRoll.push(userId)
       } catch {

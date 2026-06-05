@@ -34,17 +34,16 @@ model OrganizationMember {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  name         String
-  passwordHash String
-  createdAt    DateTime @default(now())
+  id             String    @id @default(uuid())
+  email          String    @unique
+  emailVerified  DateTime?
+  name           String
+  passwordHash   String
+  createdAt      DateTime  @default(now())
 
   memberships  OrganizationMember[]
   polls        Poll[]
   rolls        VoterRoll[]
-  principalFor Proxy[]  @relation("Principal")
-  proxyFor     Proxy[]  @relation("Proxy")
 }
 
 model Poll {
@@ -70,7 +69,6 @@ model Poll {
   tokens       VoterToken[]
   rolls        VoterRoll[]
   auditLogs    AuditLog[]
-  proxies      Proxy[]
 }
 
 model PollOption {
@@ -137,17 +135,4 @@ model AuditLog {
   @@index([pollId])
 }
 
-model Proxy {
-  id          String   @id @default(uuid())
-  pollId      String
-  principalId String
-  proxyId     String
-  createdAt   DateTime @default(now())
 
-  poll      Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
-  principal User @relation("Principal", fields: [principalId], references: [id])
-  proxy     User @relation("Proxy", fields: [proxyId], references: [id])
-
-  @@unique([pollId, principalId])
-  @@index([pollId])
-}

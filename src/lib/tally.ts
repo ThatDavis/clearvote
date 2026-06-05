@@ -82,9 +82,10 @@ export function tallyRcv(options: OptionInput[], ballots: BallotInput[]): Round[
 
     if (winner) break
 
-    // Find candidates to eliminate
+    // Find candidates to eliminate (deterministic tie-break: lexicographically smallest ID)
     const minVotes = voteList[voteList.length - 1].count
-    const toEliminate = voteList.filter((v) => v.count === minVotes).map((v) => v.optionId)
+    const tied = voteList.filter((v) => v.count === minVotes).map((v) => v.optionId)
+    const toEliminate = tied.length > 1 ? [tied.sort()[0]] : tied
 
     // Don't eliminate if it would remove all remaining candidates
     if (toEliminate.length === remaining.length) {
