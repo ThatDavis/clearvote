@@ -1,17 +1,21 @@
 import type { DefaultSession } from 'next-auth'
 import type { DefaultJWT } from 'next-auth/jwt'
 
+interface Membership {
+  organizationId: string
+  organizationName: string
+  role: string
+}
+
 declare module 'next-auth' {
   interface User {
-    organizationId: string | null
-    organizationName: string | null
+    memberships: Membership[]
   }
 
   interface Session {
     user: {
       id: string
-      organizationId: string | null
-      organizationName: string | null
+      memberships: Membership[]
     } & DefaultSession['user']
   }
 }
@@ -19,7 +23,6 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT extends DefaultJWT {
     id: string
-    organizationId: string | null
-    organizationName: string | null
+    memberships: Membership[]
   }
 }

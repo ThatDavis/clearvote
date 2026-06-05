@@ -2,19 +2,23 @@
 
 import { useState } from 'react'
 
-interface User {
+interface Member {
   id: string
-  name: string
-  email: string
+  user: {
+    id: string
+    name: string
+    email: string
+  }
+  role: string
 }
 
 interface Props {
   slug: string
-  users: User[]
+  members: Member[]
 }
 
-export default function MemberManager({ slug, users: initialUsers }: Props) {
-  const [users, setUsers] = useState(initialUsers)
+export default function MemberManager({ slug, members: initialMembers }: Props) {
+  const [members, setMembers] = useState(initialMembers)
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -32,13 +36,17 @@ export default function MemberManager({ slug, users: initialUsers }: Props) {
 
     if (!res.ok) {
       const data = await res.json()
-      setError(data.error || 'Failed to add member')
+      if (data.invite) {
+        setError('User not found. Invite feature coming soon.')
+      } else {
+        setError(data.error || 'Failed to add member')
+      }
       setLoading(false)
       return
     }
 
-    const user = await res.json()
-    setUsers([...users, user])
+    const member = await res.json()
+    setMembers([...members, member])
     setEmail('')
     setLoading(false)
   }
@@ -58,7 +66,25 @@ export default function MemberManager({ slug, users: initialUsers }: Props) {
       return
     }
 
-    setUsers(users.filter((u) => u.id !== userId))
+    setMembers(members.filter((m) => m.user.id !== userId))
+  }
+
+  async function updateRole(userId: string, role: string) {
+    setError('')
+
+    const res = await fetch(`/api/orgs/${slug}/members`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, role }),
+    })
+
+    if (!res.ok) {
+      const data = await res.json()
+      setError(data.error || 'Failed to update role')
+      return
+    }
+
+    setMembers(members.map((m) => (m.user.id === userId ? { ...m, role } : m)))
   }
 
   return (
@@ -84,19 +110,38 @@ export default function MemberManager({ slug, users: initialUsers }: Props) {
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
       <ul className="mt-3 divide-y divide-zinc-200 rounded-md border border-zinc-200">
-        {users.map((u) => (
-          <li key={u.id} className="flex items-center justify-between px-3 py-2 text-sm">
-            <div>
-              <span className="font-medium">{u.name}</span>
-              <span className="ml-2 text-zinc-500">{u.email}</span>
+        {members.map((m) => (
+          <li key={m.id} className="flex items-center justify-between px-3 py-2 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="font-medium">{m.user.name}</span>
+              <span className="text-zinc-500">{m.user.email}</span>
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs ${
+                  m.role === 'admin'
+                    ? 'bg-chicago-blue/10 text-chicago-blue'
+                    : 'bg-zinc-100 text-zinc-600'
+                }`}
+              >
+                {m.role}
+              </span>
             </div>
-            <button
-              type="button"
-              onClick={() => removeMember(u.id)}
-              className="text-red-600 hover:text-red-800"
-            >
-              Remove
-            </button>
+            <div className="flex items-center gap-2">
+              <select
+                value={m.role}
+                onChange={(e) => updateRole(m.user.id, e.target.value)}
+                className="rounded border border-zinc-300 px-2 py-1 text-xs"
+              >
+                <option value="member">Member</option>
+                <option value="admin">Admin</option>
+              </select>
+              <button
+                type="button"
+                onClick={() => removeMember(m.user.id)}
+                className="text-red-600 hover:text-red-800"
+              >
+                Remove
+              </button>
+            </div>
           </li>
         ))}
       </ul>

@@ -1,58 +1,51 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { auth } from '@/auth'
 import EmptyState from '@/components/empty-state'
 import { prisma } from '@/lib/prisma'
 
-export default async function DashboardPage() {
+export default async function OrgDashboardPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
   const session = await auth()
+
   if (!session?.user?.id) {
     redirect('/login')
   }
 
-  const myPolls = await prisma.poll.findMany({
-    where: { creatorId: session.user.id, organizationId: null },
+  const org = await prisma.organization.findUnique({
+    where: { slug },
+    include: {
+      members: {
+        where: { userId: session.user.id },
+        select: { role: true },
+      },
+    },
+  })
+
+  if (!org) {
+    notFound()
+  }
+
+  // Verify user is a member
+  if (org.members.length === 0) {
+    redirect('/dashboard')
+  }
+
+  const isAdmin = org.members[0]?.role === 'admin'
+
+  const orgPolls = await prisma.poll.findMany({
+    where: { organizationId: org.id },
     include: {
       _count: { select: { ballots: true, tokens: true } },
     },
     orderBy: { createdAt: 'desc' },
   })
 
-  const myRolls = await prisma.voterRoll.findMany({
-    where: { userId: session.user.id },
-    include: {
-      poll: {
-        include: {
-          _count: { select: { ballots: true } },
-        },
-      },
-    },
-  })
+  const openPolls = orgPolls.filter((p) => p.status === 'open')
+  const closedPolls = orgPolls.filter((p) => p.status === 'closed')
+  const draftPolls = orgPolls.filter((p) => p.status === 'draft')
 
-  const votedPollIds = (
-    await prisma.ballot.findMany({
-      where: {
-        userId: session.user.id,
-        pollId: { in: myRolls.map((r) => r.pollId) },
-      },
-      select: { pollId: true },
-    })
-  ).map((b) => b.pollId)
-
-  const canVote = myRolls.filter(
-    (r) => r.poll.status === 'open' && !votedPollIds.includes(r.pollId),
-  )
-
-  const hasVoted = myRolls.filter(
-    (r) => r.poll.status !== 'draft' && votedPollIds.includes(r.pollId),
-  )
-
-  // Split my polls by status
-  const openPolls = myPolls.filter((p) => p.status === 'open')
-  const closedPolls = myPolls.filter((p) => p.status === 'closed')
-  const draftPolls = myPolls.filter((p) => p.status === 'draft')
-
-  const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
+  const _statusConfig: Record<string, { label: string; color: string; bg: string }> = {
     draft: {
       label: 'Draft',
       color: 'text-amber-700',
@@ -94,24 +87,54 @@ export default async function DashboardPage() {
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-chicago-navy">Dashboard</h1>
-          <p className="mt-1 text-sm text-zinc-500">Your personal polls</p>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/dashboard"
+              className="text-sm text-zinc-500 transition-colors hover:text-chicago-navy"
+            >
+              <svg
+                aria-hidden="true"
+                className="h-4 w-4 inline mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
+              Personal
+            </Link>
+            <span className="text-zinc-300">/</span>
+            <h1 className="text-2xl font-bold tracking-tight text-chicago-navy">{org.name}</h1>
+          </div>
+          <p className="mt-1 text-sm text-zinc-500">Organization polls</p>
         </div>
-        <Link
-          href="/polls/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-chicago-red px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-chicago-red-dark hover:shadow-md"
-        >
-          <svg
-            aria-hidden="true"
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        {isAdmin && (
+          <Link
+            href={`/polls/new?org=${org.id}`}
+            className="inline-flex items-center gap-2 rounded-lg bg-chicago-red px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-chicago-red-dark hover:shadow-md"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          New poll
-        </Link>
+            <svg
+              aria-hidden="true"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            New org poll
+          </Link>
+        )}
       </div>
 
       <section className="mb-10">
@@ -123,7 +146,7 @@ export default async function DashboardPage() {
         {openPolls.length === 0 ? (
           <EmptyState
             title="No open polls"
-            description="Open polls will appear here. Open a draft poll to start collecting votes."
+            description="Open polls will appear here."
             icon="poll"
           />
         ) : (
@@ -198,7 +221,7 @@ export default async function DashboardPage() {
         {closedPolls.length === 0 ? (
           <EmptyState
             title="No finished polls"
-            description="Closed polls will appear here once voting ends."
+            description="Closed polls will appear here."
             icon="poll"
           />
         ) : (
@@ -258,19 +281,7 @@ export default async function DashboardPage() {
         </div>
 
         {draftPolls.length === 0 ? (
-          <EmptyState
-            title="No drafts"
-            description="Draft polls will appear here. Start creating a poll to get going."
-            icon="poll"
-            action={
-              <Link
-                href="/polls/new"
-                className="inline-flex items-center gap-2 rounded-lg bg-chicago-red px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-chicago-red-dark"
-              >
-                Create a poll
-              </Link>
-            }
-          />
+          <EmptyState title="No drafts" description="Draft polls will appear here." icon="poll" />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {draftPolls.map((poll) => {
@@ -316,88 +327,6 @@ export default async function DashboardPage() {
           </div>
         )}
       </section>
-
-      <div className="grid gap-10 lg:grid-cols-2">
-        {canVote.length > 0 && (
-          <section>
-            <h2 className="text-lg font-semibold text-zinc-900">Polls you can vote on</h2>
-            <div className="mt-4 grid gap-3">
-              {canVote.map((entry) => (
-                <div
-                  key={entry.id}
-                  className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white p-4 shadow-sm"
-                >
-                  <span className="text-sm font-medium text-zinc-900">{entry.poll.title}</span>
-                  <Link
-                    href={`/vote/${entry.poll.slug}`}
-                    className="inline-flex items-center gap-1 rounded-lg bg-chicago-red px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-chicago-red-dark hover:shadow-md"
-                  >
-                    <svg
-                      aria-hidden="true"
-                      className="h-3.5 w-3.5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    Vote
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {hasVoted.length > 0 && (
-          <section>
-            <h2 className="text-lg font-semibold text-zinc-900">Voted</h2>
-            <div className="mt-4 grid gap-3">
-              {hasVoted.map((entry) => {
-                const status = statusConfig[entry.poll.status]
-                return (
-                  <Link
-                    key={entry.id}
-                    href={`/polls/${entry.poll.slug}/results`}
-                    className="group flex items-center justify-between rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-all hover:border-chicago-blue/30 hover:shadow-md hover:-translate-y-0.5"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium text-zinc-900">{entry.poll.title}</span>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${status?.bg || 'bg-zinc-100'} ${status?.color || 'text-zinc-600'}`}
-                      >
-                        {status?.label || entry.poll.status}
-                      </span>
-                    </div>
-                    <span className="flex items-center gap-1 text-xs font-medium text-chicago-blue transition-colors group-hover:text-chicago-blue-dark">
-                      View results
-                      <svg
-                        aria-hidden="true"
-                        className="h-4 w-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </span>
-                  </Link>
-                )
-              })}
-            </div>
-          </section>
-        )}
-      </div>
     </div>
   )
 }

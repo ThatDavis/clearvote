@@ -11,13 +11,17 @@ export async function canManagePoll(pollId: string, userId: string): Promise<boo
   // Creator always can manage
   if (poll.creatorId === userId) return true
 
-  // Org members can manage org polls
+  // Org admins can manage org polls
   if (poll.organizationId) {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { organizationId: true },
+    const membership = await prisma.organizationMember.findUnique({
+      where: {
+        userId_organizationId: {
+          userId,
+          organizationId: poll.organizationId,
+        },
+      },
     })
-    if (user?.organizationId === poll.organizationId) return true
+    if (membership?.role === 'admin') return true
   }
 
   return false

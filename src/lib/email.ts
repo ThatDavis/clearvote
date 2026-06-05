@@ -1,0 +1,88 @@
+import { Resend } from 'resend'
+
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null
+
+export async function sendVoteInvite({
+  to,
+  pollTitle,
+  voteLink,
+}: {
+  to: string
+  pollTitle: string
+  voteLink: string
+}) {
+  if (!resend) {
+    console.warn('Resend not configured. Email would be sent to:', to)
+    return { success: false, error: 'Resend not configured' }
+  }
+
+  try {
+    const result = await resend.emails.send({
+      from: 'Clearvote <no-reply@clearvote.app>',
+      to,
+      subject: `You're invited to vote: ${pollTitle}`,
+      html: `
+        <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+          <h1 style="color: #1a1a1a; font-size: 20px; margin-bottom: 16px;">You've been invited to vote</h1>
+          <p style="color: #4a4a4a; line-height: 1.6; margin-bottom: 24px;">
+            You've been invited to participate in a poll on Clearvote:
+          </p>
+          <div style="background: #f5f5f5; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
+            <h2 style="color: #1a1a1a; font-size: 18px; margin: 0 0 8px 0;">${pollTitle}</h2>
+          </div>
+          <a href="${voteLink}" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 500;">Cast your vote</a>
+          <p style="color: #6a6a6a; font-size: 14px; margin-top: 24px;">
+            Or copy this link: ${voteLink}
+          </p>
+        </div>
+      `,
+    })
+
+    return { success: true, id: result.data?.id }
+  } catch (error) {
+    console.error('Failed to send email:', error)
+    return { success: false, error: 'Failed to send email' }
+  }
+}
+
+export async function sendOrgInvite({
+  to,
+  orgName,
+  inviteLink,
+}: {
+  to: string
+  orgName: string
+  inviteLink: string
+}) {
+  if (!resend) {
+    console.warn('Resend not configured. Email would be sent to:', to)
+    return { success: false, error: 'Resend not configured' }
+  }
+
+  try {
+    const result = await resend.emails.send({
+      from: 'Clearvote <no-reply@clearvote.app>',
+      to,
+      subject: `You're invited to join ${orgName} on Clearvote`,
+      html: `
+        <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+          <h1 style="color: #1a1a1a; font-size: 20px; margin-bottom: 16px;">You're invited to join ${orgName}</h1>
+          <p style="color: #4a4a4a; line-height: 1.6; margin-bottom: 24px;">
+            You've been invited to join <strong>${orgName}</strong> on Clearvote. Click the link below to accept the invitation.
+          </p>
+          <a href="${inviteLink}" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 500;">Join organization</a>
+          <p style="color: #6a6a6a; font-size: 14px; margin-top: 24px;">
+            Or copy this link: ${inviteLink}
+          </p>
+        </div>
+      `,
+    })
+
+    return { success: true, id: result.data?.id }
+  } catch (error) {
+    console.error('Failed to send email:', error)
+    return { success: false, error: 'Failed to send email' }
+  }
+}

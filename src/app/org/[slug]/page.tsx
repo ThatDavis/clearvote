@@ -15,8 +15,10 @@ export default async function OrgPage({ params }: { params: Promise<{ slug: stri
   const org = await prisma.organization.findUnique({
     where: { slug },
     include: {
-      users: {
-        select: { id: true, name: true, email: true },
+      members: {
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+        },
         orderBy: { createdAt: 'asc' },
       },
       polls: {
@@ -31,7 +33,12 @@ export default async function OrgPage({ params }: { params: Promise<{ slug: stri
     notFound()
   }
 
-  const isMember = session.user.organizationId === org.id
+  const myMembership = org.members.find((m) => m.user.id === session.user.id)
+  if (!myMembership) {
+    redirect('/dashboard')
+  }
+
+  const isAdmin = myMembership.role === 'admin'
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
@@ -44,14 +51,19 @@ export default async function OrgPage({ params }: { params: Promise<{ slug: stri
       <h1 className="mt-4 text-2xl font-semibold tracking-tight">{org.name}</h1>
 
       <div className="mt-8">
-        <h2 className="text-sm font-medium">Members ({org.users.length})</h2>
-        {isMember && <MemberManager slug={org.slug} users={org.users} />}
-        {!isMember && (
+        <h2 className="text-sm font-medium">Members ({org.members.length})</h2>
+        {isAdmin && <MemberManager slug={org.slug} members={org.members} />}
+        {!isAdmin && (
           <ul className="mt-2 divide-y divide-zinc-200 rounded-md border border-zinc-200">
-            {org.users.map((u) => (
-              <li key={u.id} className="px-3 py-2 text-sm">
-                <span className="font-medium">{u.name}</span>
-                <span className="ml-2 text-zinc-500">{u.email}</span>
+            {org.members.map((m) => (
+              <li key={m.id} className="px-3 py-2 text-sm">
+                <span className="font-medium">{m.user.name}</span>
+                <span className="ml-2 text-zinc-500">{m.user.email}</span>
+                {m.role === 'admin' && (
+                  <span className="ml-2 rounded-full bg-chicago-blue/10 px-2 py-0.5 text-xs text-chicago-blue">
+                    Admin
+                  </span>
+                )}
               </li>
             ))}
           </ul>

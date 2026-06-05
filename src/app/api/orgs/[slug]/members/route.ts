@@ -2,6 +2,18 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 
+async function isOrgAdmin(userId: string, orgId: string): Promise<boolean> {
+  const membership = await prisma.organizationMember.findUnique({
+    where: {
+      userId_organizationId: {
+        userId,
+        organizationId: orgId,
+      },
+    },
+  })
+  return membership?.role === 'admin'
+}
+
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const session = await auth()
@@ -11,7 +23,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
   }
 
-  if (session?.user?.organizationId !== org.id) {
+  if (!session?.user?.id || !(await isOrgAdmin(session.user.id, org.id))) {
     return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
   }
 
@@ -22,27 +34,49 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: 'Email is required' }, { status: 400 })
   }
 
+  const normalizedEmail = email.toLowerCase().trim()
   const user = await prisma.user.findUnique({
-    where: { email: email.toLowerCase().trim() },
+    where: { email: normalizedEmail },
   })
 
   if (!user) {
-    return NextResponse.json({ error: 'No user found with that email' }, { status: 404 })
+    // User doesn't exist yet — we could send an invite email here
+    // For now, return a specific error so the UI can show a "send invite" option
+    return NextResponse.json(
+      { error: 'No user found with that email', invite: true },
+      { status: 404 },
+    )
   }
 
-  if (user.organizationId) {
+  // Check if already a member
+  const existing = await prisma.organizationMember.findUnique({
+    where: {
+      userId_organizationId: {
+        userId: user.id,
+        organizationId: org.id,
+      },
+    },
+  })
+
+  if (existing) {
     return NextResponse.json(
-      { error: 'This user is already a member of an organization' },
+      { error: 'This user is already a member of this organization' },
       { status: 409 },
     )
   }
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { organizationId: org.id },
+  const member = await prisma.organizationMember.create({
+    data: {
+      userId: user.id,
+      organizationId: org.id,
+      role: 'member',
+    },
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+    },
   })
 
-  return NextResponse.json({ id: user.id, name: user.name, email: user.email }, { status: 201 })
+  return NextResponse.json({ id: member.id, user: member.user, role: member.role }, { status: 201 })
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ slug: string }> }) {
@@ -54,10 +88,6 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ s
     return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
   }
 
-  if (session?.user?.organizationId !== org.id) {
-    return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
-  }
-
   const body = await request.json()
   const { userId } = body as { userId?: string }
 
@@ -65,17 +95,65 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ s
     return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
   }
 
-  if (userId === session.user.id) {
-    return NextResponse.json(
-      { error: 'You cannot remove yourself from the organization' },
-      { status: 400 },
-    )
+  const membership = await prisma.organizationMember.findUnique({
+    where: {
+      userId_organizationId: {
+        userId: session?.user?.id ?? '',
+        organizationId: org.id,
+      },
+    },
+  })
+
+  if (!membership) {
+    return NextResponse.json({ error: 'Not a member of this organization' }, { status: 403 })
   }
 
-  await prisma.user.update({
-    where: { id: userId },
-    data: { organizationId: null },
+  // Only admins can remove others; anyone can remove themselves
+  if (userId !== session?.user?.id && membership.role !== 'admin') {
+    return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
+  }
+
+  await prisma.organizationMember.delete({
+    where: {
+      userId_organizationId: {
+        userId,
+        organizationId: org.id,
+      },
+    },
   })
 
   return NextResponse.json({ success: true })
+}
+
+export async function PATCH(request: Request, { params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const session = await auth()
+
+  const org = await prisma.organization.findUnique({ where: { slug } })
+  if (!org) {
+    return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
+  }
+
+  if (!session?.user?.id || !(await isOrgAdmin(session.user.id, org.id))) {
+    return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
+  }
+
+  const body = await request.json()
+  const { userId, role } = body as { userId?: string; role?: string }
+
+  if (!userId || !role || !['admin', 'member'].includes(role)) {
+    return NextResponse.json({ error: 'User ID and valid role required' }, { status: 400 })
+  }
+
+  const updated = await prisma.organizationMember.update({
+    where: {
+      userId_organizationId: {
+        userId,
+        organizationId: org.id,
+      },
+    },
+    data: { role },
+  })
+
+  return NextResponse.json(updated)
 }
