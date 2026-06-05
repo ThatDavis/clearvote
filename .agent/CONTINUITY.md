@@ -222,6 +222,7 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 |  |    ✓ Create optimized Dockerfile with multi-stage build |
 |  |    ✓ Create GitHub Actions container build pipeline with image tagging |
 |  |    ✓ Add docker-compose configuration for production |
+| 2026-06-05 | Completed feature: Set up CI/CD pipelines including a build pipeline to create a container using image tags. |
 |  |    - Welcome email on registration via sendWelcomeEmail |
 |  |    - Poll-open notifications sent to all voters on the roll when status transitions to open |
 |  |    - Org invite emails for non-registered users with tokenized acceptance links |
@@ -260,3 +261,10 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 - Voter roll mode selector when creating org polls (all members vs custom)
 - Resend + SMTP dual-provider support with automatic fallback
 - PR: #10
+
+### Milestone 7: CI/CD Pipeline (2026-06-05)
+- GitHub Actions CI workflow runs test, lint, typecheck, and build on PRs and main branch pushes
+- GitHub Actions container build pipeline pushes images to GHCR with git SHA and semver tags
+- Docker multi-stage build optimized with layer caching and BuildKit
+- Production docker-compose configuration with required env var validation
+- Issue: #12 | Branch: feature/12-ci-cd-pipeline
