@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import ContestManager from './contest-manager'
+import ElectionAuditTrail from './audit-trail'
+import ElectionEditor from './election-editor'
 import ElectionStatusControls from './status-controls'
 import ElectionTokenGenerator from './token-generator'
 import ElectionVoterRollManager from './voter-roll-manager'
@@ -95,15 +97,34 @@ export default async function ElectionPage({ params }: { params: Promise<{ slug:
       </div>
 
       <div className="mt-6">
-        <h1 className="text-3xl font-bold tracking-tight text-chicago-navy">{election.title}</h1>
-        {election.description && (
-          <p className="mt-3 text-zinc-600 leading-relaxed">{election.description}</p>
-        )}
+        <ElectionEditor
+          slug={slug}
+          initialTitle={election.title}
+          initialDescription={election.description}
+          canManage={userCanManage}
+          isDraft={!locked}
+        />
       </div>
 
       <div className="mt-6 rounded-xl border border-zinc-200 bg-zinc-50/50 p-5">
         <h3 className="text-sm font-semibold text-zinc-900">Election details</h3>
         <dl className="mt-3 space-y-2">
+          {election.startsAt && (
+            <div className="flex justify-between">
+              <dt className="text-sm text-zinc-500">Starts</dt>
+              <dd className="text-sm font-medium text-zinc-900">
+                {new Date(election.startsAt).toLocaleString()}
+              </dd>
+            </div>
+          )}
+          {election.endsAt && (
+            <div className="flex justify-between">
+              <dt className="text-sm text-zinc-500">Ends</dt>
+              <dd className="text-sm font-medium text-zinc-900">
+                {new Date(election.endsAt).toLocaleString()}
+              </dd>
+            </div>
+          )}
           <div className="flex justify-between">
             <dt className="text-sm text-zinc-500">Contests</dt>
             <dd className="text-sm font-medium text-zinc-900">{election._count.contests}</dd>
@@ -137,6 +158,8 @@ export default async function ElectionPage({ params }: { params: Promise<{ slug:
           <div className="mt-8">
             <ElectionStatusControls slug={slug} status={election.status} />
           </div>
+
+          <ElectionAuditTrail slug={slug} />
         </>
       )}
 
