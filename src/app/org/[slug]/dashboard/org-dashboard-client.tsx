@@ -301,7 +301,7 @@ export default function OrgDashboardClient({ org, isAdmin, polls, elections }: P
   function setTab(tab: 'polls' | 'elections') {
     const params = new URLSearchParams(searchParams.toString())
     params.set('tab', tab)
-    router.push(`/org/${org.slug}?${params.toString()}`)
+    router.replace(`/org/${org.slug}/dashboard?${params.toString()}`)
   }
 
   return (
