@@ -46,15 +46,26 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
   }
 
   const body = await request.json()
-  const { name } = body as { name?: string }
+  const { name, description } = body as { name?: string; description?: string | null }
 
-  if (!name || name.trim().length === 0) {
-    return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+  const data: { name?: string; description?: string | null } = {}
+  if (name !== undefined) {
+    if (name.trim().length === 0) {
+      return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+    }
+    data.name = name.trim()
+  }
+  if (description !== undefined) {
+    data.description = description?.trim() || null
+  }
+
+  if (Object.keys(data).length === 0) {
+    return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
   }
 
   const updated = await prisma.organization.update({
     where: { slug },
-    data: { name: name.trim() },
+    data,
   })
 
   return NextResponse.json(updated)

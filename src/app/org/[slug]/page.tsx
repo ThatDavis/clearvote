@@ -49,6 +49,27 @@ export default async function OrgPage({ params }: { params: Promise<{ slug: stri
       </div>
 
       <h1 className="mt-4 text-2xl font-semibold tracking-tight">{org.name}</h1>
+      {org.description && (
+        <p className="mt-2 text-zinc-600">{org.description}</p>
+      )}
+
+      <div className="mt-4">
+        <Link
+          href={`/org/${org.slug}/dashboard`}
+          className="inline-flex items-center gap-1 text-sm text-chicago-blue hover:text-chicago-blue-dark transition-colors"
+        >
+          View organization dashboard
+          <svg
+            aria-hidden="true"
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
+      </div>
 
       <div className="mt-8">
         <h2 className="text-sm font-medium">Members ({org.members.length})</h2>
