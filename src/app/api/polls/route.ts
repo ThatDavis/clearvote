@@ -39,7 +39,10 @@ export async function POST(request: Request) {
 
     const minOptions = votingMethod === 'yesno' ? 1 : 2
     if (!options || !Array.isArray(options) || options.length < minOptions) {
-      return NextResponse.json({ error: `At least ${minOptions} option${minOptions === 1 ? '' : 's'} are required` }, { status: 400 })
+      return NextResponse.json(
+        { error: `At least ${minOptions} option${minOptions === 1 ? '' : 's'} are required` },
+        { status: 400 },
+      )
     }
 
     // If organizationId is provided, verify the user is an admin

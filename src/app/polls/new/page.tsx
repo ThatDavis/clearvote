@@ -65,9 +65,10 @@ export default function NewPollPage() {
         return title.trim().length > 0
       case 2:
         return true
-      case 3:
+      case 3: {
         const minOptions = votingMethod === 'yesno' ? 1 : 2
         return options.filter((o) => o.value.trim()).length >= minOptions
+      }
       case 4:
         return true
       default:

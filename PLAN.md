@@ -23,7 +23,7 @@
 ## Milestone 5: Election Security & Audit Hardening
 
 **Goal:** Close active vulnerabilities and add the ballot-secrecy and audit guarantees a credible election requires. Surfaced by a security/integrity review on 2026-06-05.
-**Status:** Complete
+**Status:** In Progress — Remediation (Issue #9)
 
 ### Phase A: Critical — active vulnerabilities
 - [x] A1: Protect `GET /api/polls/[slug]/tokens` — currently unauthenticated, returns every valid voting token by slug. Require `canManagePoll`; stop returning raw token values after creation. (`src/app/api/polls/[slug]/tokens/route.ts:7-21`)
@@ -37,10 +37,11 @@
 - [x] B4: Add rate limiting — login, ballot casting, and `/api/verify` have none (token/receipt enumeration, password brute-force).
 
 ### Phase C: Correctness & process
-- [x] C1: Deterministic, documented tie-breaking for RCV (returns no winner today), approval, and STV.
+- [x] C1: Deterministic, documented tie-breaking for RCV (returns no winner today) and STV.
+- [x] C1-approval: Deterministic tie-breaking for approval voting (see docs/MILESTONE-5-REMEDIATION.md FIX-4).
 - [x] C2: Shuffle ballots on the results page and gate the per-ballot dump behind poll closure — insertion-order + small electorate can de-anonymize.
 - [x] C3: Finish or remove proxy voting — `Proxy` model/routes exist but aren't wired into casting; nothing stops principal and proxy both voting.
-- [x] C4: Require email verification before a signup can appear on a voter roll (roll eligibility keys off `user.email`).
+- [ ] C4: Require email verification before a signup can appear on a voter roll (roll eligibility keys off `user.email`). **Gate reverted in FIX-1 Option A — needs real verification flow (see docs/MILESTONE-5-REMEDIATION.md FIX-1 Option B).**
 
 ---
 
@@ -60,6 +61,12 @@
 
 ## Active Feature
 
-Milestone 5: Election Security & Audit Hardening — start with A1 and A2 (small, active holes), then the A3 ballot-secrecy refactor as its own focused change.
+Milestone 5: Election Security & Audit Hardening — Remediation (Issue #9, branch fix/9-milestone-5-remediation)
+- [x] FIX-2: Atomic credential claim — replace transaction body with updateMany+count guard, add AlreadyVotedError, add route test for double-vote race
+- [x] FIX-1 Option A: Revert email-verification gate — remove checks from roll/route.ts and distribute/route.ts, keep emailVerified column
+- [x] FIX-4: Approval voting tie-break — add deterministic sort, add test, document in SPEC.md
+- [x] FIX-3: Rate limiter scope — add header comment, narrow auth limiter to credentials callback only
+- [x] FIX-5: Remove dead secret check — simplify generateReceipt, keep env.ts as single source
+- [x] Update PLAN.md and CONTINUITY.md — mark C4 reopened, reflect approval gap fixed
 
 ---

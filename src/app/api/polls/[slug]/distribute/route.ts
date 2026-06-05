@@ -1,4 +1,4 @@
-import { randomBytes, randomUUID } from 'node:crypto'
+import { randomBytes } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { canManagePoll } from '@/lib/auth'
@@ -60,10 +60,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       })
 
       if (user) {
-        if (!user.emailVerified) {
-          results.errors.push(`${normalizedEmail} has not verified their email`)
-          continue
-        }
         // Add to voter roll
         try {
           await prisma.voterRoll.create({
@@ -114,11 +110,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
 
       if (!user) {
         results.errors.push(`User ${userId} not found`)
-        continue
-      }
-
-      if (!user.emailVerified) {
-        results.errors.push(`${user.email} has not verified their email`)
         continue
       }
 

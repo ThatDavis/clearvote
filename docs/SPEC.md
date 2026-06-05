@@ -54,6 +54,10 @@ clearvote is a web application that lets community-run spaces (co-ops, HOAs, uni
 - **M2:** Auth, voter rolls, one-vote-per-person enforcement
 - **M3:** Dashboards, multi-winner STV, deadlines, proxy voting
 
+## Tie-Breaking Convention
+
+All voting methods (RCV, STV, and approval) use the same deterministic tie-breaker: **when candidates are tied, the lexicographically smallest `optionId` wins the tie.** This ensures reproducible results regardless of input order or database insertion order.
+
 ## Non-Functional Requirements
 - All election results must be verifiable from raw anonymized ballot data
 - Tally algorithm must be correct for all edge cases (ties, exhausted ballots, surplus transfers)
