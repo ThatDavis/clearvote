@@ -10,6 +10,8 @@ export default function NewPollPage() {
   const [votingMethod, setVotingMethod] = useState('rcv')
   const [seats, setSeats] = useState(1)
   const [threshold, setThreshold] = useState(50)
+  const [startsAt, setStartsAt] = useState('')
+  const [endsAt, setEndsAt] = useState('')
   const nextKey = useRef(2)
   const [options, setOptions] = useState([
     { key: '0', value: '' },
@@ -56,6 +58,8 @@ export default function NewPollPage() {
         votingMethod,
         seats,
         threshold: votingMethod === 'yesno' ? threshold : undefined,
+        startsAt: startsAt || undefined,
+        endsAt: endsAt || undefined,
       }),
     })
 
@@ -157,6 +161,33 @@ export default function NewPollPage() {
             </p>
           </div>
         )}
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="startsAt" className="block text-sm font-medium">
+              Start time <span className="text-zinc-400">(optional)</span>
+            </label>
+            <input
+              id="startsAt"
+              type="datetime-local"
+              value={startsAt}
+              onChange={(e) => setStartsAt(e.target.value)}
+              className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            />
+          </div>
+          <div>
+            <label htmlFor="endsAt" className="block text-sm font-medium">
+              End time <span className="text-zinc-400">(optional)</span>
+            </label>
+            <input
+              id="endsAt"
+              type="datetime-local"
+              value={endsAt}
+              onChange={(e) => setEndsAt(e.target.value)}
+              className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            />
+          </div>
+        </div>
 
         <fieldset>
           <legend className="block text-sm font-medium">Options</legend>

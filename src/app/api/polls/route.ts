@@ -11,14 +11,17 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { title, description, options, votingMethod, seats, threshold } = body as {
-      title?: string
-      description?: string
-      options?: string[]
-      votingMethod?: string
-      seats?: number
-      threshold?: number
-    }
+    const { title, description, options, votingMethod, seats, threshold, startsAt, endsAt } =
+      body as {
+        title?: string
+        description?: string
+        options?: string[]
+        votingMethod?: string
+        seats?: number
+        threshold?: number
+        startsAt?: string
+        endsAt?: string
+      }
 
     if (!title || typeof title !== 'string' || title.trim().length === 0) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 })
@@ -38,6 +41,8 @@ export async function POST(request: Request) {
         votingMethod: votingMethod || 'rcv',
         seats: seats || 1,
         threshold: threshold ?? 50,
+        startsAt: startsAt ? new Date(startsAt) : null,
+        endsAt: endsAt ? new Date(endsAt) : null,
         creatorId: session.user.id,
         organizationId: session.user.organizationId ?? null,
         options: {
