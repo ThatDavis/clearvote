@@ -147,18 +147,20 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 | 2026-06-04 | M3 complete: STV, approval voting, yes/no referendums, timed polls, audit trail, proxy voting, enhanced dashboard. |
 | 2026-06-05 | Feature complete: Org flow redesign with Resend email - separate individual accounts from org membership (Issue #5). |
 |  |    - Install Resend SDK and configure email utility |
+|  |    - Add SMTP support with nodemailer alongside Resend |
 |  |    - Add Organization.description field to schema and migrate |
 |  |    - Remove member distribution from poll creation wizard |
 |  |    - Add voter distribution UI to poll detail page (personal: comma-separated emails; org: all/select members) |
 |  |    - Add org cards to dashboard with name and description |
 |  |    - Add description field to org creation form |
-|  |    - Create email templates and send vote invite emails via Resend |
+|  |    - Create email templates and send vote invite emails via Resend or SMTP |
 |  |    - Update tests and run full test suite |
 
 ## [DISCOVERIES]
 
 - Prisma 7 requires an explicit database adapter (`@prisma/adapter-pg` for PostgreSQL). The old `new PrismaClient()` no-arg constructor is gone.
 - @dnd-kit works well for accessible drag-and-drop ranking with keyboard support.
+- Email system supports both Resend (cloud) and SMTP (self-hosted) with automatic provider detection based on environment variables. Falls back from Resend to SMTP if Resend fails.
 
 ## [OUTCOMES]
 
