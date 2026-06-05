@@ -4,9 +4,9 @@ import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import OrgPollDistributor from './org-poll-distributor'
 import PollDistributor from './poll-distributor'
+import PollEditor from './poll-editor'
 import StatusControls from './status-controls'
 import TokenGenerator from './token-generator'
-import VoterRollManager from './voter-roll-manager'
 
 export default async function PollPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -65,8 +65,10 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
           ? 'Yes/No'
           : 'RCV'
 
+  const locked = poll.status !== 'draft'
+
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 sm:py-12">
+    <div className="w-full px-[10%] py-8">
       <div className="flex items-center gap-3">
         <Link
           href="/"
@@ -95,23 +97,39 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
         </span>
       </div>
 
-      <h1 className="mt-6 text-3xl font-bold tracking-tight text-chicago-navy">{poll.title}</h1>
-
-      {poll.description && <p className="mt-3 text-zinc-600 leading-relaxed">{poll.description}</p>}
-
-      <div className="mt-8 rounded-xl border-2 border-zinc-200 bg-white p-5">
-        <h2 className="text-sm font-semibold text-zinc-900">Options</h2>
-        <ol className="mt-3 space-y-2">
-          {poll.options.map((option, i) => (
-            <li key={option.id} className="flex items-center gap-3 text-sm">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-chicago-blue/10 text-xs font-bold text-chicago-blue">
-                {i + 1}
-              </span>
-              {option.label}
-            </li>
-          ))}
-        </ol>
+      <div className="mt-6">
+        {userCanManage && poll.status === 'draft' ? (
+          <PollEditor
+            slug={poll.slug}
+            initialTitle={poll.title}
+            initialDescription={poll.description}
+            initialOptions={poll.options}
+          />
+        ) : (
+          <>
+            <h1 className="text-3xl font-bold tracking-tight text-chicago-navy">{poll.title}</h1>
+            {poll.description && (
+              <p className="mt-3 text-zinc-600 leading-relaxed">{poll.description}</p>
+            )}
+          </>
+        )}
       </div>
+
+      {(!userCanManage || poll.status !== 'draft') && (
+        <div className="mt-8 rounded-xl border-2 border-zinc-200 bg-white p-5">
+          <h2 className="text-sm font-semibold text-zinc-900">Options</h2>
+          <ol className="mt-3 space-y-2">
+            {poll.options.map((option, i) => (
+              <li key={option.id} className="flex items-center gap-3 text-sm">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-chicago-blue/10 text-xs font-bold text-chicago-blue">
+                  {i + 1}
+                </span>
+                {option.label}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
 
       <div className="mt-6 rounded-xl border border-zinc-200 bg-zinc-50/50 p-5">
         <h3 className="text-sm font-semibold text-zinc-900">Poll details</h3>
@@ -140,7 +158,7 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
             </div>
           )}
           <div className="flex justify-between">
-            <dt className="text-sm text-zinc-500">Tokens</dt>
+            <dt className="text-sm text-zinc-500">Anonymous tokens</dt>
             <dd className="text-sm font-medium text-zinc-900">{poll._count.tokens}</dd>
           </div>
           <div className="flex justify-between">
@@ -151,15 +169,14 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
       </div>
 
       {userCanManage && (
-        <div className="mt-8 space-y-6">
-          <StatusControls slug={poll.slug} status={poll.status} />
+        <div className="mt-8 space-y-4">
           {poll.organizationId && poll.organization ? (
-            <OrgPollDistributor slug={poll.slug} orgSlug={poll.organization.slug} />
+            <OrgPollDistributor slug={poll.slug} orgSlug={poll.organization.slug} locked={locked} />
           ) : (
-            <PollDistributor slug={poll.slug} />
+            <PollDistributor slug={poll.slug} locked={locked} />
           )}
-          <TokenGenerator slug={poll.slug} />
-          <VoterRollManager slug={poll.slug} />
+          <TokenGenerator slug={poll.slug} locked={locked} />
+          <StatusControls slug={poll.slug} status={poll.status} />
         </div>
       )}
 

@@ -24,6 +24,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
   }
 
+  if (poll.status !== 'draft') {
+    return NextResponse.json({ error: 'Cannot modify voter roll after poll is open' }, { status: 400 })
+  }
+
   const body = await request.json()
   const { emails, memberIds } = body as {
     emails?: string[]

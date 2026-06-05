@@ -6,6 +6,28 @@
 
 ## [PLANS]
 
+### Milestone 5: Election Security & Audit Hardening (In Progress, opened 2026-06-05)
+Goal: Close active vulnerabilities and add the ballot-secrecy + audit guarantees a credible election requires. Surfaced by a security/integrity review of the codebase.
+
+Priority order: Phase A (active holes) → Phase B (integrity/trust) → Phase C (correctness/process).
+
+#### Phase A: Critical — active vulnerabilities
+- [ ] A1: Protect `GET /api/polls/[slug]/tokens` — unauthenticated, leaks every voting token by slug. Require canManagePoll; stop returning raw token values.
+- [ ] A2: Fix token-gen authz bypass — `session?.user?.id && !canManagePoll` lets anonymous requests through on draft polls. Require session AND canManagePoll; audit all `session?.user?.id && …` guards.
+- [ ] A3: Separate ballot content from voter identity — ballots store userId + voterToken (fully linkable). Sever the link at cast time. Schema change.
+
+#### Phase B: Integrity & trust
+- [ ] B1: Implement AuditLog writes (token batch, poll open/close, roll changes, ballot cast time, results viewed); append-only / hash-chained.
+- [ ] B2: Replace deterministic receipt (sha256 of ballotId+AUTH_SECRET, 'dev-secret' fallback) with random 128-bit code; fail fast if AUTH_SECRET unset.
+- [ ] B3: Store token hashes, not plaintext UUIDs.
+- [ ] B4: Rate-limit login, ballot casting, /api/verify.
+
+#### Phase C: Correctness & process
+- [ ] C1: Deterministic, documented tie-breaking (RCV/STV/approval).
+- [ ] C2: Shuffle ballots on results page; gate per-ballot dump behind closure.
+- [ ] C3: Finish or remove proxy voting (no double-vote).
+- [ ] C4: Email verification before roll eligibility.
+
 ### Milestone 1: Core Voting Engine (Completed 2026-06-04)
 Goal: Anonymous polls with ranked-choice voting and instant-runoff tally.
 
@@ -155,12 +177,14 @@ Approach: Auth.js v5 (JWT strategy, credentials provider), bcryptjs. JWT session
 |  |    - Add description field to org creation form |
 |  |    - Create email templates and send vote invite emails via Resend or SMTP |
 |  |    - Update tests and run full test suite |
+| 2026-06-05 | Security/election-integrity review of the codebase. Opened Milestone 5 (Election Security & Audit Hardening) in PLAN.md + CONTINUITY with 11 tracked items across 3 priority phases. No code changes yet. |
 
 ## [DISCOVERIES]
 
 - Prisma 7 requires an explicit database adapter (`@prisma/adapter-pg` for PostgreSQL). The old `new PrismaClient()` no-arg constructor is gone.
 - @dnd-kit works well for accessible drag-and-drop ranking with keyboard support.
 - Email system supports both Resend (cloud) and SMTP (self-hosted) with automatic provider detection based on environment variables. Falls back from Resend to SMTP if Resend fails.
+- Security review (2026-06-05) found two election-breaking holes: `GET /api/polls/[slug]/tokens` is unauthenticated (leaks all tokens), and token-generation authz short-circuits for anonymous requests (`session?.user?.id && !canManagePoll`). Also: ballots are fully linkable to voters (userId + voterToken stored), AuditLog is defined but never written, receipt codes are deterministic/forgeable with a 'dev-secret' fallback, tokens stored in plaintext, no rate limiting. Tracked as Milestone 5.
 
 ## [OUTCOMES]
 

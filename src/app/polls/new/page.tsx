@@ -113,7 +113,7 @@ export default function NewPollPage() {
   const stepTitles = ['Basics', 'Voting Method', 'Options', 'Schedule & Review']
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
+    <div className="w-full px-[10%] py-8">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight text-chicago-navy">Create a poll</h1>

@@ -45,24 +45,6 @@ export default async function OrgDashboardPage({ params }: { params: Promise<{ s
   const closedPolls = orgPolls.filter((p) => p.status === 'closed')
   const draftPolls = orgPolls.filter((p) => p.status === 'draft')
 
-  const _statusConfig: Record<string, { label: string; color: string; bg: string }> = {
-    draft: {
-      label: 'Draft',
-      color: 'text-amber-700',
-      bg: 'bg-amber-50',
-    },
-    open: {
-      label: 'Open',
-      color: 'text-green-700',
-      bg: 'bg-green-50',
-    },
-    closed: {
-      label: 'Closed',
-      color: 'text-zinc-600',
-      bg: 'bg-zinc-100',
-    },
-  }
-
   const methodConfig: Record<string, { label: string; color: string }> = {
     rcv: { label: 'RCV', color: 'text-chicago-blue bg-chicago-blue/10' },
     stv: { label: 'STV', color: 'text-purple-600 bg-purple-50' },
@@ -84,7 +66,7 @@ export default async function OrgDashboardPage({ params }: { params: Promise<{ s
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="w-full px-[10%] py-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <div className="flex items-center gap-3">

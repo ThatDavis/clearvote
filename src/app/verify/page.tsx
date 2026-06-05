@@ -34,7 +34,7 @@ export default function VerifyPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 sm:py-12">
+    <div className="w-full px-[10%] py-8">
       <h1 className="text-2xl font-semibold tracking-tight">Verify your vote</h1>
       <p className="mt-2 text-sm text-zinc-600">
         Enter your receipt code to confirm your vote was counted.

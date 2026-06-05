@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface GeneratedToken {
   id: string
@@ -9,6 +9,7 @@ interface GeneratedToken {
 
 interface Props {
   slug: string
+  locked?: boolean
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -30,32 +31,15 @@ function CopyButton({ text }: { text: string }) {
     >
       {copied ? (
         <span className="flex items-center gap-1">
-          <svg
-            aria-hidden="true"
-            className="h-3 w-3"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
+          <svg aria-hidden="true" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
           Copied
         </span>
       ) : (
         <span className="flex items-center gap-1">
-          <svg
-            aria-hidden="true"
-            className="h-3 w-3"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-            />
+          <svg aria-hidden="true" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
           </svg>
           Copy
         </span>
@@ -64,11 +48,19 @@ function CopyButton({ text }: { text: string }) {
   )
 }
 
-export default function TokenGenerator({ slug }: Props) {
+export default function TokenGenerator({ slug, locked }: Props) {
   const [count, setCount] = useState(10)
   const [loading, setLoading] = useState(false)
   const [tokens, setTokens] = useState<GeneratedToken[]>([])
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    fetch(`/api/polls/${slug}/tokens`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.tokens) setTokens(data.tokens)
+      })
+  }, [slug])
 
   async function generate() {
     setLoading(true)
@@ -88,46 +80,48 @@ export default function TokenGenerator({ slug }: Props) {
     }
 
     const data = await res.json()
-    setTokens(data.tokens)
+    setTokens((prev) => [...prev, ...data.tokens])
     setLoading(false)
   }
 
   const origin = typeof window !== 'undefined' ? window.location.origin : ''
 
   return (
-    <div className="mt-8">
-      <h2 className="text-sm font-medium">Voter tokens</h2>
+    <div className="rounded-xl border border-zinc-200 bg-white p-5">
+      <h2 className="text-sm font-semibold text-zinc-900">Anonymous voting links</h2>
       <p className="mt-1 text-sm text-zinc-500">
-        Generate one-time links for anonymous voters. Each token can only be used once.
+        Generate one-time links for voters without accounts. Share however you like — print, email, or hand out at a meeting. Each link can only be used once.
       </p>
 
-      <div className="mt-3 flex gap-2">
-        <input
-          type="number"
-          min={1}
-          max={500}
-          value={count}
-          onChange={(e) => setCount(Number(e.target.value))}
-          className="w-24 rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
-        />
-        <button
-          type="button"
-          onClick={generate}
-          disabled={loading}
-          className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
-        >
-          {loading ? 'Generating...' : 'Generate'}
-        </button>
-      </div>
+      {!locked && (
+        <div className="mt-4 flex items-center gap-2">
+          <input
+            type="number"
+            min={1}
+            max={500}
+            value={count}
+            onChange={(e) => setCount(Number(e.target.value))}
+            className="w-24 rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-chicago-blue focus:outline-none focus:ring-2 focus:ring-chicago-blue/20"
+          />
+          <button
+            type="button"
+            onClick={generate}
+            disabled={loading}
+            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50"
+          >
+            {loading ? 'Generating...' : tokens.length === 0 ? 'Generate' : 'Add tokens'}
+          </button>
+        </div>
+      )}
 
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
       {tokens.length > 0 && (
         <div className="mt-4">
-          <p className="text-sm text-zinc-600">
-            {tokens.length} token{tokens.length !== 1 ? 's' : ''} generated:
+          <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+            {tokens.length} link{tokens.length !== 1 ? 's' : ''} total
           </p>
-          <ul className="mt-2 max-h-48 space-y-1 overflow-y-auto rounded-md border border-zinc-200 bg-zinc-50 p-3 font-mono text-xs">
+          <ul className="mt-2 max-h-56 space-y-1 overflow-y-auto rounded-lg border border-zinc-200 bg-zinc-50 p-3 font-mono text-xs">
             {tokens.map((t) => {
               const link = `${origin}/vote/${slug}?token=${t.token}`
               return (

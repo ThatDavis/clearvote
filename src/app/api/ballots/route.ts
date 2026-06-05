@@ -15,14 +15,14 @@ export async function POST(request: Request) {
     const { pollSlug, token, rankings } = body as {
       pollSlug?: string
       token?: string
-      rankings?: string[]
+      rankings?: string[] | Record<string, string>
     }
 
     if (!pollSlug) {
       return NextResponse.json({ error: 'Poll slug is required' }, { status: 400 })
     }
 
-    if (!rankings || !Array.isArray(rankings) || rankings.length === 0) {
+    if (!rankings) {
       return NextResponse.json({ error: 'At least one ranking is required' }, { status: 400 })
     }
 
@@ -49,9 +49,25 @@ export async function POST(request: Request) {
     }
 
     const optionIds = new Set(poll.options.map((o) => o.id))
-    for (const id of rankings) {
-      if (!optionIds.has(id)) {
-        return NextResponse.json({ error: 'Invalid option in rankings' }, { status: 400 })
+
+    if (poll.votingMethod === 'yesno') {
+      if (typeof rankings !== 'object' || Array.isArray(rankings)) {
+        return NextResponse.json({ error: 'Invalid rankings format for yes/no poll' }, { status: 400 })
+      }
+      const validVotes = new Set(['yes', 'no', 'abstain'])
+      for (const [id, vote] of Object.entries(rankings)) {
+        if (!optionIds.has(id) || !validVotes.has(vote)) {
+          return NextResponse.json({ error: 'Invalid option or vote value in rankings' }, { status: 400 })
+        }
+      }
+    } else {
+      if (!Array.isArray(rankings) || rankings.length === 0) {
+        return NextResponse.json({ error: 'At least one ranking is required' }, { status: 400 })
+      }
+      for (const id of rankings) {
+        if (!optionIds.has(id)) {
+          return NextResponse.json({ error: 'Invalid option in rankings' }, { status: 400 })
+        }
       }
     }
 

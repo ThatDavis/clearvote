@@ -45,8 +45,43 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
   }
 
   const body = await request.json()
-  const { status } = body as { status?: string }
+  const { status, title, description, options } = body as {
+    status?: string
+    title?: string
+    description?: string
+    options?: { label: string }[]
+  }
 
+  // Content edit (draft only)
+  if (title !== undefined || description !== undefined || options !== undefined) {
+    if (poll.status !== 'draft') {
+      return NextResponse.json({ error: 'Can only edit polls in draft status' }, { status: 400 })
+    }
+
+    const updated = await prisma.poll.update({
+      where: { slug },
+      data: {
+        ...(title !== undefined && { title }),
+        ...(description !== undefined && { description }),
+      },
+      include: { options: { orderBy: { order: 'asc' } } },
+    })
+
+    if (options !== undefined) {
+      await prisma.pollOption.deleteMany({ where: { pollId: poll.id } })
+      await prisma.pollOption.createMany({
+        data: options.map((opt, i) => ({
+          pollId: poll.id,
+          label: opt.label,
+          order: i,
+        })),
+      })
+    }
+
+    return NextResponse.json(updated)
+  }
+
+  // Status transition
   if (!status || !validTransitions[poll.status].includes(status)) {
     return NextResponse.json(
       { error: `Cannot transition from ${poll.status} to ${status}` },

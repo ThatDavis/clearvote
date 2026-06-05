@@ -1,18 +1,12 @@
+import Image from 'next/image'
 import Link from 'next/link'
 
 export default function Home() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-4 py-16 sm:px-6">
       <main className="flex max-w-xl flex-col items-center gap-8 text-center">
-        <div className="rounded-2xl bg-gradient-to-br from-chicago-blue/10 to-chicago-red/10 p-6 mb-2">
-          <svg
-            aria-hidden="true"
-            className="h-16 w-16 text-chicago-red mx-auto"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-          >
-            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-          </svg>
+        <div className="rounded-2xl bg-gradient-to-br from-chicago-blue/10 to-chicago-red/10 mb-2 overflow-hidden">
+          <Image src="/logo.svg" alt="clearvote" width={144} height={144} priority />
         </div>
         <h1 className="text-4xl font-bold tracking-tight text-chicago-navy sm:text-5xl">
           clearvote
