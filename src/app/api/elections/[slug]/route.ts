@@ -88,7 +88,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
 
   // Guard opening
   if (status === 'open') {
-    const contests = await prisma.poll.findMany({
+    const contests = await prisma.contest.findMany({
       where: { electionId: election.id },
       include: { options: true },
     })

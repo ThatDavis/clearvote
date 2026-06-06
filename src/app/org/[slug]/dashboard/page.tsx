@@ -33,7 +33,7 @@ export default async function OrgDashboardPage({ params }: { params: Promise<{ s
   const isAdmin = org.members[0]?.role === 'admin'
 
   const polls = await prisma.poll.findMany({
-    where: { organizationId: org.id, electionId: null },
+    where: { organizationId: org.id },
     include: {
       _count: { select: { ballots: true, tokens: true } },
     },

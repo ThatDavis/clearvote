@@ -94,7 +94,7 @@ export default function ElectionBallot({
 
     const body: Record<string, unknown> = {
       contests: contests.map((c) => ({
-        pollId: c.id,
+        contestId: c.id,
         rankings: getContestValue(c),
       })),
     }

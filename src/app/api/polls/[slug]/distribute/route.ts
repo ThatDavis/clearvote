@@ -21,13 +21,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
   }
 
-  if (poll.electionId) {
-    return NextResponse.json(
-      { error: 'This poll is a contest within an election; manage via the election.' },
-      { status: 400 },
-    )
-  }
-
   if (!session?.user?.id || !(await canManagePoll(poll.id, session.user.id))) {
     return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
   }
