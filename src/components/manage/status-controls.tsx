@@ -19,7 +19,7 @@ export default function StatusControls({ entity, slug, status }: Props) {
     setLoading(true)
     setError('')
 
-    const res = await fetch(entity.apiBase(slug), {
+    const res = await fetch(`${entity.apiBase}/${slug}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: next }),
