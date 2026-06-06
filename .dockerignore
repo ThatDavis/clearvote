@@ -11,4 +11,3 @@ coverage
 *.md
 !README.md
 .github
-prisma/migrations
