@@ -20,9 +20,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'ClearVote - ranked-choice voting for communities',
   description: 'A simple ranked-choice voting system for community-run spaces.',
-  icons: {
-    icon: '/logo.svg',
-  },
 }
 
 export default function RootLayout({
