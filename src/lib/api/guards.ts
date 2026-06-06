@@ -9,8 +9,8 @@ export async function requireManager(
   slug: string,
   userId: string,
 ): Promise<
-  | { poll: Awaited<ReturnType<typeof prisma.poll.findUnique>> }
-  | { election: Awaited<ReturnType<typeof prisma.election.findUnique>> }
+  | { poll: NonNullable<Awaited<ReturnType<typeof prisma.poll.findUnique>>> }
+  | { election: NonNullable<Awaited<ReturnType<typeof prisma.election.findUnique>>> }
   | NextResponse
 > {
   if (kind === 'poll') {

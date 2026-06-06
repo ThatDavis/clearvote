@@ -1,6 +1,7 @@
 import { randomBytes, randomUUID } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
+import { badRequest, notFound, unauthorized } from '@/lib/api/responses'
 import { audit } from '@/lib/audit'
 import { canManageElection } from '@/lib/election'
 import { prisma } from '@/lib/prisma'
@@ -11,12 +12,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
   const session = await auth()
 
   const election = await prisma.election.findUnique({ where: { slug } })
-  if (!election) {
-    return NextResponse.json({ error: 'Election not found' }, { status: 404 })
-  }
-
+  if (!election) return notFound()
   if (!session?.user?.id || !(await canManageElection(election.id, session.user.id))) {
-    return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
+    return unauthorized()
   }
 
   const tokens = await prisma.electionVoterToken.findMany({
@@ -35,19 +33,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   const session = await auth()
 
   const election = await prisma.election.findUnique({ where: { slug } })
-  if (!election) {
-    return NextResponse.json({ error: 'Election not found' }, { status: 404 })
-  }
-
+  if (!election) return notFound()
   if (!session?.user?.id || !(await canManageElection(election.id, session.user.id))) {
-    return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
+    return unauthorized()
   }
 
   if (election.status !== 'draft') {
-    return NextResponse.json(
-      { error: 'Cannot generate tokens after election is open' },
-      { status: 400 },
-    )
+    return badRequest('Cannot generate tokens after election is open')
   }
 
   const body = await request.json()
