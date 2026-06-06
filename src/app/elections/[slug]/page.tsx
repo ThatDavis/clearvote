@@ -10,7 +10,7 @@ import ElectionDistributor from './election-distributor'
 import ElectionEditor from './election-editor'
 import OrgElectionDistributor from './org-election-distributor'
 import StatusControls from '@/components/manage/status-controls'
-import ElectionTokenGenerator from './token-generator'
+import TokenGenerator from '@/components/manage/token-generator'
 
 export default async function ElectionPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -163,7 +163,7 @@ export default async function ElectionPage({ params }: { params: Promise<{ slug:
             ) : (
               <ElectionDistributor slug={slug} locked={locked} />
             )}
-            <ElectionTokenGenerator slug={slug} locked={locked} />
+            <TokenGenerator entity={ELECTION_CONFIG} slug={slug} locked={locked} />
             <StatusControls entity={ELECTION_CONFIG} slug={slug} status={election.status} />
             <AuditTrail entity={ELECTION_CONFIG} slug={slug} />
             {election.status === 'draft' && (

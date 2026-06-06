@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import type { EntityConfig } from '@/lib/entity-config'
 
 interface ExistingToken {
   id: string
@@ -14,6 +15,7 @@ interface NewToken {
 }
 
 interface Props {
+  entity: EntityConfig
   slug: string
   locked?: boolean
 }
@@ -71,7 +73,7 @@ function CopyButton({ text }: { text: string }) {
   )
 }
 
-export default function TokenGenerator({ slug, locked }: Props) {
+export default function TokenGenerator({ entity, slug, locked }: Props) {
   const [count, setCount] = useState(10)
   const [loading, setLoading] = useState(false)
   const [existingTokens, setExistingTokens] = useState<ExistingToken[]>([])
@@ -79,7 +81,7 @@ export default function TokenGenerator({ slug, locked }: Props) {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    fetch(`/api/polls/${slug}/tokens`)
+    fetch(`${entity.apiBase(slug)}/tokens`)
       .then((res) => {
         if (res.status === 403) {
           setError('Not authorized to view tokens')
@@ -90,13 +92,13 @@ export default function TokenGenerator({ slug, locked }: Props) {
       .then((data) => {
         if (data?.tokens) setExistingTokens(data.tokens)
       })
-  }, [slug])
+  }, [entity, slug])
 
   async function generate() {
     setLoading(true)
     setError('')
 
-    const res = await fetch(`/api/polls/${slug}/tokens`, {
+    const res = await fetch(`${entity.apiBase(slug)}/tokens`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ count }),
@@ -167,7 +169,7 @@ export default function TokenGenerator({ slug, locked }: Props) {
               </p>
               <ul className="max-h-56 space-y-1 overflow-y-auto rounded-lg border border-green-200 bg-green-50 p-3 font-mono text-xs">
                 {newTokens.map((t) => {
-                  const link = `${origin}/vote/${slug}?token=${t.token}`
+                  const link = `${origin}${entity.voteBase(slug)}?token=${t.token}`
                   return (
                     <li key={t.id} className="flex items-center gap-2">
                       <code className="flex-1 truncate text-zinc-600">{link}</code>

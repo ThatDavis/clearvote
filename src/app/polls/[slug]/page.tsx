@@ -9,7 +9,7 @@ import OrgPollDistributor from './org-poll-distributor'
 import PollDistributor from './poll-distributor'
 import PollEditor from './poll-editor'
 import StatusControls from '@/components/manage/status-controls'
-import TokenGenerator from './token-generator'
+import TokenGenerator from '@/components/manage/token-generator'
 
 export default async function PollPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -178,7 +178,7 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
           ) : (
             <PollDistributor slug={poll.slug} locked={locked} />
           )}
-          <TokenGenerator slug={poll.slug} locked={locked} />
+          <TokenGenerator entity={POLL_CONFIG} slug={poll.slug} locked={locked} />
           <StatusControls entity={POLL_CONFIG} slug={poll.slug} status={poll.status} />
           <AuditTrail entity={POLL_CONFIG} slug={poll.slug} />
           {poll.status === 'draft' && <DeletePollButton slug={poll.slug} title={poll.title} />}
