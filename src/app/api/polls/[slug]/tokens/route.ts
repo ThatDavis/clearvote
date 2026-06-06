@@ -1,7 +1,7 @@
 import { randomBytes, randomUUID } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { auditLog } from '@/lib/audit'
+import { audit } from '@/lib/audit'
 import { canManagePoll } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { hashToken } from '@/lib/token'
@@ -80,8 +80,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
 
   await prisma.voterToken.createMany({ data: dbTokens })
 
-  await auditLog({
-    pollId: poll.id,
+  await audit({
+    kind: 'poll',
+    entityId: poll.id,
     action: 'tokens_generated',
     detail: `Generated ${count} token(s)`,
   })

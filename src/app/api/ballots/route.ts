@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { auditLog } from '@/lib/audit'
+import { audit } from '@/lib/audit'
 import { sendVoteConfirmation } from '@/lib/email'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
@@ -158,8 +158,9 @@ export async function POST(request: Request) {
         },
       })
 
-      await auditLog({
-        pollId: poll.id,
+      await audit({
+        kind: 'poll',
+        entityId: poll.id,
         action: 'ballot_cast',
         detail: `Ballot cast at ${new Date().toISOString()}`,
         tx,

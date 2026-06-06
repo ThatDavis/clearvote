@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import ResultsView from '@/components/results-view'
-import { auditLog } from '@/lib/audit'
+import { audit } from '@/lib/audit'
 import { effectiveStatus } from '@/lib/election'
 import { prisma } from '@/lib/prisma'
 import { getMethod } from '@/lib/voting-methods'
@@ -30,8 +30,9 @@ export default async function ResultsPage({ params }: { params: Promise<{ slug: 
     where: { pollId: poll.id, action: 'results_viewed' },
   })
   if (!alreadyViewed) {
-    await auditLog({
-      pollId: poll.id,
+    await audit({
+      kind: 'poll',
+      entityId: poll.id,
       action: 'results_viewed',
     })
   }

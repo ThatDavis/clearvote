@@ -2,7 +2,7 @@ import { randomBytes, randomUUID } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { canManageElection } from '@/lib/election'
-import { electionAuditLog } from '@/lib/election-audit'
+import { audit } from '@/lib/audit'
 import { prisma } from '@/lib/prisma'
 import { hashToken } from '@/lib/token'
 
@@ -66,8 +66,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
 
   await prisma.electionVoterToken.createMany({ data: dbTokens })
 
-  await electionAuditLog({
-    electionId: election.id,
+  await audit({
+    kind: 'election',
+    entityId: election.id,
     action: 'tokens_generated',
     detail: `Generated ${count} token(s)`,
   })

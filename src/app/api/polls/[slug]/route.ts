@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { auditLog } from '@/lib/audit'
+import { audit } from '@/lib/audit'
 import { canManagePoll } from '@/lib/auth'
 import { sendPollOpenNotification } from '@/lib/email'
 import { prisma } from '@/lib/prisma'
@@ -94,8 +94,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
     include: { options: { orderBy: { order: 'asc' } } },
   })
 
-  await auditLog({
-    pollId: poll.id,
+  await audit({
+    kind: 'poll',
+    entityId: poll.id,
     action: status === 'open' ? 'poll_opened' : 'poll_closed',
   })
 

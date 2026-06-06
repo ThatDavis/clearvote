@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { electionAuditLog } from '@/lib/election-audit'
+import { audit } from '@/lib/audit'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
 import { hashToken } from '@/lib/token'
@@ -111,7 +111,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
         const tokenHash = hashToken(token)
         const claimed = await tx.electionVoterToken.updateMany({
           where: {
-            electionId: election.id,
+    
             tokenHash,
             usedAt: null,
           },
@@ -121,7 +121,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       } else if (session?.user?.id) {
         const claimed = await tx.electionVoterRoll.updateMany({
           where: {
-            electionId: election.id,
+    
             userId: session.user.id,
             hasVoted: false,
           },
@@ -156,8 +156,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
         },
       })
 
-      await electionAuditLog({
-        electionId: election.id,
+      await audit({
+        kind: 'election',
+        entityId: election.id,
         action: 'ballot_cast',
         detail: `Ballot cast at ${new Date().toISOString()}`,
         tx,
