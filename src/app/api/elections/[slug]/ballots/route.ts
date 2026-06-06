@@ -5,6 +5,7 @@ import { electionAuditLog } from '@/lib/election-audit'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
 import { hashToken } from '@/lib/token'
+import { getMethod } from '@/lib/voting-methods'
 
 class AlreadyVotedError extends Error {}
 
@@ -65,6 +66,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
 
     // Build contest map for validation
     const contestMap = new Map(election.contests.map((c) => [c.id, c]))
+    const validatedBallots = new Map<string, unknown>()
 
     // Validate every contest selection before the transaction
     for (const contestSubmission of contests) {
@@ -76,42 +78,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
         )
       }
 
-      const optionIds = new Set(contest.options.map((o) => o.id))
       const rankings = contestSubmission.rankings
-
-      if (contest.votingMethod === 'yesno') {
-        if (typeof rankings !== 'object' || Array.isArray(rankings)) {
-          return NextResponse.json(
-            { error: `Invalid rankings format for yes/no contest: ${contest.title}` },
-            { status: 400 },
-          )
-        }
-        const validVotes = new Set(['yes', 'no', 'abstain'])
-        for (const [id, vote] of Object.entries(rankings as Record<string, string>)) {
-          if (!optionIds.has(id) || !validVotes.has(vote)) {
-            return NextResponse.json(
-              { error: `Invalid option or vote value in contest: ${contest.title}` },
-              { status: 400 },
-            )
-          }
-        }
-      } else {
-        // rcv, stv, approval
-        if (!Array.isArray(rankings)) {
-          return NextResponse.json(
-            { error: `Invalid rankings format for contest: ${contest.title}` },
-            { status: 400 },
-          )
-        }
-        for (const id of rankings) {
-          if (!optionIds.has(id)) {
-            return NextResponse.json(
-              { error: `Invalid option in contest: ${contest.title}` },
-              { status: 400 },
-            )
-          }
-        }
+      const validated = getMethod(contest.votingMethod).validateBallot(
+        rankings,
+        contest.options,
+      )
+      if (!validated.ok) {
+        return NextResponse.json(
+          { error: `${validated.error} in contest: ${contest.title}` },
+          { status: 400 },
+        )
       }
+      validatedBallots.set(contest.id, validated.value)
     }
 
     // Determine which contests the voter is entitled to (v1 = all contests)
@@ -156,8 +134,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
 
       // Create one Ballot per entitled contest
       for (const contest of election.contests) {
-        const submission = contests.find((c) => c.pollId === contest.id)
-        const rankings = submission?.rankings ?? (contest.votingMethod === 'yesno' ? {} : [])
+        const rankings =
+          validatedBallots.get(contest.id) ??
+          getMethod(contest.votingMethod).emptyBallot()
 
         await tx.ballot.create({
           data: {

@@ -3,6 +3,7 @@ import { auth } from '@/auth'
 import { canManageElection } from '@/lib/election'
 import { prisma } from '@/lib/prisma'
 import { uniqueSlug } from '@/lib/slug'
+import { getMethod } from '@/lib/voting-methods'
 
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -41,7 +42,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: 'Title is required' }, { status: 400 })
   }
 
-  const minOptions = votingMethod === 'yesno' ? 1 : 2
+  const minOptions = getMethod(votingMethod || 'rcv').minOptions
   if (!options || !Array.isArray(options) || options.length < minOptions) {
     return NextResponse.json(
       { error: `At least ${minOptions} option${minOptions === 1 ? '' : 's'} are required` },

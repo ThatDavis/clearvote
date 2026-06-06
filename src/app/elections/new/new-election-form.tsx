@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useRef, useState } from 'react'
 import { useToast } from '@/components/toast-provider'
 import VotingMethodSelector from '@/components/voting-method-selector'
+import { getMethod } from '@/lib/voting-methods'
 
 type Step = 1 | 2 | 3
 
@@ -81,7 +82,7 @@ export default function NewElectionForm() {
 
   function removeOption(contestIndex: number, optionIndex: number) {
     const contest = contests[contestIndex]
-    const minOptions = contest.votingMethod === 'yesno' ? 1 : 2
+    const minOptions = getMethod(contest.votingMethod).minOptions
     if (contest.options.length <= minOptions) return
     updateContest(contestIndex, {
       options: contest.options.filter((_, i) => i !== optionIndex),
@@ -98,14 +99,16 @@ export default function NewElectionForm() {
   // Adjust options count when voting method changes
   function setContestMethod(contestIndex: number, method: string) {
     const contest = contests[contestIndex]
+    const min = getMethod(method).minOptions
     let nextOptions = [...contest.options]
-    if (method === 'yesno') {
-      nextOptions =
-        nextOptions.length > 0
-          ? [nextOptions[0]]
-          : [{ key: String(nextOptionKey.current++), value: '' }]
-    } else if (nextOptions.length < 2) {
-      nextOptions.push({ key: String(nextOptionKey.current++), value: '' })
+    if (nextOptions.length > min) {
+      nextOptions = nextOptions.slice(0, min)
+    } else if (nextOptions.length < min) {
+      const extra = Array.from({ length: min - nextOptions.length }, () => ({
+        key: String(nextOptionKey.current++),
+        value: '',
+      }))
+      nextOptions = [...nextOptions, ...extra]
     }
     updateContest(contestIndex, { votingMethod: method, options: nextOptions })
   }
@@ -117,7 +120,7 @@ export default function NewElectionForm() {
       case 2: {
         return contests.every((c) => {
           if (!c.title.trim()) return false
-          const minOptions = c.votingMethod === 'yesno' ? 1 : 2
+          const minOptions = getMethod(c.votingMethod).minOptions
           return c.options.filter((o) => o.value.trim()).length >= minOptions
         })
       }
@@ -147,7 +150,7 @@ export default function NewElectionForm() {
 
     // Validate contests
     for (const contest of contests) {
-      const minOptions = contest.votingMethod === 'yesno' ? 1 : 2
+      const minOptions = getMethod(contest.votingMethod).minOptions
       const filled = contest.options.map((o) => o.value.trim()).filter(Boolean)
       if (filled.length < minOptions) {
         setError(
@@ -184,6 +187,7 @@ export default function NewElectionForm() {
     // Create contests
     for (const contest of contests) {
       const filledOptions = contest.options.map((o) => o.value.trim()).filter(Boolean)
+      const method = getMethod(contest.votingMethod)
       const contestRes = await fetch(`/api/elections/${election.slug}/contests`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -191,8 +195,8 @@ export default function NewElectionForm() {
           title: contest.title,
           description: contest.description || undefined,
           votingMethod: contest.votingMethod,
-          seats: contest.votingMethod === 'stv' ? contest.seats : undefined,
-          threshold: contest.votingMethod === 'yesno' ? contest.threshold : undefined,
+          seats: method.uses.seats ? contest.seats : undefined,
+          threshold: method.uses.threshold ? contest.threshold : undefined,
           options: filledOptions,
         }),
       })
@@ -394,7 +398,7 @@ export default function NewElectionForm() {
                         className="mt-2 block w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm shadow-sm transition-colors hover:border-zinc-400 focus:border-chicago-blue focus:outline-none focus:ring-2 focus:ring-chicago-blue/20"
                       />
                     </div>
-                    {contest.votingMethod === 'yesno' && (
+                    {getMethod(contest.votingMethod).uses.threshold && (
                       <div>
                         <label
                           htmlFor={`contest-threshold-${contest.id}`}
@@ -438,7 +442,7 @@ export default function NewElectionForm() {
                             className="block w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm shadow-sm transition-colors hover:border-zinc-400 focus:border-chicago-blue focus:outline-none focus:ring-2 focus:ring-chicago-blue/20"
                             placeholder={`Option ${oi + 1}`}
                           />
-                          {contest.options.length > (contest.votingMethod === 'yesno' ? 1 : 2) && (
+                          {contest.options.length > getMethod(contest.votingMethod).minOptions && (
                             <button
                               type="button"
                               onClick={() => removeOption(ci, oi)}

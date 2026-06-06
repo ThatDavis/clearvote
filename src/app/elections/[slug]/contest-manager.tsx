@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { getMethod } from '@/lib/voting-methods'
 
 interface Contest {
   id: string
@@ -85,8 +86,8 @@ export default function ContestManager({
           title: title.trim(),
           description: description.trim() || undefined,
           votingMethod,
-          seats: votingMethod === 'stv' ? seats : undefined,
-          threshold: votingMethod === 'yesno' ? threshold : undefined,
+          seats: getMethod(votingMethod).uses.seats ? seats : undefined,
+          threshold: getMethod(votingMethod).uses.threshold ? threshold : undefined,
           options,
         }),
       })
@@ -131,8 +132,8 @@ export default function ContestManager({
           title: editTitle.trim(),
           description: editDescription.trim() || null,
           votingMethod: editVotingMethod,
-          seats: editVotingMethod === 'stv' ? editSeats : undefined,
-          threshold: editVotingMethod === 'yesno' ? editThreshold : undefined,
+          seats: getMethod(editVotingMethod).uses.seats ? editSeats : undefined,
+          threshold: getMethod(editVotingMethod).uses.threshold ? editThreshold : undefined,
           options,
         }),
       })
@@ -287,7 +288,7 @@ export default function ContestManager({
                     </select>
                   </div>
 
-                  {editVotingMethod === 'stv' && (
+                  {getMethod(editVotingMethod).uses.seats && (
                     <div>
                       <label
                         htmlFor={`edit-seats-${contest.id}`}
@@ -306,7 +307,7 @@ export default function ContestManager({
                     </div>
                   )}
 
-                  {editVotingMethod === 'yesno' && (
+                  {getMethod(editVotingMethod).uses.threshold && (
                     <div>
                       <label
                         htmlFor={`edit-threshold-${contest.id}`}
@@ -371,9 +372,9 @@ export default function ContestManager({
                     {i + 1}. {contest.title}
                   </div>
                   <div className="mt-1 text-xs text-zinc-500">
-                    {methodLabel[contest.votingMethod] || contest.votingMethod}
-                    {contest.votingMethod === 'stv' && ` (${contest.seats} seats)`}
-                    {contest.votingMethod === 'yesno' && ` (${contest.threshold}% threshold)`}
+                    {getMethod(contest.votingMethod).label}
+                    {getMethod(contest.votingMethod).uses.seats && ` (${contest.seats} seats)`}
+                    {getMethod(contest.votingMethod).uses.threshold && ` (${contest.threshold}% threshold)`}
                     {' · '}
                     {contest.options.length} option{contest.options.length !== 1 ? 's' : ''}
                   </div>
@@ -503,7 +504,7 @@ export default function ContestManager({
               </select>
             </div>
 
-            {votingMethod === 'stv' && (
+            {getMethod(votingMethod).uses.seats && (
               <div>
                 <label htmlFor="contest-seats" className="block text-xs font-medium text-zinc-700">
                   Seats
@@ -519,7 +520,7 @@ export default function ContestManager({
               </div>
             )}
 
-            {votingMethod === 'yesno' && (
+            {getMethod(votingMethod).uses.threshold && (
               <div>
                 <label
                   htmlFor="contest-threshold"
