@@ -53,7 +53,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   const contestSlug = await uniqueSlug(title.trim())
   const nextOrder = election.contests.length
 
-  const contest = await prisma.poll.create({
+  const contest = await prisma.contest.create({
     data: {
       title: title.trim(),
       description: description?.trim() || null,
@@ -111,7 +111,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
 
   await prisma.$transaction(
     contestOrders.map((c) =>
-      prisma.poll.updateMany({
+      prisma.contest.updateMany({
         where: { id: c.contestId, electionId: election.id },
         data: { contestOrder: c.order },
       }),
@@ -148,7 +148,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ s
     return NextResponse.json({ error: 'contestId is required' }, { status: 400 })
   }
 
-  await prisma.poll.deleteMany({
+  await prisma.contest.deleteMany({
     where: { id: contestId, electionId: election.id },
   })
 

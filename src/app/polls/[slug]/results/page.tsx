@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation'
 import ResultsView from '@/components/results-view'
 import { audit } from '@/lib/audit'
-import { effectiveStatus } from '@/lib/election'
 import { prisma } from '@/lib/prisma'
 import { getMethod } from '@/lib/voting-methods'
 
@@ -17,7 +16,6 @@ export default async function ResultsPage({ params }: { params: Promise<{ slug: 
       ballots: {
         select: { id: true, rankings: true },
       },
-      election: true,
     },
   })
 
@@ -38,7 +36,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ slug: 
   }
 
   const method = poll.votingMethod as string
-  const status = effectiveStatus(poll)
+  const status = poll.status
   const statusLabel = { draft: 'Draft', open: 'Open', closed: 'Closed' }[status]
   const ballotCount = poll.ballots.length
   const methodDef = getMethod(method)

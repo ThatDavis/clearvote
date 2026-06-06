@@ -31,7 +31,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     const body = await request.json()
     const { token, contests } = body as {
       token?: string
-      contests?: { pollId: string; rankings: unknown }[]
+      contests?: { contestId: string; rankings: unknown }[]
     }
 
     if (!contests || !Array.isArray(contests) || contests.length === 0) {
@@ -70,10 +70,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
 
     // Validate every contest selection before the transaction
     for (const contestSubmission of contests) {
-      const contest = contestMap.get(contestSubmission.pollId)
+      const contest = contestMap.get(contestSubmission.contestId)
       if (!contest) {
         return NextResponse.json(
-          { error: `Invalid contest: ${contestSubmission.pollId}` },
+          { error: `Invalid contest: ${contestSubmission.contestId}` },
           { status: 400 },
         )
       }
@@ -94,9 +94,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
 
     // Reject if body contains any contest not in the entitled set
     for (const c of contests) {
-      if (!entitledContestIds.has(c.pollId)) {
+      if (!entitledContestIds.has(c.contestId)) {
         return NextResponse.json(
-          { error: `Contest not in voter's ballot: ${c.pollId}` },
+          { error: `Contest not in voter's ballot: ${c.contestId}` },
           { status: 400 },
         )
       }
@@ -127,14 +127,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
         throw new Error('A voting token or authenticated session is required')
       }
 
-      // Create one Ballot per entitled contest
+      // Create one ContestBallot per entitled contest
       for (const contest of election.contests) {
         const rankings =
           validatedBallots.get(contest.id) ?? getMethod(contest.votingMethod).emptyBallot()
 
-        await tx.ballot.create({
+        await tx.contestBallot.create({
           data: {
-            pollId: contest.id,
+            contestId: contest.id,
             rankings: rankings as unknown as string[],
             receiptCode: generateReceipt(), // per-ballot receipt (not linked to package)
           },

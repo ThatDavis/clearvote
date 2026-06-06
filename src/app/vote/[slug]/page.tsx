@@ -21,23 +21,11 @@ export default async function VotePage({
       options: {
         orderBy: { order: 'asc' },
       },
-      election: true,
     },
   })
 
   if (!poll) {
     notFound()
-  }
-
-  if (poll.electionId) {
-    return (
-      <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8 text-center">
-        <h1 className="text-xl font-semibold">Election contest</h1>
-        <p className="mt-2 text-zinc-600">
-          This poll is a contest within an election. Please vote via the election ballot.
-        </p>
-      </div>
-    )
   }
 
   if (poll.status !== 'open') {
