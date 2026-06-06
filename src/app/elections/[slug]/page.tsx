@@ -8,6 +8,7 @@ import StatusControls from '@/components/manage/status-controls'
 import TokenGenerator from '@/components/manage/token-generator'
 import { ELECTION_CONFIG } from '@/lib/entity-config'
 import { prisma } from '@/lib/prisma'
+import { getMethod } from '@/lib/voting-methods'
 import ContestManager from './contest-manager'
 import ElectionEditor from './election-editor'
 
@@ -179,10 +180,14 @@ export default async function ElectionPage({ params }: { params: Promise<{ slug:
                   {i + 1}. {contest.title}
                 </div>
                 <div className="mt-1 text-zinc-500">
-                  {contest.votingMethod === 'stv' && `STV (${contest.seats} seats)`}
-                  {contest.votingMethod === 'approval' && 'Approval'}
-                  {contest.votingMethod === 'yesno' && `Yes/No (${contest.threshold}% threshold)`}
-                  {contest.votingMethod === 'rcv' && 'Ranked Choice'}
+                  {(() => {
+                    const m = getMethod(contest.votingMethod)
+                    const parts = [m.label]
+                    if (m.uses.seats && contest.seats) parts.push(`(${contest.seats} seats)`)
+                    if (m.uses.threshold && contest.threshold)
+                      parts.push(`(${contest.threshold}% threshold)`)
+                    return parts.join(' ')
+                  })()}
                 </div>
               </li>
             ))}
