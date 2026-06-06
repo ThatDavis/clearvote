@@ -3,12 +3,11 @@ import { notFound } from 'next/navigation'
 import { auth } from '@/auth'
 import AuditTrail from '@/components/manage/audit-trail'
 import DeleteEntityButton from '@/components/manage/delete-entity-button'
+import Distributor from '@/components/manage/distributor'
 import StatusControls from '@/components/manage/status-controls'
 import TokenGenerator from '@/components/manage/token-generator'
 import { POLL_CONFIG } from '@/lib/entity-config'
 import { prisma } from '@/lib/prisma'
-import OrgPollDistributor from './org-poll-distributor'
-import PollDistributor from './poll-distributor'
 import PollEditor from './poll-editor'
 
 export default async function PollPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -173,11 +172,12 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
 
       {userCanManage && (
         <div className="mt-8 space-y-4">
-          {poll.organizationId && poll.organization ? (
-            <OrgPollDistributor slug={poll.slug} orgSlug={poll.organization.slug} locked={locked} />
-          ) : (
-            <PollDistributor slug={poll.slug} locked={locked} />
-          )}
+          <Distributor
+            entity={POLL_CONFIG}
+            slug={poll.slug}
+            orgSlug={poll.organization?.slug}
+            locked={locked}
+          />
           <TokenGenerator entity={POLL_CONFIG} slug={poll.slug} locked={locked} />
           <StatusControls entity={POLL_CONFIG} slug={poll.slug} status={poll.status} />
           <AuditTrail entity={POLL_CONFIG} slug={poll.slug} />
