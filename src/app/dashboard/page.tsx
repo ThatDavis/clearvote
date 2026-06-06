@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import DeletePollButton from '@/app/polls/[slug]/delete-poll-button'
 import { auth } from '@/auth'
 import EmptyState from '@/components/empty-state'
+import DeleteEntityButton from '@/components/manage/delete-entity-button'
+import { POLL_CONFIG } from '@/lib/entity-config'
 import { prisma } from '@/lib/prisma'
 
 export default async function DashboardPage() {
@@ -377,7 +378,7 @@ export default async function DashboardPage() {
                       </span>
                     </div>
                   </Link>
-                  <DeletePollButton slug={poll.slug} title={poll.title} />
+                  <DeleteEntityButton entity={POLL_CONFIG} slug={poll.slug} title={poll.title} />
                 </div>
               )
             })}
