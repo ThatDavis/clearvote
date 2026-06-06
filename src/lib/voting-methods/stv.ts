@@ -1,7 +1,6 @@
 import { tallyStv } from '@/lib/stv'
 import RankedContest from '@/components/ballot/ranked-contest'
-import type { ComponentType } from 'react'
-import type { VotingMethodDef, ContestBallotProps } from './types'
+import type { VotingMethodDef } from './types'
 
 export const stv: VotingMethodDef = {
   id: 'stv',
@@ -34,5 +33,5 @@ export const stv: VotingMethodDef = {
     }
     return { ok: true, value: raw as string[] }
   },
-  BallotComponent: RankedContest as ComponentType<ContestBallotProps>,
+  BallotComponent: RankedContest,
 }

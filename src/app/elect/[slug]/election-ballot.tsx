@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { getMethod } from '@/lib/voting-methods'
+import type { RawBallot } from '@/lib/voting-methods/types'
 
 interface Option {
   id: string
@@ -31,11 +32,6 @@ interface Props {
   credentialType: 'token' | 'session'
 }
 
-type ContestSelection =
-  | { type: 'ranked'; value: string[] }
-  | { type: 'approval'; value: string[] }
-  | { type: 'yesno'; value: Record<string, string> }
-
 export default function ElectionBallot({
   election,
   contests,
@@ -44,16 +40,10 @@ export default function ElectionBallot({
 }: Props) {
   const router = useRouter()
   const [step, setStep] = useState<'vote' | 'review' | 'receipt'>('vote')
-  const [selections, setSelections] = useState<Record<string, ContestSelection | null>>(() => {
-    const init: Record<string, ContestSelection | null> = {}
+  const [selections, setSelections] = useState<Record<string, RawBallot>>(() => {
+    const init: Record<string, RawBallot> = {}
     for (const contest of contests) {
-      if (contest.votingMethod === 'yesno') {
-        init[contest.id] = { type: 'yesno', value: {} }
-      } else if (contest.votingMethod === 'approval') {
-        init[contest.id] = { type: 'approval', value: [] }
-      } else {
-        init[contest.id] = { type: 'ranked', value: contest.options.map((o) => o.id) }
-      }
+      init[contest.id] = getMethod(contest.votingMethod).emptyBallot()
     }
     return init
   })
@@ -65,16 +55,13 @@ export default function ElectionBallot({
   const totalContests = contests.length
   const completedContests = contests.filter((c) => {
     if (skipped.has(c.id)) return true
-    const sel = selections[c.id]
-    if (!sel) return false
-    if (sel.type === 'yesno') return Object.keys(sel.value).length > 0
-    if (sel.type === 'approval') return true // approval can be empty
-    if (sel.type === 'ranked') return sel.value.length > 0
-    return false
+    const val = selections[c.id]
+    if (Array.isArray(val)) return true // ranking/approval can be empty
+    return Object.keys(val).length > 0 // yesno must have at least one vote
   }).length
 
-  function updateSelection(contestId: string, selection: ContestSelection) {
-    setSelections((prev) => ({ ...prev, [contestId]: selection }))
+  function updateSelection(contestId: string, value: RawBallot) {
+    setSelections((prev) => ({ ...prev, [contestId]: value }))
     setSkipped((prev) => {
       const next = new Set(prev)
       next.delete(contestId)
@@ -94,17 +81,11 @@ export default function ElectionBallot({
     })
   }
 
-  function getContestValue(contest: Contest): unknown {
+  function getContestValue(contest: Contest): RawBallot {
     if (skipped.has(contest.id)) {
-      if (contest.votingMethod === 'yesno') return {}
-      return []
+      return getMethod(contest.votingMethod).emptyBallot()
     }
-    const sel = selections[contest.id]
-    if (!sel) {
-      if (contest.votingMethod === 'yesno') return {}
-      return []
-    }
-    return sel.value
+    return selections[contest.id] ?? getMethod(contest.votingMethod).emptyBallot()
   }
 
   async function handleSubmit() {
@@ -183,7 +164,8 @@ export default function ElectionBallot({
         <div className="mt-8 space-y-6">
           {contests.map((contest, i) => {
             const isSkipped = skipped.has(contest.id)
-            const sel = selections[contest.id]
+            const val = selections[contest.id]
+            const method = getMethod(contest.votingMethod)
 
             return (
               <div key={contest.id} className="rounded-xl border-2 border-zinc-200 bg-white p-5">
@@ -194,10 +176,10 @@ export default function ElectionBallot({
                   {isSkipped && <span className="text-xs text-zinc-500">Skipped</span>}
                 </div>
 
-                {!isSkipped && sel?.type === 'ranked' && (
+                {!isSkipped && method.ballotShape === 'ranking' && Array.isArray(val) && (
                   <div className="mt-2 text-sm text-zinc-700">
-                    {sel.value.length > 0
-                      ? sel.value
+                    {val.length > 0
+                      ? val
                           .map((id) => contest.options.find((o) => o.id === id)?.label)
                           .filter(Boolean)
                           .join(' > ')
@@ -205,24 +187,13 @@ export default function ElectionBallot({
                   </div>
                 )}
 
-                {!isSkipped && sel?.type === 'approval' && (
-                  <div className="mt-2 text-sm text-zinc-700">
-                    {sel.value.length > 0
-                      ? sel.value
-                          .map((id) => contest.options.find((o) => o.id === id)?.label)
-                          .filter(Boolean)
-                          .join(', ')
-                      : 'No selection'}
-                  </div>
-                )}
-
-                {!isSkipped && sel?.type === 'yesno' && (
+                {!isSkipped && method.ballotShape === 'map' && !Array.isArray(val) && (
                   <div className="mt-2 space-y-1">
                     {contest.options.map((opt) => (
                       <div key={opt.id} className="flex justify-between text-sm">
                         <span>{opt.label}</span>
                         <span className="font-medium capitalize">
-                          {sel.value[opt.id] || 'No vote'}
+                          {(val as Record<string, string>)[opt.id] || 'No vote'}
                         </span>
                       </div>
                     ))}
@@ -276,6 +247,8 @@ export default function ElectionBallot({
       <div className="space-y-8">
         {contests.map((contest, i) => {
           const isSkipped = skipped.has(contest.id)
+          const method = getMethod(contest.votingMethod)
+          const BallotComponent = method.BallotComponent
 
           return (
             <div
@@ -301,24 +274,11 @@ export default function ElectionBallot({
               </div>
 
               {!isSkipped && (
-                (() => {
-                  const method = getMethod(contest.votingMethod)
-                  const BallotComponent = method.BallotComponent
-                  const raw = selections[contest.id]
-                  const value = raw?.value ?? method.emptyBallot()
-                  return (
-                    <BallotComponent
-                      options={contest.options}
-                      value={value}
-                      onChange={(next) =>
-                        updateSelection(contest.id, {
-                          type: method.ballotShape === 'map' ? 'yesno' : 'ranked',
-                          value: next,
-                        } as ContestSelection)
-                      }
-                    />
-                  )
-                })()
+                <BallotComponent
+                  options={contest.options}
+                  value={selections[contest.id] ?? method.emptyBallot()}
+                  onChange={(next) => updateSelection(contest.id, next)}
+                />
               )}
 
               {isSkipped && (

@@ -1,7 +1,6 @@
-import type { ComponentType } from 'react'
 import { tallyRcv } from '@/lib/tally'
 import RankedContest from '@/components/ballot/ranked-contest'
-import type { VotingMethodDef, ContestBallotProps } from './types'
+import type { VotingMethodDef } from './types'
 
 export const rcv: VotingMethodDef = {
   id: 'rcv',
@@ -33,5 +32,5 @@ export const rcv: VotingMethodDef = {
     }
     return { ok: true, value: raw as string[] }
   },
-  BallotComponent: RankedContest as ComponentType<ContestBallotProps>,
+  BallotComponent: RankedContest,
 }

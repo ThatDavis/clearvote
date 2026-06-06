@@ -1,7 +1,6 @@
 import { tallyApproval } from '@/lib/approval'
 import ApprovalContest from '@/components/ballot/approval-contest'
-import type { ComponentType } from 'react'
-import type { VotingMethodDef, ContestBallotProps } from './types'
+import type { VotingMethodDef } from './types'
 
 export const approval: VotingMethodDef = {
   id: 'approval',
@@ -34,5 +33,5 @@ export const approval: VotingMethodDef = {
     }
     return { ok: true, value: raw as string[] }
   },
-  BallotComponent: ApprovalContest as ComponentType<ContestBallotProps>,
+  BallotComponent: ApprovalContest,
 }

@@ -1,7 +1,6 @@
 import { tallyYesNo } from '@/lib/yesno'
 import YesNoContest from '@/components/ballot/yesno-contest'
-import type { ComponentType } from 'react'
-import type { VotingMethodDef, ContestBallotProps } from './types'
+import type { VotingMethodDef } from './types'
 
 export const yesno: VotingMethodDef = {
   id: 'yesno',
@@ -33,5 +32,5 @@ export const yesno: VotingMethodDef = {
     }
     return { ok: true, value: raw as Record<string, string> }
   },
-  BallotComponent: YesNoContest as ComponentType<ContestBallotProps>,
+  BallotComponent: YesNoContest,
 }
