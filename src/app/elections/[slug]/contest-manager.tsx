@@ -209,13 +209,6 @@ export default function ContestManager({
     }
   }
 
-  const methodLabel: Record<string, string> = {
-    rcv: 'Ranked Choice',
-    stv: 'STV',
-    approval: 'Approval',
-    yesno: 'Yes/No',
-  }
-
   return (
     <div className="rounded-xl border-2 border-zinc-200 bg-white p-5">
       <h2 className="text-sm font-semibold text-zinc-900">Contests</h2>
@@ -374,7 +367,8 @@ export default function ContestManager({
                   <div className="mt-1 text-xs text-zinc-500">
                     {getMethod(contest.votingMethod).label}
                     {getMethod(contest.votingMethod).uses.seats && ` (${contest.seats} seats)`}
-                    {getMethod(contest.votingMethod).uses.threshold && ` (${contest.threshold}% threshold)`}
+                    {getMethod(contest.votingMethod).uses.threshold &&
+                      ` (${contest.threshold}% threshold)`}
                     {' · '}
                     {contest.options.length} option{contest.options.length !== 1 ? 's' : ''}
                   </div>

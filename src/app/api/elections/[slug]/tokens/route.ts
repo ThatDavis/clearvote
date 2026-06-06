@@ -1,8 +1,8 @@
 import { randomBytes, randomUUID } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { canManageElection } from '@/lib/election'
 import { audit } from '@/lib/audit'
+import { canManageElection } from '@/lib/election'
 import { prisma } from '@/lib/prisma'
 import { hashToken } from '@/lib/token'
 

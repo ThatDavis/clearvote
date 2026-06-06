@@ -23,10 +23,7 @@ export async function audit({
   entityId: string
   action: AuditAction | string
   detail?: string
-  tx?: Omit<
-    PrismaClient,
-    '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
-  >
+  tx?: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>
 }): Promise<void> {
   const client = tx ?? prisma
   if (kind === 'poll') {

@@ -79,10 +79,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       }
 
       const rankings = contestSubmission.rankings
-      const validated = getMethod(contest.votingMethod).validateBallot(
-        rankings,
-        contest.options,
-      )
+      const validated = getMethod(contest.votingMethod).validateBallot(rankings, contest.options)
       if (!validated.ok) {
         return NextResponse.json(
           { error: `${validated.error} in contest: ${contest.title}` },
@@ -111,7 +108,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
         const tokenHash = hashToken(token)
         const claimed = await tx.electionVoterToken.updateMany({
           where: {
-    
             tokenHash,
             usedAt: null,
           },
@@ -121,7 +117,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       } else if (session?.user?.id) {
         const claimed = await tx.electionVoterRoll.updateMany({
           where: {
-    
             userId: session.user.id,
             hasVoted: false,
           },
@@ -135,8 +130,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       // Create one Ballot per entitled contest
       for (const contest of election.contests) {
         const rankings =
-          validatedBallots.get(contest.id) ??
-          getMethod(contest.votingMethod).emptyBallot()
+          validatedBallots.get(contest.id) ?? getMethod(contest.votingMethod).emptyBallot()
 
         await tx.ballot.create({
           data: {

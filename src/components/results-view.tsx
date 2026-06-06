@@ -1,6 +1,6 @@
 import { seededShuffle } from '@/lib/shuffle'
-import { getMethod } from '@/lib/voting-methods'
 import type { OptionInput } from '@/lib/tally'
+import { getMethod } from '@/lib/voting-methods'
 
 interface Ballot {
   id: string
@@ -40,9 +40,7 @@ export default function ResultsView({
 
   if (result.kind === 'approval') {
     const { result: approvalResult } = result
-    const winners = approvalResult.elected.map(
-      (id) => options.find((o) => o.id === id)?.label,
-    )
+    const winners = approvalResult.elected.map((id) => options.find((o) => o.id === id)?.label)
 
     winnerSection = (
       <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4">
@@ -58,10 +56,7 @@ export default function ResultsView({
         <h3 className="text-sm font-semibold">Approval counts</h3>
         <ul className="mt-2 divide-y divide-zinc-200 rounded-lg border border-zinc-200">
           {approvalResult.votes.map((v) => (
-            <li
-              key={v.optionId}
-              className="flex items-center justify-between px-4 py-2 text-sm"
-            >
+            <li key={v.optionId} className="flex items-center justify-between px-4 py-2 text-sm">
               <span>{v.label}</span>
               <span className="font-mono tabular-nums">{v.count}</span>
             </li>
@@ -93,9 +88,7 @@ export default function ResultsView({
               <div className="mt-1 flex gap-4 text-xs text-zinc-500">
                 <span>Yes: {v.yesCount}</span>
                 <span>No: {v.noCount}</span>
-                <span>
-                  ({v.count > 0 ? ((v.yesCount / v.count) * 100).toFixed(1) : 0}% yes)
-                </span>
+                <span>({v.count > 0 ? ((v.yesCount / v.count) * 100).toFixed(1) : 0}% yes)</span>
               </div>
             </li>
           ))}
@@ -105,9 +98,7 @@ export default function ResultsView({
   } else if (result.kind === 'stv') {
     const { rounds } = result
     const allElected = rounds.flatMap((r) => r.elected)
-    const electedLabels = allElected.map(
-      (id) => options.find((o) => o.id === id)?.label,
-    )
+    const electedLabels = allElected.map((id) => options.find((o) => o.id === id)?.label)
 
     winnerSection = (
       <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4 text-center">
@@ -136,10 +127,7 @@ export default function ResultsView({
               <p className="mt-1 text-xs text-zinc-400">Quota: {r.quota}</p>
               <ul className="mt-2 space-y-1">
                 {r.votes.map((v) => (
-                  <li
-                    key={v.optionId}
-                    className="flex items-center justify-between text-sm"
-                  >
+                  <li key={v.optionId} className="flex items-center justify-between text-sm">
                     <span>{v.label}</span>
                     <span className="font-mono tabular-nums">{v.count}</span>
                   </li>
@@ -188,10 +176,7 @@ export default function ResultsView({
                 </h4>
                 <ul className="mt-2 space-y-1">
                   {r.votes.map((v) => (
-                    <li
-                      key={v.optionId}
-                      className="flex items-center justify-between text-sm"
-                    >
+                    <li key={v.optionId} className="flex items-center justify-between text-sm">
                       <span>{v.label}</span>
                       <span className="font-mono tabular-nums">{v.count}</span>
                     </li>
@@ -205,8 +190,7 @@ export default function ResultsView({
   }
 
   const ballotCount = ballots.length
-  const showDump =
-    showBallots && ballotCount > 0 && ballotCount >= privacyThreshold
+  const showDump = showBallots && ballotCount > 0 && ballotCount >= privacyThreshold
   const shuffled = shuffleSeed ? seededShuffle(ballots, shuffleSeed) : ballots
 
   return (
@@ -228,9 +212,7 @@ export default function ResultsView({
                   className="rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 font-mono text-xs text-zinc-600"
                 >
                   {result.kind === 'approval'
-                    ? rankings
-                        .map((id) => options.find((o) => o.id === id)?.label || id)
-                        .join(', ')
+                    ? rankings.map((id) => options.find((o) => o.id === id)?.label || id).join(', ')
                     : result.kind === 'yesno'
                       ? JSON.stringify(b.rankings)
                       : rankings

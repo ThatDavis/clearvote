@@ -1,5 +1,5 @@
-import { tallyRcv } from '@/lib/tally'
 import RankedContest from '@/components/ballot/ranked-contest'
+import { tallyRcv } from '@/lib/tally'
 import type { VotingMethodDef } from './types'
 
 export const rcv: VotingMethodDef = {
@@ -15,10 +15,7 @@ export const rcv: VotingMethodDef = {
   emptyBallot: () => [],
   tally: (options, ballots, _cfg) => ({
     kind: 'rcv',
-    rounds: tallyRcv(
-      options,
-      (ballots as { rankings: string[] }[]),
-    ),
+    rounds: tallyRcv(options, ballots as { rankings: string[] }[]),
   }),
   validateBallot: (raw, options) => {
     if (!Array.isArray(raw) || raw.length === 0) {

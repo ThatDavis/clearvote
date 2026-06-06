@@ -1,14 +1,17 @@
 import type { ComponentType } from 'react'
-import type { OptionInput, Round } from '@/lib/tally'
-import type { StvRound } from '@/lib/stv'
 import type { ApprovalResult } from '@/lib/approval'
+import type { StvRound } from '@/lib/stv'
+import type { OptionInput, Round } from '@/lib/tally'
 import type { YesNoResult } from '@/lib/yesno'
 
 /** What the UI hands us as a raw vote before validation. */
 export type RawBallot = string[] | Record<string, string>
 
 /** Per-method config read off the Poll row. */
-export interface MethodConfig { seats: number; threshold: number }
+export interface MethodConfig {
+  seats: number
+  threshold: number
+}
 
 /** Discriminated union of every method's tally output. */
 export type TallyResult =

@@ -1,5 +1,5 @@
-import { tallyApproval } from '@/lib/approval'
 import ApprovalContest from '@/components/ballot/approval-contest'
+import { tallyApproval } from '@/lib/approval'
 import type { VotingMethodDef } from './types'
 
 export const approval: VotingMethodDef = {
@@ -15,11 +15,7 @@ export const approval: VotingMethodDef = {
   emptyBallot: () => [],
   tally: (options, ballots, _cfg) => ({
     kind: 'approval',
-    result: tallyApproval(
-      options,
-      (ballots as { rankings: string[] }[]),
-      1,
-    ),
+    result: tallyApproval(options, ballots as { rankings: string[] }[], 1),
   }),
   validateBallot: (raw, options) => {
     if (!Array.isArray(raw) || raw.length === 0) {

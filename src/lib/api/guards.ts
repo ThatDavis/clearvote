@@ -25,10 +25,7 @@ export async function requireManager(
   return { election }
 }
 
-export async function requireOrgAdmin(
-  orgId: string,
-  userId: string,
-): Promise<boolean> {
+export async function requireOrgAdmin(orgId: string, userId: string): Promise<boolean> {
   const membership = await prisma.organizationMember.findUnique({
     where: { userId_organizationId: { userId, organizationId: orgId } },
   })

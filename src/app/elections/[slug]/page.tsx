@@ -1,16 +1,16 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { auth } from '@/auth'
-import { prisma } from '@/lib/prisma'
-import { ELECTION_CONFIG } from '@/lib/entity-config'
 import AuditTrail from '@/components/manage/audit-trail'
+import StatusControls from '@/components/manage/status-controls'
+import TokenGenerator from '@/components/manage/token-generator'
+import { ELECTION_CONFIG } from '@/lib/entity-config'
+import { prisma } from '@/lib/prisma'
 import ContestManager from './contest-manager'
 import DeleteElectionButton from './delete-election-button'
 import ElectionDistributor from './election-distributor'
 import ElectionEditor from './election-editor'
 import OrgElectionDistributor from './org-election-distributor'
-import StatusControls from '@/components/manage/status-controls'
-import TokenGenerator from '@/components/manage/token-generator'
 
 export default async function ElectionPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
