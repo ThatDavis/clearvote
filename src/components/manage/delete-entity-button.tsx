@@ -20,7 +20,7 @@ export default function DeleteEntityButton({ entity, slug, title }: Props) {
     setLoading(true)
     setError('')
 
-    const res = await fetch(entity.apiBase(slug), { method: 'DELETE' })
+    const res = await fetch(`${entity.apiBase}/${slug}`, { method: 'DELETE' })
 
     if (!res.ok) {
       const data = await res.json()

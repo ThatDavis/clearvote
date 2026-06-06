@@ -34,7 +34,7 @@ export default function AuditTrail({ entity, slug }: Props) {
   const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
-    fetch(`${entity.apiBase(slug)}/audit`)
+    fetch(`${entity.apiBase}/${slug}/audit`)
       .then((res) => res.json())
       .then((data) => {
         if (data.logs) setLogs(data.logs)
