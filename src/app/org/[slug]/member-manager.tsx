@@ -163,8 +163,11 @@ export default function MemberManager({
 
       <ul className="mt-3 divide-y divide-zinc-200 rounded-md border border-zinc-200">
         {members.map((m) => (
-          <li key={m.id} className="flex items-center justify-between px-3 py-2 text-sm">
-            <div className="flex items-center gap-2">
+          <li
+            key={m.id}
+            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-3 py-2 text-sm"
+          >
+            <div className="flex flex-wrap items-center gap-2">
               <span className="font-medium">{m.user.name}</span>
               <span className="text-zinc-500">{m.user.email}</span>
               <span
@@ -197,8 +200,11 @@ export default function MemberManager({
           </li>
         ))}
         {invites.map((i) => (
-          <li key={i.id} className="flex items-center justify-between px-3 py-2 text-sm">
-            <div className="flex items-center gap-2">
+          <li
+            key={i.id}
+            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-3 py-2 text-sm"
+          >
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-zinc-500">{i.email}</span>
               <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-700">
                 Pending
