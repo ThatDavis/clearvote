@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
+import { notFound, unauthorized } from '@/lib/api/responses'
 import { canManageElection } from '@/lib/election'
 import { prisma } from '@/lib/prisma'
 
@@ -8,12 +9,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
   const session = await auth()
 
   const election = await prisma.election.findUnique({ where: { slug } })
-  if (!election) {
-    return NextResponse.json({ error: 'Election not found' }, { status: 404 })
-  }
-
+  if (!election) return notFound()
   if (!session?.user?.id || !(await canManageElection(election.id, session.user.id))) {
-    return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
+    return unauthorized()
   }
 
   const auditLogs = await prisma.electionAuditLog.findMany({

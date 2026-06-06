@@ -2,9 +2,9 @@
 
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import DeleteElectionButton from '@/app/elections/[slug]/delete-election-button'
-import DeletePollButton from '@/app/polls/[slug]/delete-poll-button'
 import EmptyState from '@/components/empty-state'
+import DeleteEntityButton from '@/components/manage/delete-entity-button'
+import { ELECTION_CONFIG, POLL_CONFIG } from '@/lib/entity-config'
 
 interface Poll {
   id: string
@@ -154,7 +154,7 @@ function DraftPollCard({ poll }: { poll: Poll }) {
           </span>
         </div>
       </Link>
-      <DeletePollButton slug={poll.slug} title={poll.title} />
+      <DeleteEntityButton entity={POLL_CONFIG} slug={poll.slug} title={poll.title} />
     </div>
   )
 }
@@ -249,7 +249,7 @@ function DraftElectionCard({ election }: { election: Election }) {
           </span>
         </div>
       </Link>
-      <DeleteElectionButton slug={election.slug} title={election.title} />
+      <DeleteEntityButton entity={ELECTION_CONFIG} slug={election.slug} title={election.title} />
     </div>
   )
 }

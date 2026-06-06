@@ -2,13 +2,15 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import type { EntityConfig } from '@/lib/entity-config'
 
 interface Props {
+  entity: EntityConfig
   slug: string
   title: string
 }
 
-export default function DeleteElectionButton({ slug, title }: Props) {
+export default function DeleteEntityButton({ entity, slug, title }: Props) {
   const router = useRouter()
   const [confirming, setConfirming] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -18,11 +20,11 @@ export default function DeleteElectionButton({ slug, title }: Props) {
     setLoading(true)
     setError('')
 
-    const res = await fetch(`/api/elections/${slug}`, { method: 'DELETE' })
+    const res = await fetch(entity.apiBase(slug), { method: 'DELETE' })
 
     if (!res.ok) {
       const data = await res.json()
-      setError(data.error || 'Failed to delete election')
+      setError(data.error || `Failed to delete ${entity.noun}`)
       setLoading(false)
       return
     }
@@ -35,8 +37,8 @@ export default function DeleteElectionButton({ slug, title }: Props) {
       <div className="rounded-xl border-2 border-red-200 bg-red-50 p-6">
         <p className="text-sm font-semibold text-red-900">Delete "{title}"?</p>
         <p className="mt-0.5 text-xs text-red-700">
-          This will permanently remove the election, all contests, and all associated data. This
-          cannot be undone.
+          This will permanently remove the {entity.noun} and all associated data. This cannot be
+          undone.
         </p>
         <div className="mt-3 flex gap-2">
           <button
@@ -81,7 +83,7 @@ export default function DeleteElectionButton({ slug, title }: Props) {
           d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
         />
       </svg>
-      Delete election
+      Delete {entity.noun}
     </button>
   )
 }

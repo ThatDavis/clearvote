@@ -7,11 +7,12 @@ interface Option {
 
 interface Props {
   options: Option[]
-  value: Record<string, string>
-  onChange: (value: Record<string, string>) => void
+  value: string[] | Record<string, string>
+  onChange: (value: string[] | Record<string, string>) => void
 }
 
 export default function YesNoContest({ options, value, onChange }: Props) {
+  const votes = !Array.isArray(value) ? value : {}
   return (
     <div>
       <p className="mb-4 text-sm text-zinc-500">Vote yes or no on each option below.</p>
@@ -24,7 +25,7 @@ export default function YesNoContest({ options, value, onChange }: Props) {
             <span className="block text-sm font-semibold text-zinc-900">{option.label}</span>
             <div className="mt-3 flex gap-3">
               {(['yes', 'no', 'abstain'] as const).map((choice) => {
-                const isSelected = value[option.id] === choice
+                const isSelected = votes[option.id] === choice
                 const baseClasses =
                   'flex-1 rounded-lg px-4 py-2.5 text-sm font-medium transition-all'
                 const selectedClasses =

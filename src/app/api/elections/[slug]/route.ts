@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
+import { audit } from '@/lib/audit'
 import { canManageElection } from '@/lib/election'
-import { electionAuditLog } from '@/lib/election-audit'
 import { prisma } from '@/lib/prisma'
+import { getMethod } from '@/lib/voting-methods'
 
 const validTransitions: Record<string, string[]> = {
   draft: ['open'],
@@ -101,7 +102,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
 
     const incomplete = contests
       .filter((c) => {
-        const min = c.votingMethod === 'yesno' ? 1 : 2
+        const min = getMethod(c.votingMethod).minOptions
         return c.options.length < min
       })
       .map((c) => c.title)
@@ -121,8 +122,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
     data: { status },
   })
 
-  await electionAuditLog({
-    electionId: election.id,
+  await audit({
+    kind: 'election',
+    entityId: election.id,
     action: status === 'open' ? 'election_opened' : 'election_closed',
   })
 

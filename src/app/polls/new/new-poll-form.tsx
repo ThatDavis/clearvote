@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { useToast } from '@/components/toast-provider'
 import VotingMethodSelector from '@/components/voting-method-selector'
+import { getMethod } from '@/lib/voting-methods'
 
 type Step = 1 | 2 | 3 | 4
 
@@ -67,13 +68,18 @@ export default function NewPollForm() {
 
   // Adjust options count when voting method changes
   useEffect(() => {
-    if (votingMethod === 'yesno') {
-      setOptions((prev) => (prev.length > 1 ? [prev[0]] : prev))
-    } else {
-      setOptions((prev) =>
-        prev.length < 2 ? [...prev, { key: String(nextKey.current++), value: '' }] : prev,
-      )
-    }
+    const min = getMethod(votingMethod).minOptions
+    setOptions((prev) => {
+      if (prev.length > min) return prev.slice(0, min)
+      if (prev.length < min) {
+        const extra = Array.from({ length: min - prev.length }, () => ({
+          key: String(nextKey.current++),
+          value: '',
+        }))
+        return [...prev, ...extra]
+      }
+      return prev
+    })
   }, [votingMethod])
 
   function addOption() {
@@ -82,7 +88,7 @@ export default function NewPollForm() {
   }
 
   function removeOption(index: number) {
-    const minOptions = votingMethod === 'yesno' ? 1 : 2
+    const minOptions = getMethod(votingMethod).minOptions
     if (options.length <= minOptions) return
     setOptions(options.filter((_, i) => i !== index))
   }
@@ -100,7 +106,7 @@ export default function NewPollForm() {
       case 2:
         return true
       case 3: {
-        const minOptions = votingMethod === 'yesno' ? 1 : 2
+        const minOptions = getMethod(votingMethod).minOptions
         return options.filter((o) => o.value.trim()).length >= minOptions
       }
       case 4:
@@ -127,7 +133,7 @@ export default function NewPollForm() {
   async function handleSubmit() {
     setError('')
     const filled = options.map((o) => o.value.trim()).filter(Boolean)
-    const minOptions = votingMethod === 'yesno' ? 1 : 2
+    const minOptions = getMethod(votingMethod).minOptions
     if (filled.length < minOptions) {
       setError(`At least ${minOptions} option${minOptions === 1 ? '' : 's'} are required`)
       return
@@ -135,6 +141,7 @@ export default function NewPollForm() {
 
     setSubmitting(true)
 
+    const method = getMethod(votingMethod)
     const res = await fetch('/api/polls', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -144,7 +151,7 @@ export default function NewPollForm() {
         options: filled,
         votingMethod,
         seats,
-        threshold: votingMethod === 'yesno' ? threshold : undefined,
+        threshold: method.uses.threshold ? threshold : undefined,
         startsAt: startsAt ? `${startsAt}T00:00:00` : undefined,
         endsAt: endsAt ? `${endsAt}T00:00:00` : undefined,
         organizationId: orgId || undefined,
@@ -252,7 +259,7 @@ export default function NewPollForm() {
               </div>
             </div>
 
-            {votingMethod === 'yesno' && (
+            {getMethod(votingMethod).uses.threshold && (
               <div>
                 <label htmlFor="threshold" className="block text-sm font-semibold text-zinc-900">
                   Pass threshold (%)
@@ -279,7 +286,7 @@ export default function NewPollForm() {
             <div>
               <p className="block text-sm font-semibold text-zinc-900">Poll Options</p>
               <p className="mt-1 text-xs text-zinc-500">
-                {votingMethod === 'yesno'
+                {getMethod(votingMethod).minOptions === 1
                   ? 'Add the proposition or question voters will vote yes/no on.'
                   : 'Add at least 2 options. Voters will choose from these.'}
               </p>
@@ -297,7 +304,7 @@ export default function NewPollForm() {
                       className="block w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm shadow-sm transition-colors hover:border-zinc-400 focus:border-chicago-blue focus:outline-none focus:ring-2 focus:ring-chicago-blue/20"
                       placeholder={`Option ${i + 1}`}
                     />
-                    {options.length > (votingMethod === 'yesno' ? 1 : 2) && (
+                    {options.length > getMethod(votingMethod).minOptions && (
                       <button
                         type="button"
                         onClick={() => removeOption(i)}

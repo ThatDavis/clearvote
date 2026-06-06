@@ -2,13 +2,15 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import type { EntityConfig } from '@/lib/entity-config'
 
 interface Props {
+  entity: EntityConfig
   slug: string
   status: string
 }
 
-export default function StatusControls({ slug, status }: Props) {
+export default function StatusControls({ entity, slug, status }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -17,7 +19,7 @@ export default function StatusControls({ slug, status }: Props) {
     setLoading(true)
     setError('')
 
-    const res = await fetch(`/api/polls/${slug}`, {
+    const res = await fetch(entity.apiBase(slug), {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: next }),
@@ -40,7 +42,7 @@ export default function StatusControls({ slug, status }: Props) {
           <div>
             <p className="text-sm font-semibold text-green-900">Ready to start voting?</p>
             <p className="mt-0.5 text-xs text-green-700">
-              Opening the poll locks the voter roll and allows ballots to be cast.
+              Opening the {entity.noun} locks the voter roll and allows ballots to be cast.
             </p>
           </div>
           <button
@@ -62,7 +64,7 @@ export default function StatusControls({ slug, status }: Props) {
       <div className="rounded-xl border-2 border-red-200 bg-red-50 p-6">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold text-red-900">Close this poll?</p>
+            <p className="text-sm font-semibold text-red-900">Close this {entity.noun}?</p>
             <p className="mt-0.5 text-xs text-red-700">
               No new ballots will be accepted. Results will be visible publicly. This cannot be
               undone.

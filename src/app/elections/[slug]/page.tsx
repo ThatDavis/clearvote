@@ -1,15 +1,16 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { auth } from '@/auth'
+import AuditTrail from '@/components/manage/audit-trail'
+import DeleteEntityButton from '@/components/manage/delete-entity-button'
+import Distributor from '@/components/manage/distributor'
+import StatusControls from '@/components/manage/status-controls'
+import TokenGenerator from '@/components/manage/token-generator'
+import { ELECTION_CONFIG } from '@/lib/entity-config'
 import { prisma } from '@/lib/prisma'
-import ElectionAuditTrail from './audit-trail'
+import { getMethod } from '@/lib/voting-methods'
 import ContestManager from './contest-manager'
-import DeleteElectionButton from './delete-election-button'
-import ElectionDistributor from './election-distributor'
 import ElectionEditor from './election-editor'
-import OrgElectionDistributor from './org-election-distributor'
-import ElectionStatusControls from './status-controls'
-import ElectionTokenGenerator from './token-generator'
 
 export default async function ElectionPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -153,20 +154,17 @@ export default async function ElectionPage({ params }: { params: Promise<{ slug:
           </div>
 
           <div className="mt-8 space-y-4">
-            {election.organizationId && election.organization ? (
-              <OrgElectionDistributor
-                slug={slug}
-                orgSlug={election.organization.slug}
-                locked={locked}
-              />
-            ) : (
-              <ElectionDistributor slug={slug} locked={locked} />
-            )}
-            <ElectionTokenGenerator slug={slug} locked={locked} />
-            <ElectionStatusControls slug={slug} status={election.status} />
-            <ElectionAuditTrail slug={slug} />
+            <Distributor
+              entity={ELECTION_CONFIG}
+              slug={slug}
+              orgSlug={election.organization?.slug}
+              locked={locked}
+            />
+            <TokenGenerator entity={ELECTION_CONFIG} slug={slug} locked={locked} />
+            <StatusControls entity={ELECTION_CONFIG} slug={slug} status={election.status} />
+            <AuditTrail entity={ELECTION_CONFIG} slug={slug} />
             {election.status === 'draft' && (
-              <DeleteElectionButton slug={slug} title={election.title} />
+              <DeleteEntityButton entity={ELECTION_CONFIG} slug={slug} title={election.title} />
             )}
           </div>
         </>
@@ -182,10 +180,14 @@ export default async function ElectionPage({ params }: { params: Promise<{ slug:
                   {i + 1}. {contest.title}
                 </div>
                 <div className="mt-1 text-zinc-500">
-                  {contest.votingMethod === 'stv' && `STV (${contest.seats} seats)`}
-                  {contest.votingMethod === 'approval' && 'Approval'}
-                  {contest.votingMethod === 'yesno' && `Yes/No (${contest.threshold}% threshold)`}
-                  {contest.votingMethod === 'rcv' && 'Ranked Choice'}
+                  {(() => {
+                    const m = getMethod(contest.votingMethod)
+                    const parts = [m.label]
+                    if (m.uses.seats && contest.seats) parts.push(`(${contest.seats} seats)`)
+                    if (m.uses.threshold && contest.threshold)
+                      parts.push(`(${contest.threshold}% threshold)`)
+                    return parts.join(' ')
+                  })()}
                 </div>
               </li>
             ))}

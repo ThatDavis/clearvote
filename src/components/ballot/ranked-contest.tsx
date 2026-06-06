@@ -68,16 +68,17 @@ function SortableOption({ option, index }: { option: Option; index: number }) {
 
 interface Props {
   options: Option[]
-  value: string[]
-  onChange: (value: string[]) => void
+  value: string[] | Record<string, string>
+  onChange: (value: string[] | Record<string, string>) => void
 }
 
 export default function RankedContest({ options, value, onChange }: Props) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
+  const ranking = Array.isArray(value) ? value : []
   const orderedOptions =
-    value.length > 0
-      ? (value.map((id) => options.find((o) => o.id === id)).filter(Boolean) as Option[])
+    ranking.length > 0
+      ? (ranking.map((id) => options.find((o) => o.id === id)).filter(Boolean) as Option[])
       : options
 
   function handleDragEnd(event: DragEndEvent) {

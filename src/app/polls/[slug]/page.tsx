@@ -1,14 +1,15 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { auth } from '@/auth'
+import AuditTrail from '@/components/manage/audit-trail'
+import DeleteEntityButton from '@/components/manage/delete-entity-button'
+import Distributor from '@/components/manage/distributor'
+import StatusControls from '@/components/manage/status-controls'
+import TokenGenerator from '@/components/manage/token-generator'
+import { POLL_CONFIG } from '@/lib/entity-config'
 import { prisma } from '@/lib/prisma'
-import AuditTrail from './audit-trail'
-import DeletePollButton from './delete-poll-button'
-import OrgPollDistributor from './org-poll-distributor'
-import PollDistributor from './poll-distributor'
+import { getMethod } from '@/lib/voting-methods'
 import PollEditor from './poll-editor'
-import StatusControls from './status-controls'
-import TokenGenerator from './token-generator'
 
 export default async function PollPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -58,15 +59,7 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
 
   const status = statusConfig[poll.status]
 
-  const methodLabel =
-    poll.votingMethod === 'stv'
-      ? 'STV'
-      : poll.votingMethod === 'approval'
-        ? 'Approval'
-        : poll.votingMethod === 'yesno'
-          ? 'Yes/No'
-          : 'RCV'
-
+  const methodDef = getMethod(poll.votingMethod)
   const locked = poll.status !== 'draft'
 
   return (
@@ -139,8 +132,8 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
           <div className="flex justify-between">
             <dt className="text-sm text-zinc-500">Method</dt>
             <dd className="text-sm font-medium text-zinc-900">
-              {methodLabel}
-              {poll.votingMethod === 'stv' && ` (${poll.seats} seats)`}
+              {methodDef.label}
+              {methodDef.uses.seats && ` (${poll.seats} seats)`}
             </dd>
           </div>
           {poll.startsAt && (
@@ -172,15 +165,18 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
 
       {userCanManage && (
         <div className="mt-8 space-y-4">
-          {poll.organizationId && poll.organization ? (
-            <OrgPollDistributor slug={poll.slug} orgSlug={poll.organization.slug} locked={locked} />
-          ) : (
-            <PollDistributor slug={poll.slug} locked={locked} />
+          <Distributor
+            entity={POLL_CONFIG}
+            slug={poll.slug}
+            orgSlug={poll.organization?.slug}
+            locked={locked}
+          />
+          <TokenGenerator entity={POLL_CONFIG} slug={poll.slug} locked={locked} />
+          <StatusControls entity={POLL_CONFIG} slug={poll.slug} status={poll.status} />
+          <AuditTrail entity={POLL_CONFIG} slug={poll.slug} />
+          {poll.status === 'draft' && (
+            <DeleteEntityButton entity={POLL_CONFIG} slug={poll.slug} title={poll.title} />
           )}
-          <TokenGenerator slug={poll.slug} locked={locked} />
-          <StatusControls slug={poll.slug} status={poll.status} />
-          <AuditTrail slug={poll.slug} />
-          {poll.status === 'draft' && <DeletePollButton slug={poll.slug} title={poll.title} />}
         </div>
       )}
 
