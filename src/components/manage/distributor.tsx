@@ -51,7 +51,7 @@ export default function Distributor({ entity, slug, orgSlug, locked }: Props) {
         .catch(() => setError('Failed to load organization members'))
     }
 
-    fetch(`${entity.apiBase(slug)}/roll`)
+    fetch(`${entity.apiBase}/${slug}/roll`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) setVoters(data)
@@ -84,7 +84,7 @@ export default function Distributor({ entity, slug, orgSlug, locked }: Props) {
     setResults(null)
     setError('')
 
-    const res = await fetch(`${entity.apiBase(slug)}/distribute`, {
+    const res = await fetch(`${entity.apiBase}/${slug}/distribute`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -102,7 +102,7 @@ export default function Distributor({ entity, slug, orgSlug, locked }: Props) {
     if (!isOrg) setEmailInput('')
     setLoading(false)
 
-    fetch(`${entity.apiBase(slug)}/roll`)
+    fetch(`${entity.apiBase}/${slug}/roll`)
       .then((r) => r.json())
       .then((d) => {
         if (Array.isArray(d)) setVoters(d)
@@ -110,7 +110,7 @@ export default function Distributor({ entity, slug, orgSlug, locked }: Props) {
   }
 
   async function handleRemove(userId: string) {
-    const res = await fetch(`${entity.apiBase(slug)}/roll`, {
+    const res = await fetch(`${entity.apiBase}/${slug}/roll`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId }),

@@ -73,22 +73,53 @@ export default function AuthStatus() {
             </div>
           </div>
         )}
-        <Link
-          href="/dashboard"
-          className="text-zinc-600 transition-colors hover:text-chicago-navy font-medium"
-        >
-          {session.user?.name}
-        </Link>
-        <button
-          type="button"
-          onClick={async () => {
-            await signOut({ redirect: false })
-            window.location.href = '/'
-          }}
-          className="text-zinc-400 transition-colors hover:text-zinc-600"
-        >
-          Log out
-        </button>
+        <div className="relative group">
+          <button
+            type="button"
+            className="flex items-center gap-1 text-zinc-600 transition-colors hover:text-chicago-navy font-medium"
+          >
+            {session.user?.name}
+            <svg
+              aria-hidden="true"
+              className="h-3 w-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+          <div className="absolute right-0 top-full hidden w-40 rounded-lg border border-zinc-200 bg-white py-1 shadow-lg group-hover:block pt-2 -mt-1">
+            <Link
+              href="/dashboard"
+              className="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
+            >
+              Dashboard
+            </Link>
+            <Link
+              href="/settings"
+              className="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
+            >
+              Settings
+            </Link>
+            <div className="my-1 border-t border-zinc-200" />
+            <button
+              type="button"
+              onClick={async () => {
+                await signOut({ redirect: false })
+                window.location.href = '/'
+              }}
+              className="block w-full px-4 py-2 text-left text-sm text-zinc-500 hover:bg-zinc-50"
+            >
+              Log out
+            </button>
+          </div>
+        </div>
       </div>
     )
   }
