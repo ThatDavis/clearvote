@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import DeletePollButton from '@/app/polls/[slug]/delete-poll-button'
 import { auth } from '@/auth'
 import EmptyState from '@/components/empty-state'
 import { prisma } from '@/lib/prisma'
@@ -357,12 +358,11 @@ export default async function DashboardPage() {
             {draftPolls.map((poll) => {
               const method = methodConfig[poll.votingMethod]
               return (
-                <Link
+                <div
                   key={poll.id}
-                  href={`/polls/${poll.slug}`}
                   className="group flex items-center justify-between rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-all hover:border-chicago-blue/30 hover:shadow-md hover:-translate-y-0.5"
                 >
-                  <div className="min-w-0 flex-1">
+                  <Link href={`/polls/${poll.slug}`} className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-zinc-900 group-hover:text-chicago-navy transition-colors">
                       {poll.title}
                     </p>
@@ -376,22 +376,9 @@ export default async function DashboardPage() {
                         Draft
                       </span>
                     </div>
-                  </div>
-                  <svg
-                    aria-hidden="true"
-                    className="h-5 w-5 text-zinc-300 transition-colors group-hover:text-chicago-blue"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </Link>
+                  </Link>
+                  <DeletePollButton slug={poll.slug} title={poll.title} />
+                </div>
               )
             })}
           </div>

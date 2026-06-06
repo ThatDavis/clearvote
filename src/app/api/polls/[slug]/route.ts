@@ -124,3 +124,25 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
 
   return NextResponse.json(updated)
 }
+
+export async function DELETE(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const session = await auth()
+
+  const poll = await prisma.poll.findUnique({ where: { slug } })
+  if (!poll) {
+    return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
+  }
+
+  if (!session?.user?.id || !(await canManagePoll(poll.id, session.user.id))) {
+    return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
+  }
+
+  if (poll.status !== 'draft') {
+    return NextResponse.json({ error: 'Can only delete polls in draft status' }, { status: 400 })
+  }
+
+  await prisma.poll.delete({ where: { slug } })
+
+  return NextResponse.json({ success: true })
+}
