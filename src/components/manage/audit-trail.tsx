@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import type { EntityConfig } from '@/lib/entity-config'
 
 interface AuditLog {
   id: string
@@ -11,6 +12,8 @@ interface AuditLog {
 
 const actionLabels: Record<string, string> = {
   tokens_generated: 'Tokens generated',
+  poll_opened: 'Poll opened',
+  poll_closed: 'Poll closed',
   election_opened: 'Election opened',
   election_closed: 'Election closed',
   voter_added: 'Voter added',
@@ -20,17 +23,18 @@ const actionLabels: Record<string, string> = {
 }
 
 interface Props {
+  entity: EntityConfig
   slug: string
 }
 
-export default function ElectionAuditTrail({ slug }: Props) {
+export default function AuditTrail({ entity, slug }: Props) {
   const [logs, setLogs] = useState<AuditLog[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
-    fetch(`/api/elections/${slug}/audit`)
+    fetch(`${entity.apiBase(slug)}/audit`)
       .then((res) => res.json())
       .then((data) => {
         if (data.logs) setLogs(data.logs)
@@ -40,7 +44,7 @@ export default function ElectionAuditTrail({ slug }: Props) {
         setError('Failed to load audit trail')
         setLoading(false)
       })
-  }, [slug])
+  }, [entity, slug])
 
   if (loading) {
     return (

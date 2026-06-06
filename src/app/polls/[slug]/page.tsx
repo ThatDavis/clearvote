@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
-import AuditTrail from './audit-trail'
+import { POLL_CONFIG } from '@/lib/entity-config'
+import AuditTrail from '@/components/manage/audit-trail'
 import DeletePollButton from './delete-poll-button'
 import OrgPollDistributor from './org-poll-distributor'
 import PollDistributor from './poll-distributor'
@@ -179,7 +180,7 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
           )}
           <TokenGenerator slug={poll.slug} locked={locked} />
           <StatusControls slug={poll.slug} status={poll.status} />
-          <AuditTrail slug={poll.slug} />
+          <AuditTrail entity={POLL_CONFIG} slug={poll.slug} />
           {poll.status === 'draft' && <DeletePollButton slug={poll.slug} title={poll.title} />}
         </div>
       )}

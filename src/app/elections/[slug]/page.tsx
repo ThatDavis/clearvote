@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
-import ElectionAuditTrail from './audit-trail'
+import { ELECTION_CONFIG } from '@/lib/entity-config'
+import AuditTrail from '@/components/manage/audit-trail'
 import ContestManager from './contest-manager'
 import DeleteElectionButton from './delete-election-button'
 import ElectionDistributor from './election-distributor'
@@ -164,7 +165,7 @@ export default async function ElectionPage({ params }: { params: Promise<{ slug:
             )}
             <ElectionTokenGenerator slug={slug} locked={locked} />
             <ElectionStatusControls slug={slug} status={election.status} />
-            <ElectionAuditTrail slug={slug} />
+            <AuditTrail entity={ELECTION_CONFIG} slug={slug} />
             {election.status === 'draft' && (
               <DeleteElectionButton slug={slug} title={election.title} />
             )}
