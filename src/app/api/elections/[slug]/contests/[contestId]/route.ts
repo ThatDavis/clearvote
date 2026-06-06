@@ -38,7 +38,7 @@ export async function PATCH(
   }
 
   // Verify contest belongs to this election
-  const contest = await prisma.poll.findFirst({
+  const contest = await prisma.contest.findFirst({
     where: { id: contestId, electionId: election.id },
   })
   if (!contest) {
@@ -52,7 +52,7 @@ export async function PATCH(
   if (seats !== undefined) updateData.seats = seats
   if (threshold !== undefined) updateData.threshold = threshold
 
-  await prisma.poll.update({
+  await prisma.contest.update({
     where: { id: contestId },
     data: updateData,
   })
@@ -68,11 +68,11 @@ export async function PATCH(
     }
 
     await prisma.$transaction([
-      prisma.pollOption.deleteMany({ where: { pollId: contestId } }),
+      prisma.contestOption.deleteMany({ where: { contestId } }),
       ...options.map((label, index) =>
-        prisma.pollOption.create({
+        prisma.contestOption.create({
           data: {
-            pollId: contestId,
+            contestId,
             label: label.trim(),
             order: index,
           },
@@ -81,7 +81,7 @@ export async function PATCH(
     ])
   }
 
-  const updated = await prisma.poll.findUnique({
+  const updated = await prisma.contest.findUnique({
     where: { id: contestId },
     include: {
       options: { orderBy: { order: 'asc' } },

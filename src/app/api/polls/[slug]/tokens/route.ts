@@ -13,9 +13,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
 
   const poll = await prisma.poll.findUnique({ where: { slug } })
   if (!poll) return notFound()
-  if (poll.electionId) {
-    return badRequest('This poll is a contest within an election; manage via the election.')
-  }
   if (!session?.user?.id || !(await canManagePoll(poll.id, session.user.id))) {
     return unauthorized()
   }
@@ -37,9 +34,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
 
   const poll = await prisma.poll.findUnique({ where: { slug } })
   if (!poll) return notFound()
-  if (poll.electionId) {
-    return badRequest('This poll is a contest within an election; manage via the election.')
-  }
   if (!session?.user?.id || !(await canManagePoll(poll.id, session.user.id))) {
     return unauthorized()
   }

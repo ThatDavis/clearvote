@@ -17,6 +17,7 @@ model Organization {
   members   OrganizationMember[]
   invites   OrganizationInvite[]
   polls     Poll[]
+  contests  Contest[]
   elections Election[]
 }
 
@@ -59,6 +60,7 @@ model User {
 
   memberships        OrganizationMember[]
   polls              Poll[]
+  contests           Contest[]
   rolls              VoterRoll[]
   electionRolls      ElectionVoterRoll[]
   elections          Election[]
@@ -88,8 +90,6 @@ model Poll {
   status         String        @default("draft")
   creatorId      String?
   organizationId String?
-  electionId     String?
-  contestOrder   Int           @default(0)
   startsAt       DateTime?
   endsAt         DateTime?
   createdAt      DateTime      @default(now())
@@ -97,14 +97,11 @@ model Poll {
 
   creator      User?         @relation(fields: [creatorId], references: [id])
   organization Organization? @relation(fields: [organizationId], references: [id])
-  election     Election?     @relation(fields: [electionId], references: [id], onDelete: Cascade)
   options      PollOption[]
   ballots      Ballot[]
   tokens       VoterToken[]
   rolls        VoterRoll[]
   auditLogs    AuditLog[]
-
-  @@index([electionId])
 }
 
 model PollOption {
@@ -171,6 +168,56 @@ model AuditLog {
   @@index([pollId])
 }
 
+model Contest {
+  id             String   @id @default(uuid())
+  title          String
+  description    String?
+  slug           String   @unique
+  votingMethod   String   @default("rcv")
+  seats          Int      @default(1)
+  threshold      Int      @default(50)
+  status         String   @default("draft")
+  contestOrder   Int      @default(0)
+  creatorId      String?
+  organizationId String?
+  electionId     String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  creator      User?         @relation(fields: [creatorId], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  election     Election      @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  options      ContestOption[]
+  ballots      ContestBallot[]
+
+  @@index([electionId])
+}
+
+model ContestOption {
+  id        String   @id @default(uuid())
+  contestId String
+  label     String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  contest Contest @relation(fields: [contestId], references: [id], onDelete: Cascade)
+
+  @@index([contestId])
+}
+
+model ContestBallot {
+  id          String   @id @default(uuid())
+  contestId   String
+  rankings    Json
+  receiptCode String   @unique
+  castAt      DateTime @default(now())
+  verifiedAt  DateTime?
+
+  contest Contest @relation(fields: [contestId], references: [id], onDelete: Cascade)
+
+  @@index([contestId])
+}
+
 model Election {
   id             String    @id @default(uuid())
   title          String
@@ -184,7 +231,7 @@ model Election {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  contests   Poll[]
+  contests   Contest[]
   tokens     ElectionVoterToken[]
   rolls      ElectionVoterRoll[]
   receipts   ElectionReceipt[]

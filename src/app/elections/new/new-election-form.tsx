@@ -425,7 +425,7 @@ export default function NewElectionForm() {
                   <div>
                     <p className="block text-sm font-semibold text-zinc-900">Options</p>
                     <p className="mt-1 text-xs text-zinc-500">
-                      {contest.votingMethod === 'yesno'
+                      {getMethod(contest.votingMethod).ballotShape === 'map'
                         ? 'Add the proposition or question voters will vote yes/no on.'
                         : 'Add at least 2 options. Voters will choose from these.'}
                     </p>

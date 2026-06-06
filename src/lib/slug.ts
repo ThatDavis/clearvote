@@ -15,7 +15,10 @@ export async function uniqueSlug(text: string): Promise<string> {
   let slug = base
   let suffix = 1
 
-  while (await prisma.poll.findUnique({ where: { slug } })) {
+  while (
+    (await prisma.poll.findUnique({ where: { slug } })) ||
+    (await prisma.contest.findUnique({ where: { slug } }))
+  ) {
     slug = `${base}-${suffix}`
     suffix++
   }
