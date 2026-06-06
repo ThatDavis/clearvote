@@ -4,6 +4,7 @@ import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import ElectionAuditTrail from './audit-trail'
 import ContestManager from './contest-manager'
+import DeleteElectionButton from './delete-election-button'
 import ElectionDistributor from './election-distributor'
 import ElectionEditor from './election-editor'
 import OrgElectionDistributor from './org-election-distributor'
@@ -164,6 +165,9 @@ export default async function ElectionPage({ params }: { params: Promise<{ slug:
             <ElectionTokenGenerator slug={slug} locked={locked} />
             <ElectionStatusControls slug={slug} status={election.status} />
             <ElectionAuditTrail slug={slug} />
+            {election.status === 'draft' && (
+              <DeleteElectionButton slug={slug} title={election.title} />
+            )}
           </div>
         </>
       )}

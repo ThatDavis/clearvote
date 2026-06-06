@@ -128,3 +128,28 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
 
   return NextResponse.json(updated)
 }
+
+export async function DELETE(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const session = await auth()
+
+  const election = await prisma.election.findUnique({ where: { slug } })
+  if (!election) {
+    return NextResponse.json({ error: 'Election not found' }, { status: 404 })
+  }
+
+  if (!session?.user?.id || !(await canManageElection(election.id, session.user.id))) {
+    return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
+  }
+
+  if (election.status !== 'draft') {
+    return NextResponse.json(
+      { error: 'Can only delete elections in draft status' },
+      { status: 400 },
+    )
+  }
+
+  await prisma.election.delete({ where: { slug } })
+
+  return NextResponse.json({ success: true })
+}

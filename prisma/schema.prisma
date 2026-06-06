@@ -97,7 +97,7 @@ model Poll {
 
   creator      User?         @relation(fields: [creatorId], references: [id])
   organization Organization? @relation(fields: [organizationId], references: [id])
-  election     Election?     @relation(fields: [electionId], references: [id])
+  election     Election?     @relation(fields: [electionId], references: [id], onDelete: Cascade)
   options      PollOption[]
   ballots      Ballot[]
   tokens       VoterToken[]
