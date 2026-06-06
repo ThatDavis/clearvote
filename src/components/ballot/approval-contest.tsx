@@ -7,12 +7,12 @@ interface Option {
 
 interface Props {
   options: Option[]
-  value: string[]
-  onChange: (value: string[]) => void
+  value: string[] | Record<string, string>
+  onChange: (value: string[] | Record<string, string>) => void
 }
 
 export default function ApprovalContest({ options, value, onChange }: Props) {
-  const approved = new Set(value)
+  const approved = new Set(Array.isArray(value) ? value : [])
 
   function toggle(id: string) {
     const next = new Set(approved)
