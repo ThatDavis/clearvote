@@ -9,7 +9,7 @@ import DeleteElectionButton from './delete-election-button'
 import ElectionDistributor from './election-distributor'
 import ElectionEditor from './election-editor'
 import OrgElectionDistributor from './org-election-distributor'
-import ElectionStatusControls from './status-controls'
+import StatusControls from '@/components/manage/status-controls'
 import ElectionTokenGenerator from './token-generator'
 
 export default async function ElectionPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -164,7 +164,7 @@ export default async function ElectionPage({ params }: { params: Promise<{ slug:
               <ElectionDistributor slug={slug} locked={locked} />
             )}
             <ElectionTokenGenerator slug={slug} locked={locked} />
-            <ElectionStatusControls slug={slug} status={election.status} />
+            <StatusControls entity={ELECTION_CONFIG} slug={slug} status={election.status} />
             <AuditTrail entity={ELECTION_CONFIG} slug={slug} />
             {election.status === 'draft' && (
               <DeleteElectionButton slug={slug} title={election.title} />
