@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import ResultsView from '@/components/results-view'
-import { electionAuditLog } from '@/lib/election-audit'
+import { audit } from '@/lib/audit'
 import { prisma } from '@/lib/prisma'
 import { getMethod } from '@/lib/voting-methods'
 
@@ -40,8 +40,9 @@ export default async function ElectionResultsPage({
     where: { electionId: election.id, action: 'results_viewed' },
   })
   if (!alreadyViewed) {
-    await electionAuditLog({
-      electionId: election.id,
+    await audit({
+      kind: 'election',
+      entityId: election.id,
       action: 'results_viewed',
     })
   }

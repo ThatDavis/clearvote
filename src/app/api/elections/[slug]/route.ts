@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { canManageElection } from '@/lib/election'
-import { electionAuditLog } from '@/lib/election-audit'
+import { audit } from '@/lib/audit'
 import { prisma } from '@/lib/prisma'
 import { getMethod } from '@/lib/voting-methods'
 
@@ -122,8 +122,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
     data: { status },
   })
 
-  await electionAuditLog({
-    electionId: election.id,
+  await audit({
+    kind: 'election',
+    entityId: election.id,
     action: status === 'open' ? 'election_opened' : 'election_closed',
   })
 
