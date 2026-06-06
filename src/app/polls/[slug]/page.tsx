@@ -8,6 +8,7 @@ import StatusControls from '@/components/manage/status-controls'
 import TokenGenerator from '@/components/manage/token-generator'
 import { POLL_CONFIG } from '@/lib/entity-config'
 import { prisma } from '@/lib/prisma'
+import { getMethod } from '@/lib/voting-methods'
 import PollEditor from './poll-editor'
 
 export default async function PollPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -58,15 +59,7 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
 
   const status = statusConfig[poll.status]
 
-  const methodLabel =
-    poll.votingMethod === 'stv'
-      ? 'STV'
-      : poll.votingMethod === 'approval'
-        ? 'Approval'
-        : poll.votingMethod === 'yesno'
-          ? 'Yes/No'
-          : 'RCV'
-
+  const methodDef = getMethod(poll.votingMethod)
   const locked = poll.status !== 'draft'
 
   return (
@@ -139,8 +132,8 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
           <div className="flex justify-between">
             <dt className="text-sm text-zinc-500">Method</dt>
             <dd className="text-sm font-medium text-zinc-900">
-              {methodLabel}
-              {poll.votingMethod === 'stv' && ` (${poll.seats} seats)`}
+              {methodDef.label}
+              {methodDef.uses.seats && ` (${poll.seats} seats)`}
             </dd>
           </div>
           {poll.startsAt && (
