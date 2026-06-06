@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
+import { notFound, unauthorized } from '@/lib/api/responses'
 import { canManagePoll } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
@@ -8,12 +9,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
   const session = await auth()
 
   const poll = await prisma.poll.findUnique({ where: { slug } })
-  if (!poll) {
-    return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
-  }
-
+  if (!poll) return notFound()
   if (!session?.user?.id || !(await canManagePoll(poll.id, session.user.id))) {
-    return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
+    return unauthorized()
   }
 
   const logs = await prisma.auditLog.findMany({
