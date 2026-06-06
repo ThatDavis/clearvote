@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { uniqueSlug } from '@/lib/slug'
+import { getMethod } from '@/lib/voting-methods'
 
 export async function POST(request: Request) {
   try {
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 })
     }
 
-    const minOptions = votingMethod === 'yesno' ? 1 : 2
+    const minOptions = getMethod(votingMethod || 'rcv').minOptions
     if (!options || !Array.isArray(options) || options.length < minOptions) {
       return NextResponse.json(
         { error: `At least ${minOptions} option${minOptions === 1 ? '' : 's'} are required` },

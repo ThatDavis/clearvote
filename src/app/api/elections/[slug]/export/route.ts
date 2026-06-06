@@ -1,13 +1,9 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { tallyApproval } from '@/lib/approval'
 import { canManageElection } from '@/lib/election'
 import { prisma } from '@/lib/prisma'
 import { seededShuffle } from '@/lib/shuffle'
-import { tallyStv } from '@/lib/stv'
-import type { BallotInput } from '@/lib/tally'
-import { tallyRcv } from '@/lib/tally'
-import { tallyYesNo } from '@/lib/yesno'
+import { getMethod } from '@/lib/voting-methods'
 
 export async function GET(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -56,24 +52,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     },
     contests: election.contests.map((contest) => {
       const method = contest.votingMethod as string
-      const ballots: BallotInput[] = contest.ballots.map((b) => ({
-        rankings: b.rankings as string[],
-      }))
-
-      let tally: unknown
-      if (method === 'approval') {
-        tally = tallyApproval(contest.options, ballots, contest.seats)
-      } else if (method === 'yesno') {
-        tally = tallyYesNo(
-          contest.options,
-          ballots as unknown as { rankings: Record<string, string> }[],
-          contest.threshold,
-        )
-      } else if (method === 'stv') {
-        tally = tallyStv(contest.options, ballots, contest.seats)
-      } else {
-        tally = tallyRcv(contest.options, ballots)
-      }
+      const tally = getMethod(method).tally(
+        contest.options,
+        contest.ballots.map((b) => ({ rankings: b.rankings })),
+        { seats: contest.seats, threshold: contest.threshold },
+      )
 
       const shuffledBallots =
         contest.ballots.length >= 10 ? seededShuffle(contest.ballots, contest.id) : []

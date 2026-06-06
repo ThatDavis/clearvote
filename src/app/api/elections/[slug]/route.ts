@@ -3,6 +3,7 @@ import { auth } from '@/auth'
 import { canManageElection } from '@/lib/election'
 import { electionAuditLog } from '@/lib/election-audit'
 import { prisma } from '@/lib/prisma'
+import { getMethod } from '@/lib/voting-methods'
 
 const validTransitions: Record<string, string[]> = {
   draft: ['open'],
@@ -101,7 +102,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
 
     const incomplete = contests
       .filter((c) => {
-        const min = c.votingMethod === 'yesno' ? 1 : 2
+        const min = getMethod(c.votingMethod).minOptions
         return c.options.length < min
       })
       .map((c) => c.title)

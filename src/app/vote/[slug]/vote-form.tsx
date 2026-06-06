@@ -2,10 +2,8 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import ApprovalContest from '@/components/ballot/approval-contest'
-import RankedContest from '@/components/ballot/ranked-contest'
-import YesNoContest from '@/components/ballot/yesno-contest'
 import { useToast } from '@/components/toast-provider'
+import { getMethod } from '@/lib/voting-methods'
 
 interface Option {
   id: string
@@ -19,195 +17,41 @@ interface Props {
   votingMethod: string
 }
 
-function RankedVoteForm({
-  pollSlug,
-  token,
-  options,
-  email,
-  onSuccess,
-}: {
-  pollSlug: string
-  token: string | null
-  options: Option[]
-  email: string
-  onSuccess: (receipt: string, emailed: boolean) => void
-}) {
-  const [rankings, setRankings] = useState<string[]>(options.map((o) => o.id))
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
-
-  async function handleSubmit() {
-    setSubmitting(true)
-    setError('')
-    const body: Record<string, unknown> = { pollSlug, rankings }
-    if (token) body.token = token
-    if (token && email.trim()) body.email = email.trim()
-    const res = await fetch('/api/ballots', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-    if (!res.ok) {
-      const data = await res.json()
-      setError(data.error || 'Failed to cast vote')
-      setSubmitting(false)
-      return
-    }
-    const data = await res.json()
-    onSuccess(data.receiptCode, Boolean(data.emailed))
-  }
-
-  return (
-    <div>
-      <RankedContest options={options} value={rankings} onChange={setRankings} />
-      {error && (
-        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-          <p className="text-sm text-red-600">{error}</p>
-        </div>
-      )}
-      <button
-        type="button"
-        onClick={handleSubmit}
-        disabled={submitting}
-        className="mt-6 w-full rounded-xl bg-chicago-red px-4 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-chicago-red-dark hover:shadow-md disabled:opacity-50"
-      >
-        {submitting ? 'Submitting...' : 'Submit vote'}
-      </button>
-    </div>
-  )
-}
-
-function ApprovalVoteForm({
-  pollSlug,
-  token,
-  options,
-  email,
-  onSuccess,
-}: {
-  pollSlug: string
-  token: string | null
-  options: Option[]
-  email: string
-  onSuccess: (receipt: string, emailed: boolean) => void
-}) {
-  const [approved, setApproved] = useState<string[]>([])
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
-
-  async function handleSubmit() {
-    setSubmitting(true)
-    setError('')
-    const body: Record<string, unknown> = { pollSlug, rankings: approved }
-    if (token) body.token = token
-    if (token && email.trim()) body.email = email.trim()
-    const res = await fetch('/api/ballots', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-    if (!res.ok) {
-      const data = await res.json()
-      setError(data.error || 'Failed to cast vote')
-      setSubmitting(false)
-      return
-    }
-    const data = await res.json()
-    onSuccess(data.receiptCode, Boolean(data.emailed))
-  }
-
-  return (
-    <div>
-      <ApprovalContest options={options} value={approved} onChange={setApproved} />
-      {error && (
-        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-          <p className="text-sm text-red-600">{error}</p>
-        </div>
-      )}
-      <button
-        type="button"
-        onClick={handleSubmit}
-        disabled={submitting}
-        className="mt-6 w-full rounded-xl bg-chicago-red px-4 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-chicago-red-dark hover:shadow-md disabled:opacity-50"
-      >
-        {submitting ? 'Submitting...' : 'Submit vote'}
-      </button>
-    </div>
-  )
-}
-
-function YesNoVoteForm({
-  pollSlug,
-  token,
-  options,
-  email,
-  onSuccess,
-}: {
-  pollSlug: string
-  token: string | null
-  options: Option[]
-  email: string
-  onSuccess: (receipt: string, emailed: boolean) => void
-}) {
-  const [votes, setVotes] = useState<Record<string, string>>({})
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
-
-  async function handleSubmit() {
-    setSubmitting(true)
-    setError('')
-    const body: Record<string, unknown> = { pollSlug, rankings: votes }
-    if (token) body.token = token
-    if (token && email.trim()) body.email = email.trim()
-    const res = await fetch('/api/ballots', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-    if (!res.ok) {
-      const data = await res.json()
-      setError(data.error || 'Failed to cast vote')
-      setSubmitting(false)
-      return
-    }
-    const data = await res.json()
-    onSuccess(data.receiptCode, Boolean(data.emailed))
-  }
-
-  const allVoted = options.every((o) => votes[o.id])
-
-  return (
-    <div>
-      <YesNoContest options={options} value={votes} onChange={setVotes} />
-      {error && (
-        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-          <p className="text-sm text-red-600">{error}</p>
-        </div>
-      )}
-      <button
-        type="button"
-        onClick={handleSubmit}
-        disabled={submitting || !allVoted}
-        className="mt-6 w-full rounded-xl bg-chicago-red px-4 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-chicago-red-dark hover:shadow-md disabled:opacity-50"
-      >
-        {submitting ? 'Submitting...' : 'Submit vote'}
-      </button>
-    </div>
-  )
-}
-
 export default function VoteForm({ pollSlug, token, options, votingMethod }: Props) {
   const router = useRouter()
   const { showToast } = useToast()
   const [receipt, setReceipt] = useState('')
   const [emailed, setEmailed] = useState(false)
   const [email, setEmail] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  const method = getMethod(votingMethod)
+  const [value, setValue] = useState(method.emptyBallot)
 
   // Anonymous voters reach this form with a token; registered voters do not.
   const isAnonymous = token !== null
 
-  function onSuccess(code: string, wasEmailed: boolean) {
-    setReceipt(code)
-    setEmailed(wasEmailed)
+  async function handleSubmit() {
+    setSubmitting(true)
+    setError('')
+    const body: Record<string, unknown> = { pollSlug, rankings: value }
+    if (token) body.token = token
+    if (token && email.trim()) body.email = email.trim()
+    const res = await fetch('/api/ballots', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) {
+      const data = await res.json()
+      setError(data.error || 'Failed to cast vote')
+      setSubmitting(false)
+      return
+    }
+    const data = await res.json()
+    setReceipt(data.receiptCode)
+    setEmailed(Boolean(data.emailed))
     showToast('Vote cast successfully!', 'success')
   }
 
@@ -250,6 +94,8 @@ export default function VoteForm({ pollSlug, token, options, votingMethod }: Pro
     )
   }
 
+  const BallotComponent = method.BallotComponent
+
   return (
     <div className="mt-6">
       {isAnonymous ? (
@@ -276,31 +122,22 @@ export default function VoteForm({ pollSlug, token, options, votingMethod }: Pro
           A confirmation with your receipt code will be emailed to your account.
         </p>
       )}
-      {votingMethod === 'approval' ? (
-        <ApprovalVoteForm
-          pollSlug={pollSlug}
-          token={token}
-          options={options}
-          email={email}
-          onSuccess={onSuccess}
-        />
-      ) : votingMethod === 'yesno' ? (
-        <YesNoVoteForm
-          pollSlug={pollSlug}
-          token={token}
-          options={options}
-          email={email}
-          onSuccess={onSuccess}
-        />
-      ) : (
-        <RankedVoteForm
-          pollSlug={pollSlug}
-          token={token}
-          options={options}
-          email={email}
-          onSuccess={onSuccess}
-        />
+
+      <BallotComponent options={options} value={value} onChange={setValue} />
+
+      {error && (
+        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
       )}
+      <button
+        type="button"
+        onClick={handleSubmit}
+        disabled={submitting}
+        className="mt-6 w-full rounded-xl bg-chicago-red px-4 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-chicago-red-dark hover:shadow-md disabled:opacity-50"
+      >
+        {submitting ? 'Submitting...' : 'Submit vote'}
+      </button>
     </div>
   )
 }

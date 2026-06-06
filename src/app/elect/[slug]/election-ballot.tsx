@@ -2,9 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import ApprovalContest from '@/components/ballot/approval-contest'
-import RankedContest from '@/components/ballot/ranked-contest'
-import YesNoContest from '@/components/ballot/yesno-contest'
+import { getMethod } from '@/lib/voting-methods'
 
 interface Option {
   id: string
@@ -302,35 +300,25 @@ export default function ElectionBallot({
                 </button>
               </div>
 
-              {!isSkipped && contest.votingMethod === 'yesno' && (
-                <YesNoContest
-                  options={contest.options}
-                  value={
-                    (selections[contest.id] as { type: 'yesno'; value: Record<string, string> })
-                      ?.value || {}
-                  }
-                  onChange={(value) => updateSelection(contest.id, { type: 'yesno', value })}
-                />
-              )}
-
-              {!isSkipped && contest.votingMethod === 'approval' && (
-                <ApprovalContest
-                  options={contest.options}
-                  value={
-                    (selections[contest.id] as { type: 'approval'; value: string[] })?.value || []
-                  }
-                  onChange={(value) => updateSelection(contest.id, { type: 'approval', value })}
-                />
-              )}
-
-              {!isSkipped && (contest.votingMethod === 'rcv' || contest.votingMethod === 'stv') && (
-                <RankedContest
-                  options={contest.options}
-                  value={
-                    (selections[contest.id] as { type: 'ranked'; value: string[] })?.value || []
-                  }
-                  onChange={(value) => updateSelection(contest.id, { type: 'ranked', value })}
-                />
+              {!isSkipped && (
+                (() => {
+                  const method = getMethod(contest.votingMethod)
+                  const BallotComponent = method.BallotComponent
+                  const raw = selections[contest.id]
+                  const value = raw?.value ?? method.emptyBallot()
+                  return (
+                    <BallotComponent
+                      options={contest.options}
+                      value={value}
+                      onChange={(next) =>
+                        updateSelection(contest.id, {
+                          type: method.ballotShape === 'map' ? 'yesno' : 'ranked',
+                          value: next,
+                        } as ContestSelection)
+                      }
+                    />
+                  )
+                })()
               )}
 
               {isSkipped && (

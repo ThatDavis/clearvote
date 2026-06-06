@@ -1,49 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-
-interface VotingMethod {
-  id: string
-  label: string
-  shortDesc: string
-  fullDesc: string
-  bestFor: string
-}
-
-const methods: VotingMethod[] = [
-  {
-    id: 'rcv',
-    label: 'Ranked Choice',
-    shortDesc: 'Rank candidates in order',
-    fullDesc:
-      'Voters rank candidates from first to last choice. If no one wins a majority, the last-place candidate is eliminated and their votes transfer to the next choice. Repeat until someone has a majority.',
-    bestFor: 'Electing a single winner when you want broad consensus',
-  },
-  {
-    id: 'stv',
-    label: 'Multi-winner',
-    shortDesc: 'Rank candidates, multiple winners',
-    fullDesc:
-      'Like ranked choice, but elects multiple winners. Surplus votes from winners and eliminated candidates transfer proportionally. Ensures diverse representation.',
-    bestFor: 'Electing boards, committees, or councils',
-  },
-  {
-    id: 'approval',
-    label: 'Approval',
-    shortDesc: 'Vote for any number you like',
-    fullDesc:
-      'Voters can select as many candidates as they approve of. The candidate with the most approvals wins. Simple, fast, and reduces strategic voting.',
-    bestFor: 'Quick decisions or when simplicity matters most',
-  },
-  {
-    id: 'yesno',
-    label: 'Yes / No',
-    shortDesc: 'Approve or reject each option',
-    fullDesc:
-      'Each option is voted on individually as a yes or no. Options that meet the pass threshold are approved. Great for referendums or multiple proposals.',
-    bestFor: 'Referendums, bylaw changes, or multiple proposals',
-  },
-]
+import { ALL_METHODS } from '@/lib/voting-methods'
 
 interface VotingMethodSelectorProps {
   value: string
@@ -52,13 +10,13 @@ interface VotingMethodSelectorProps {
 
 export default function VotingMethodSelector({ value, onChange }: VotingMethodSelectorProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null)
-  const activeMethod = methods.find((m) => m.id === value)
-  const hoveredMethod = methods.find((m) => m.id === hoveredId)
+  const activeMethod = ALL_METHODS.find((m) => m.id === value)
+  const hoveredMethod = ALL_METHODS.find((m) => m.id === hoveredId)
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2">
-        {methods.map((method) => (
+        {ALL_METHODS.map((method) => (
           <button
             key={method.id}
             type="button"
