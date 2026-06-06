@@ -1,5 +1,5 @@
-import { tallyYesNo } from '@/lib/yesno'
 import YesNoContest from '@/components/ballot/yesno-contest'
+import { tallyYesNo } from '@/lib/yesno'
 import type { VotingMethodDef } from './types'
 
 export const yesno: VotingMethodDef = {
@@ -15,11 +15,7 @@ export const yesno: VotingMethodDef = {
   emptyBallot: () => ({}),
   tally: (options, ballots, cfg) => ({
     kind: 'yesno',
-    result: tallyYesNo(
-      options,
-      (ballots as { rankings: Record<string, string> }[]),
-      cfg.threshold,
-    ),
+    result: tallyYesNo(options, ballots as { rankings: Record<string, string> }[], cfg.threshold),
   }),
   validateBallot: (raw, options) => {
     if (typeof raw !== 'object' || raw === null || Array.isArray(raw))

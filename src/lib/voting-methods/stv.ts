@@ -1,5 +1,5 @@
-import { tallyStv } from '@/lib/stv'
 import RankedContest from '@/components/ballot/ranked-contest'
+import { tallyStv } from '@/lib/stv'
 import type { VotingMethodDef } from './types'
 
 export const stv: VotingMethodDef = {
@@ -15,11 +15,7 @@ export const stv: VotingMethodDef = {
   emptyBallot: () => [],
   tally: (options, ballots, cfg) => ({
     kind: 'stv',
-    rounds: tallyStv(
-      options,
-      (ballots as { rankings: string[] }[]),
-      cfg.seats,
-    ),
+    rounds: tallyStv(options, ballots as { rankings: string[] }[], cfg.seats),
   }),
   validateBallot: (raw, options) => {
     if (!Array.isArray(raw) || raw.length === 0) {

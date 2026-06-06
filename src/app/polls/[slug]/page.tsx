@@ -1,15 +1,15 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { auth } from '@/auth'
-import { prisma } from '@/lib/prisma'
-import { POLL_CONFIG } from '@/lib/entity-config'
 import AuditTrail from '@/components/manage/audit-trail'
+import StatusControls from '@/components/manage/status-controls'
+import TokenGenerator from '@/components/manage/token-generator'
+import { POLL_CONFIG } from '@/lib/entity-config'
+import { prisma } from '@/lib/prisma'
 import DeletePollButton from './delete-poll-button'
 import OrgPollDistributor from './org-poll-distributor'
 import PollDistributor from './poll-distributor'
 import PollEditor from './poll-editor'
-import StatusControls from '@/components/manage/status-controls'
-import TokenGenerator from '@/components/manage/token-generator'
 
 export default async function PollPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params

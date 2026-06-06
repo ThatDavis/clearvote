@@ -76,10 +76,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'This poll is not accepting votes' }, { status: 400 })
     }
 
-    const validated = getMethod(poll.votingMethod).validateBallot(
-      rankings,
-      poll.options,
-    )
+    const validated = getMethod(poll.votingMethod).validateBallot(rankings, poll.options)
     if (!validated.ok) {
       return NextResponse.json({ error: validated.error }, { status: 400 })
     }

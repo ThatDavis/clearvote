@@ -1,9 +1,9 @@
-import { describe, it, expect } from 'vitest'
-import { ALL_METHODS, VOTING_METHODS, getMethod } from '..'
-import { tallyRcv } from '@/lib/tally'
-import { tallyStv } from '@/lib/stv'
+import { describe, expect, it } from 'vitest'
 import { tallyApproval } from '@/lib/approval'
+import { tallyStv } from '@/lib/stv'
+import { tallyRcv } from '@/lib/tally'
 import { tallyYesNo } from '@/lib/yesno'
+import { ALL_METHODS, getMethod, VOTING_METHODS } from '..'
 
 const options = [
   { id: 'a', label: 'Alpha' },
@@ -24,11 +24,7 @@ const stvBallots = [
   { rankings: ['c', 'b', 'a'] },
 ]
 
-const approvalBallots = [
-  { rankings: ['a', 'b'] },
-  { rankings: ['b', 'c'] },
-  { rankings: ['a'] },
-]
+const approvalBallots = [{ rankings: ['a', 'b'] }, { rankings: ['b', 'c'] }, { rankings: ['a'] }]
 
 const yesnoBallots = [
   { rankings: { a: 'yes', b: 'no', c: 'abstain' } },
@@ -65,7 +61,10 @@ describe('voting-method registry', () => {
   })
 
   it('approval adapter equals tallyApproval', () => {
-    const adapter = getMethod('approval').tally(options, approvalBallots, { seats: 1, threshold: 50 })
+    const adapter = getMethod('approval').tally(options, approvalBallots, {
+      seats: 1,
+      threshold: 50,
+    })
     const direct = tallyApproval(options, approvalBallots, 1)
     expect(adapter.kind).toBe('approval')
     expect((adapter as { result: unknown }).result).toEqual(direct)
