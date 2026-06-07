@@ -12,7 +12,7 @@ export default function Home() {
           ClearVote
         </h1>
         <p className="text-lg leading-8 text-zinc-600">
-          A simple ranked-choice voting system for community-run spaces.
+          An open-source, free, poll and general voting system for individuals and community-run spaces.
         </p>
         <div className="flex flex-col gap-3 sm:flex-row">
           <Link
@@ -33,7 +33,7 @@ export default function Home() {
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            Create a poll
+            Join
           </Link>
           <Link
             href="/verify"
@@ -59,7 +59,7 @@ export default function Home() {
 
         <div className="mt-8 grid grid-cols-3 gap-4 text-center">
           {[
-            { label: 'Ranked Choice', desc: 'Instant runoff voting' },
+            { label: 'Ranked Choice', desc: 'Ditch first past the post' },
             { label: 'Multi-winner', desc: 'Proportional representation' },
             { label: 'Approval', desc: 'Vote for all you like' },
           ].map((feature) => (
