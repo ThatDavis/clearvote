@@ -3,7 +3,7 @@
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-export default function VerifyPage() {
+export default function VerifyEmailPage() {
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
 

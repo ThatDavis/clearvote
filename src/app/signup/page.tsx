@@ -42,7 +42,7 @@ export default function SignupPage() {
       },
     })
 
-    const verifyLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/verify?token=${token}`
+    const verifyLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/verify-email?token=${token}`
     await sendVerificationEmail({ to: email, verifyLink })
 
     await sendWelcomeEmail({ to: email, name })
