@@ -13,7 +13,8 @@ export default function Home() {
           ClearVote
         </h1>
         <p className="text-lg leading-8 text-zinc-600">
-          An open-source, free, poll and general voting system for individuals and community-run spaces.
+          An open-source, free, poll and general voting system for individuals and community-run
+          spaces.
         </p>
         <div className="flex flex-col gap-3 sm:flex-row">
           <Link
