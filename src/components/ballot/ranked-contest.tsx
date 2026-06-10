@@ -15,6 +15,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { useEffect } from 'react'
 
 interface Option {
   id: string
@@ -76,6 +77,14 @@ export default function RankedContest({ options, value, onChange }: Props) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
   const ranking = Array.isArray(value) ? value : []
+
+  // Default order counts as a ranking; emit it so the voter does not have to drag
+  // if the displayed order is their intended preference.
+  useEffect(() => {
+    if (ranking.length === 0 && options.length > 0) {
+      onChange(options.map((o) => o.id))
+    }
+  }, [ranking.length, options, onChange])
   const orderedOptions =
     ranking.length > 0
       ? (ranking.map((id) => options.find((o) => o.id === id)).filter(Boolean) as Option[])
