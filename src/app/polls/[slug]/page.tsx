@@ -62,11 +62,15 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
   const methodDef = getMethod(poll.votingMethod)
   const locked = poll.status !== 'draft'
 
+  const backHref = poll.organization?.slug
+    ? `/org/${poll.organization.slug}/dashboard`
+    : '/dashboard'
+
   return (
     <div className="w-full px-[10%] py-8">
       <div className="flex items-center gap-3">
         <Link
-          href="/"
+          href={backHref}
           className="inline-flex items-center gap-1 text-sm text-zinc-500 transition-colors hover:text-chicago-navy"
         >
           <svg
@@ -83,7 +87,7 @@ export default async function PollPage({ params }: { params: Promise<{ slug: str
               d="M10 19l-7-7m0 0l7-7m-7 7h18"
             />
           </svg>
-          Home
+          Back
         </Link>
         <span
           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${status?.bg || 'bg-zinc-100'} ${status?.color || 'text-zinc-700'}`}
