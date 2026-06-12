@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import ResultsView from '@/components/results-view'
 import { audit } from '@/lib/audit'
@@ -53,7 +54,28 @@ export default async function ElectionResultsPage({
 
   return (
     <div className="w-full px-[10%] py-8">
-      <h1 className="text-2xl font-semibold tracking-tight">{election.title}</h1>
+      <Link
+        href={`/elections/${slug}`}
+        className="inline-flex items-center gap-1 text-sm text-zinc-500 transition-colors hover:text-chicago-navy"
+      >
+        <svg
+          aria-hidden="true"
+          className="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          />
+        </svg>
+        Back to election
+      </Link>
+
+      <h1 className="mt-4 text-2xl font-semibold tracking-tight">{election.title}</h1>
       {election.description && <p className="mt-2 text-zinc-600">{election.description}</p>}
 
       <div className="mt-4 flex items-center gap-4 text-sm text-zinc-500">
