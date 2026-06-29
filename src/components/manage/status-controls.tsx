@@ -33,6 +33,7 @@ export default function StatusControls({ entity, slug, status }: Props) {
     }
 
     router.refresh()
+    setLoading(false)
   }
 
   if (status === 'draft') {
