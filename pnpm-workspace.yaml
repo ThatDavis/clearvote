@@ -2,6 +2,8 @@ packages:
   - '.'
 overrides:
   hono: '>=4.12.25'
+  nodemailer: '>=9.0.1'
+  undici: '^7.28.0'
 allowBuilds:
   '@prisma/engines': true
   prisma: true
