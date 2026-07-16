@@ -3,6 +3,7 @@ import { auth } from '@/auth'
 import { audit } from '@/lib/audit'
 import { canManageElection } from '@/lib/election'
 import { prisma } from '@/lib/prisma'
+import { sendElectionResultsEmails } from '@/lib/results-email'
 import { getMethod } from '@/lib/voting-methods'
 
 const validTransitions: Record<string, string[]> = {
@@ -127,6 +128,13 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
     entityId: election.id,
     action: status === 'open' ? 'election_opened' : 'election_closed',
   })
+
+  // Email results to opted-in voters when the election closes
+  if (status === 'closed') {
+    await sendElectionResultsEmails(election.id, slug, election.title).catch((err) => {
+      console.error('Failed to send election results emails:', err)
+    })
+  }
 
   return NextResponse.json(updated)
 }

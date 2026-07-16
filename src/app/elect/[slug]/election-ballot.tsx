@@ -51,6 +51,7 @@ export default function ElectionBallot({
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [receiptCode, setReceiptCode] = useState('')
+  const [wantsResultsEmail, setWantsResultsEmail] = useState(false)
 
   const totalContests = contests.length
   const completedContests = contests.filter((c) => {
@@ -99,6 +100,7 @@ export default function ElectionBallot({
       })),
     }
     if (token) body.token = token
+    if (!token && wantsResultsEmail) body.wantsResultsEmail = true
 
     try {
       const res = await fetch(`/api/elections/${election.slug}/ballots`, {
@@ -205,6 +207,20 @@ export default function ElectionBallot({
         </div>
 
         {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+
+        {!token && (
+          <label className="mt-6 flex items-start gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+            <input
+              type="checkbox"
+              checked={wantsResultsEmail}
+              onChange={(e) => setWantsResultsEmail(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-chicago-red focus:ring-chicago-blue"
+            />
+            <span className="text-sm text-zinc-700">
+              Email me the results when this election closes
+            </span>
+          </label>
+        )}
 
         <div className="mt-8 flex gap-3">
           <button

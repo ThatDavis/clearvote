@@ -34,7 +34,7 @@ Multi-tenant grouping. Members have a `role` of `admin` or `member`. Invites sto
 `email` (unique), `name`, `passwordHash` (bcrypt), and `emailVerified` (nullable timestamp - verification is required).
 
 ### Poll
-The central object. A standalone poll has `electionId = null`; a poll with an `electionId` is a **contest** inside an [election](Elections.md). Key fields:
+The central object for standalone polls. Key fields:
 
 | Field | Meaning |
 |-------|---------|
@@ -57,17 +57,17 @@ The choices on a ballot. `label` plus an `order` for display.
 Anonymous one-time-use voting credential. Stores `tokenHash` (unique per poll), not the token. `usedAt` enforces single use.
 
 ### VoterRoll
-Authenticated eligibility. `@@unique([pollId, userId])` plus `hasVoted` / `votedAt` enforce one vote per person while keeping the ballot itself anonymous.
+Authenticated eligibility. `@@unique([pollId, userId])` plus `hasVoted` / `votedAt` enforce one vote per person while keeping the ballot itself anonymous. `wantsResultsEmail` (default `false`) is set by the voter at ballot submission; when true and the voter has voted, they receive a results email when the poll closes.
 
 ### AuditLog
 Append-only event log per poll (`action`, optional `detail`, `createdAt`). Written via `src/lib/audit.ts`. See [Security Model](Security-Model.md#audit-logging).
 
 ## Election tables (Milestone 6)
 
-An `Election` is a container for multiple `Poll` contests sharing one credential set. See [Elections](Elections.md) for the design rationale.
+An `Election` is a container for multiple `Contest` rows sharing one credential set. See [Elections](Elections.md) for the design rationale.
 
-- **Election** - `slug`, `status`, scheduling, ownership; relations to contests (`Poll`), tokens, rolls, receipts, audit logs.
-- **ElectionVoterToken / ElectionVoterRoll** - election-scoped equivalents of `VoterToken` / `VoterRoll`. Both carry a reserved nullable `ballotStyleId` (`null` = sees all contests) so ballot styles can be added later with no credential-table migration.
+- **Election** - `slug`, `status`, scheduling, ownership; relations to contests (`Contest`), tokens, rolls, receipts, audit logs.
+- **ElectionVoterToken / ElectionVoterRoll** - election-scoped equivalents of `VoterToken` / `VoterRoll`. Both carry a reserved nullable `ballotStyleId` (`null` = sees all contests) so ballot styles can be added later with no credential-table migration. `ElectionVoterRoll.wantsResultsEmail` (default `false`) mirrors the poll roll: when set at ballot submission, the voter receives a results email on election close.
 - **ElectionReceipt** - one receipt per ballot *package* (the whole multi-contest submission), not per contest. Not linked to individual `Ballot` rows.
 - **ElectionAuditLog** - append-only log scoped to the election.
 
@@ -86,6 +86,7 @@ History lives in `prisma/migrations/`:
 - `add_org_invites`
 - `add_email_verification`
 - `add_election_models`
+- `add_wants_results_email`
 - `add_privacy_threshold`
 
 Use `pnpm db:migrate` (dev) to create/apply migrations and `pnpm db:generate` to regenerate the client. See [Development Setup](Development-Setup.md).

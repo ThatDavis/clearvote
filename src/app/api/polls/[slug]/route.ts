@@ -4,6 +4,7 @@ import { audit } from '@/lib/audit'
 import { canManagePoll } from '@/lib/auth'
 import { sendPollOpenNotification } from '@/lib/email'
 import { prisma } from '@/lib/prisma'
+import { sendPollResultsEmails } from '@/lib/results-email'
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -121,6 +122,13 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ sl
         })
       }
     }
+  }
+
+  // Email results to opted-in voters when the poll closes
+  if (status === 'closed') {
+    await sendPollResultsEmails(poll.id, slug, poll.title).catch((err) => {
+      console.error('Failed to send poll results emails:', err)
+    })
   }
 
   return NextResponse.json(updated)

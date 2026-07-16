@@ -5,6 +5,7 @@ import { audit } from '@/lib/audit'
 import { sendVoteConfirmation } from '@/lib/email'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
+import { sendPollResultsEmails } from '@/lib/results-email'
 import { hashToken } from '@/lib/token'
 import { getMethod } from '@/lib/voting-methods'
 
@@ -32,11 +33,12 @@ export async function POST(request: Request) {
 
     const session = await auth()
     const body = await request.json()
-    const { pollSlug, token, rankings, email } = body as {
+    const { pollSlug, token, rankings, email, wantsResultsEmail } = body as {
       pollSlug?: string
       token?: string
       rankings?: string[] | Record<string, string>
       email?: string
+      wantsResultsEmail?: boolean
     }
 
     if (!pollSlug) {
@@ -63,6 +65,12 @@ export async function POST(request: Request) {
         data: { status: 'closed' },
       })
       poll.status = 'closed'
+
+      // Best-effort results emails to opted-in voters. A failure must never
+      // block or roll back the close - emails are fire-and-forget.
+      await sendPollResultsEmails(poll.id, poll.slug, poll.title).catch(() => {
+        console.error('Failed to send poll results emails on auto-close')
+      })
     }
 
     if (poll.status !== 'open') {
@@ -134,7 +142,7 @@ export async function POST(request: Request) {
       } else if (session?.user?.id) {
         const claimed = await tx.voterRoll.updateMany({
           where: { pollId: poll.id, userId: session.user.id, hasVoted: false },
-          data: { hasVoted: true, votedAt: new Date() },
+          data: { hasVoted: true, votedAt: new Date(), wantsResultsEmail: !!wantsResultsEmail },
         })
         if (claimed.count !== 1) throw new AlreadyVotedError()
       }

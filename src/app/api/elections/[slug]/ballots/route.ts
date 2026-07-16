@@ -4,6 +4,7 @@ import { auth } from '@/auth'
 import { audit } from '@/lib/audit'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
+import { sendElectionResultsEmails } from '@/lib/results-email'
 import { hashToken } from '@/lib/token'
 import { getMethod } from '@/lib/voting-methods'
 
@@ -29,9 +30,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
 
     const session = await auth()
     const body = await request.json()
-    const { token, contests } = body as {
+    const { token, contests, wantsResultsEmail } = body as {
       token?: string
       contests?: { contestId: string; rankings: unknown }[]
+      wantsResultsEmail?: boolean
     }
 
     if (!contests || !Array.isArray(contests) || contests.length === 0) {
@@ -58,6 +60,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
         data: { status: 'closed' },
       })
       election.status = 'closed'
+
+      // Best-effort results emails to opted-in voters.
+      await sendElectionResultsEmails(election.id, slug, election.title).catch(() => {
+        console.error('Failed to send election results emails on auto-close')
+      })
     }
 
     if (election.status !== 'open') {
@@ -120,7 +127,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
             userId: session.user.id,
             hasVoted: false,
           },
-          data: { hasVoted: true, votedAt: new Date() },
+          data: { hasVoted: true, votedAt: new Date(), wantsResultsEmail: !!wantsResultsEmail },
         })
         if (claimed.count !== 1) throw new AlreadyVotedError()
       } else {

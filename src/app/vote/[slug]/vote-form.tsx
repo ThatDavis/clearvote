@@ -25,6 +25,7 @@ export default function VoteForm({ pollSlug, token, options, votingMethod }: Pro
   const [email, setEmail] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [wantsResultsEmail, setWantsResultsEmail] = useState(false)
 
   const method = getMethod(votingMethod)
   const [value, setValue] = useState(method.emptyBallot)
@@ -38,6 +39,7 @@ export default function VoteForm({ pollSlug, token, options, votingMethod }: Pro
     const body: Record<string, unknown> = { pollSlug, rankings: value }
     if (token) body.token = token
     if (token && email.trim()) body.email = email.trim()
+    if (!token && wantsResultsEmail) body.wantsResultsEmail = true
     const res = await fetch('/api/ballots', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -118,9 +120,22 @@ export default function VoteForm({ pollSlug, token, options, votingMethod }: Pro
           </p>
         </div>
       ) : (
-        <p className="mb-6 text-sm text-zinc-500">
-          A confirmation with your receipt code will be emailed to your account.
-        </p>
+        <div className="mb-6 space-y-3">
+          <p className="text-sm text-zinc-500">
+            A confirmation with your receipt code will be emailed to your account.
+          </p>
+          <label className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              checked={wantsResultsEmail}
+              onChange={(e) => setWantsResultsEmail(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-chicago-red focus:ring-chicago-blue"
+            />
+            <span className="text-sm text-zinc-700">
+              Email me the results when this vote closes
+            </span>
+          </label>
+        </div>
       )}
 
       <BallotComponent options={options} value={value} onChange={setValue} />
