@@ -8,7 +8,7 @@ The schema lives in `prisma/schema.prisma` (PostgreSQL via Prisma 7). This page 
 Organization 1─* OrganizationMember *─1 User
 Organization 1─* OrganizationInvite
 Organization 1─* Poll
-Organization 1─* Election 1─* Poll (contests)
+Organization 1─* Election 1─* Contest
 
 User 1─* Poll (creator)
 User 1─* EmailVerificationToken
@@ -42,6 +42,7 @@ The central object. A standalone poll has `electionId = null`; a poll with an `e
 | `votingMethod` | `rcv` \| `stv` \| `approval` (default `rcv`) |
 | `seats` | winners for STV/approval (default 1) |
 | `threshold` | pass % for yes/no (default 50) |
+| `privacyThreshold` | ballot-count cutoff for small-electorate suppression (default 10) |
 | `status` | `draft` \| `open` \| `closed` (lifecycle) |
 | `startsAt` / `endsAt` | optional scheduling window |
 | `creatorId` / `organizationId` | ownership (both nullable) |
@@ -85,5 +86,6 @@ History lives in `prisma/migrations/`:
 - `add_org_invites`
 - `add_email_verification`
 - `add_election_models`
+- `add_privacy_threshold`
 
 Use `pnpm db:migrate` (dev) to create/apply migrations and `pnpm db:generate` to regenerate the client. See [Development Setup](Development-Setup.md).

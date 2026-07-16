@@ -59,7 +59,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
       )
 
       const shuffledBallots =
-        contest.ballots.length >= 10 ? seededShuffle(contest.ballots, contest.id) : []
+        contest.ballots.length >= contest.privacyThreshold
+          ? seededShuffle(contest.ballots, contest.id)
+          : []
 
       return {
         id: contest.id,

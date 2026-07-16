@@ -114,7 +114,7 @@ export default async function ElectionResultsPage({
                 ballots={contest.ballots}
                 cfg={{ seats: contest.seats, threshold: contest.threshold }}
                 showBallots={election.status === 'closed'}
-                privacyThreshold={10}
+                privacyThreshold={contest.privacyThreshold}
                 shuffleSeed={contest.id}
               />
             </div>

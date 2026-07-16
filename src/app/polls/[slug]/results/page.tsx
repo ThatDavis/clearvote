@@ -85,6 +85,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ slug: 
           ballots={poll.ballots}
           cfg={{ seats: poll.seats, threshold: poll.threshold }}
           showBallots={status === 'closed'}
+          privacyThreshold={poll.privacyThreshold}
           shuffleSeed={poll.id}
         />
       </div>
