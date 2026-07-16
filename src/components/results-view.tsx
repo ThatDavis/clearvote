@@ -1,3 +1,4 @@
+import BarChart from '@/components/charts/bar-chart'
 import { seededShuffle } from '@/lib/shuffle'
 import type { OptionInput } from '@/lib/tally'
 import { getMethod } from '@/lib/voting-methods'
@@ -54,14 +55,23 @@ export default function ResultsView({
     tallyDetail = (
       <div className="mt-4">
         <h3 className="text-sm font-semibold">Approval counts</h3>
-        <ul className="mt-2 divide-y divide-zinc-200 rounded-lg border border-zinc-200">
-          {approvalResult.votes.map((v) => (
-            <li key={v.optionId} className="flex items-center justify-between px-4 py-2 text-sm">
-              <span>{v.label}</span>
-              <span className="font-mono tabular-nums">{v.count}</span>
-            </li>
-          ))}
-        </ul>
+        <BarChart
+          className="mt-2"
+          ariaLabel="Approval counts per option"
+          bars={approvalResult.votes.map((v) => ({
+            label: v.label,
+            segments: [
+              {
+                value: v.count,
+                label: 'Approvals',
+                className: approvalResult.elected.includes(v.optionId)
+                  ? 'bg-green-500'
+                  : 'bg-chicago-navy',
+              },
+            ],
+            caption: v.count,
+          }))}
+        />
       </div>
     )
   } else if (result.kind === 'yesno') {
@@ -76,7 +86,21 @@ export default function ResultsView({
     tallyDetail = (
       <div className="mt-4">
         <h3 className="text-sm font-semibold">Results</h3>
-        <ul className="mt-2 divide-y divide-zinc-200 rounded-lg border border-zinc-200">
+        <BarChart
+          className="mt-2"
+          mode="relative"
+          ariaLabel="Yes and no votes per option"
+          thresholdPct={cfg.threshold}
+          thresholdLabel={`Threshold: ${cfg.threshold}% yes`}
+          bars={yesNoResult.votes.map((v) => ({
+            label: v.label,
+            segments: [
+              { value: v.yesCount, label: 'Yes', className: 'bg-green-500' },
+              { value: v.noCount, label: 'No', className: 'bg-red-500' },
+            ],
+          }))}
+        />
+        <ul className="mt-4 divide-y divide-zinc-200 rounded-lg border border-zinc-200">
           {yesNoResult.votes.map((v) => (
             <li key={v.optionId} className="px-4 py-2 text-sm">
               <div className="flex items-center justify-between">
@@ -125,14 +149,22 @@ export default function ResultsView({
                 )}
               </h4>
               <p className="mt-1 text-xs text-zinc-400">Quota: {r.quota}</p>
-              <ul className="mt-2 space-y-1">
-                {r.votes.map((v) => (
-                  <li key={v.optionId} className="flex items-center justify-between text-sm">
-                    <span>{v.label}</span>
-                    <span className="font-mono tabular-nums">{v.count}</span>
-                  </li>
-                ))}
-              </ul>
+              <BarChart
+                ariaLabel={`Round ${r.round} vote counts`}
+                bars={r.votes.map((v) => ({
+                  label: v.label,
+                  segments: [
+                    {
+                      value: v.count,
+                      label: 'Votes',
+                      className: r.elected.includes(v.optionId)
+                        ? 'bg-green-500'
+                        : 'bg-chicago-navy',
+                    },
+                  ],
+                  caption: v.count,
+                }))}
+              />
             </div>
           ))}
         </div>
@@ -174,14 +206,20 @@ export default function ResultsView({
                   Round {r.round}
                   {r.winner && <span className="ml-2 text-green-600">- Winner</span>}
                 </h4>
-                <ul className="mt-2 space-y-1">
-                  {r.votes.map((v) => (
-                    <li key={v.optionId} className="flex items-center justify-between text-sm">
-                      <span>{v.label}</span>
-                      <span className="font-mono tabular-nums">{v.count}</span>
-                    </li>
-                  ))}
-                </ul>
+                <BarChart
+                  ariaLabel={`Round ${r.round} vote counts`}
+                  bars={r.votes.map((v) => ({
+                    label: v.label,
+                    segments: [
+                      {
+                        value: v.count,
+                        label: 'Votes',
+                        className: r.winner === v.optionId ? 'bg-green-500' : 'bg-chicago-navy',
+                      },
+                    ],
+                    caption: v.count,
+                  }))}
+                />
               </div>
             ))}
           </div>
