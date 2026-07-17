@@ -259,3 +259,41 @@ export async function sendVoteConfirmation({
     `,
   })
 }
+
+// Results email sent when a vote closes, to voters who opted in at ballot
+// submission. When resultsHtml is provided (ballotCount >= privacy threshold),
+// the email includes the full results summary. When null, it sends a link only
+// with a small-electorate privacy explanation. The recipient↔ballot pairing
+// is never persisted or logged - same secrecy rule as sendVoteConfirmation.
+export async function sendResultsEmail({
+  to,
+  title,
+  resultsLink,
+  resultsHtml,
+}: {
+  to: string
+  title: string
+  resultsLink: string
+  resultsHtml: string | null
+}) {
+  const resultsSection =
+    resultsHtml !== null
+      ? `<p style="color:#4a4a4a; line-height:1.6; margin-bottom:16px;">Results for <strong>${title}</strong> are in.</p>${resultsHtml}`
+      : `<p style="color:#4a4a4a; line-height:1.6; margin-bottom:16px;">Voting has closed for <strong>${title}</strong>.</p><p style="color:#9ca3af; font-size:13px; line-height:1.5; margin-bottom:16px;">Per-ballot details are withheld for small-electorate privacy.</p>`
+
+  return sendEmail({
+    to,
+    subject: `Results are in: ${title}`,
+    html: `
+      <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+        ${emailHeader}
+        <h1 style="color: #1a1a1a; font-size: 20px; margin-bottom: 16px;">Vote results</h1>
+        ${resultsSection}
+        <a href="${resultsLink}" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 500; margin-top: 8px;">View full results</a>
+        <p style="color: #6a6a6a; font-size: 14px; margin-top: 24px;">
+          Or copy this link: ${resultsLink}
+        </p>
+      </div>
+    `,
+  })
+}

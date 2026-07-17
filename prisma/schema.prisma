@@ -149,6 +149,7 @@ model VoterRoll {
   userId    String
   hasVoted  Boolean   @default(false)
   votedAt   DateTime?
+  wantsResultsEmail Boolean @default(false)
 
   poll Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id])
@@ -264,6 +265,7 @@ model ElectionVoterRoll {
   ballotStyleId String?
   hasVoted      Boolean   @default(false)
   votedAt       DateTime?
+  wantsResultsEmail Boolean @default(false)
 
   election Election @relation(fields: [electionId], references: [id], onDelete: Cascade)
   user     User     @relation(fields: [userId], references: [id])
