@@ -110,11 +110,11 @@ export default function Home() {
           <div className="px-6">
             <div className="mx-auto mb-16 max-w-2xl text-center">
               <p className="mb-4 font-display text-4xl font-bold text-chicago-navy">
-                Four methods. One trustworthy box.
+                Four ways to vote.
               </p>
               <p className="text-lg text-text-muted">
-                Pick the counting rule that fits your election. Each is a pure function - results
-                reproducible from raw ballots, no database required.
+                Ranked-choice, STV, approval, or yes/no. Pick whatever fits your group and start a
+                poll.
               </p>
             </div>
 

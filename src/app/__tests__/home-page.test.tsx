@@ -28,6 +28,6 @@ describe('Home page', () => {
 
   it('intro section header on the card band', () => {
     render(<Home />)
-    expect(screen.getByText('Four methods. One trustworthy box.')).toBeDefined()
+    expect(screen.getByText('Four ways to vote.')).toBeDefined()
   })
 })

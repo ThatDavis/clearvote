@@ -5,8 +5,8 @@ import AboutPage from '@/app/about/page'
 describe('About page', () => {
   it('renders the hero headline and subhead', () => {
     render(<AboutPage />)
-    expect(screen.getByText('Voting you can trust.')).toBeDefined()
-    expect(screen.getByText(/Built by one developer, for small communities/)).toBeDefined()
+    expect(screen.getByText('About ClearVote.')).toBeDefined()
+    expect(screen.getByText(/A side project to make ranked-choice voting/)).toBeDefined()
   })
 
   it('renders the three body sections', () => {
