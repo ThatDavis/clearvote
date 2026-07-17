@@ -75,8 +75,18 @@ The app runs at `http://localhost:3000`.
 
 To promote a user to system admin (needed once to set up the first admin):
 
+**Development:**
+
 ```bash
 pnpm tsx scripts/make-admin.ts alice@example.com
+```
+
+**Docker (production):** The container doesn't include `pnpm` or `tsx`. Use `psql` on the database container instead:
+
+```bash
+docker compose -f docker-compose.prod.yml exec db \
+  psql -U clearvote -d clearvote \
+  -c "UPDATE \"User\" SET role = 'admin' WHERE email = 'alice@example.com';"
 ```
 
 This sets `User.role = 'admin'` for the given email. Once the first admin exists, they can manage users from the `/admin` dashboard. See [Security Model](Security-Model.md#authentication-and-authorization).

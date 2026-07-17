@@ -101,6 +101,16 @@ docker compose -f docker-compose.prod.yml up -d
 
 After deploying, promote your first system admin so you can manage users from the `/admin` dashboard:
 
+**Docker deployment:**
+
+```bash
+docker compose -f docker-compose.prod.yml exec db \
+  psql -U clearvote -d clearvote \
+  -c "UPDATE \"User\" SET role = 'admin' WHERE email = 'alice@example.com';"
+```
+
+**Development:**
+
 ```bash
 pnpm tsx scripts/make-admin.ts alice@example.com
 ```
@@ -123,6 +133,8 @@ Promote a user to system admin after signing up:
 ```bash
 pnpm tsx scripts/make-admin.ts alice@example.com
 ```
+
+(Docker deployments: use the SQL command in [Admin setup](#admin-setup) above.)
 
 See the [development setup guide](wiki/Development-Setup.md) for full details.
 
