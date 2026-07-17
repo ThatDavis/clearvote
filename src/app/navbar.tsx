@@ -4,8 +4,8 @@ import AuthStatus from './auth-status'
 
 export default function Navbar() {
   return (
-    <nav className="bg-white/80 backdrop-blur-sm sticky top-0 z-40">
-      <div className="flex items-center justify-between px-6 py-3 sm:px-10 lg:px-[10%]">
+    <nav className="sticky top-0 z-40 mx-auto w-[80%] rounded-b-2xl bg-white/80 shadow-md backdrop-blur-sm">
+      <div className="flex items-center justify-between px-6 py-3 sm:px-8">
         <Link
           href="/"
           className="flex items-center gap-2 text-sm font-bold tracking-tight text-chicago-navy transition-colors hover:text-chicago-red"
