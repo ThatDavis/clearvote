@@ -33,7 +33,9 @@ Significant events are written append-only to `AuditLog` via `src/lib/audit.ts`.
 - **Auth.js (NextAuth v5)** with JWT sessions - no server-side session store. Passwords are hashed with bcrypt.
 - **Email verification** is required (`EmailVerificationToken`, `User.emailVerified`).
 - **Route protection** is enforced in `src/middleware.ts`.
-- **Admin checks**: privileged actions verify `canManagePoll` (and org membership/role) before proceeding. Never assume the caller is authorized.
+- **System admin role**: `User.role` (nullable, default `null`) gates system-wide administration. A user with `role = 'admin'` can access the admin dashboard (`/admin`) and manage users (reset passwords, delete accounts). The guard `requireSystemAdmin(userId)` in `src/lib/api/guards.ts` checks this on every admin API route. The first admin is promoted via `scripts/make-admin.ts <email>`.
+- **Org-scoped admin checks**: privileged poll/election actions verify `canManagePoll` (creator or org-admin role on `OrganizationMember`). Org admin actions use `requireOrgAdmin(orgId, userId)`.
+- Never assume the caller is authorized - always call the appropriate guard.
 
 ## Rate limiting
 
@@ -46,5 +48,8 @@ Significant events are written append-only to `AuditLog` via `src/lib/audit.ts`.
 - Use `prisma.$transaction` for operations that must be atomic (casting a ballot + marking the token/roll + audit log).
 - Validate all user input.
 - Keep ballot data anonymous - no voter identity columns on `Ballot`.
+- Admin password resets generate a temp password shown once in the UI - never emailed or logged.
+- User deletion cascades memberships, voter rolls, and verification tokens. Ballots are anonymous (no userId FK) and are never affected by user deletion. Poll/election/contest creator references become null (entities survive); the `creatorName` snapshot preserves the creator's display name for attribution.
+- The admin guard (`requireSystemAdmin`) must be checked on every admin API route.
 
 See [Contributing](Contributing.md) for how these are enforced in review and tests, and [Elections](Elections.md#cross-contest-secrecy) for the additional secrecy rules that apply to multi-contest ballots.

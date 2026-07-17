@@ -6,7 +6,7 @@ export const runtime = 'nodejs'
 export default auth((req) => {
   const { pathname } = req.nextUrl
 
-  const protectedPaths = ['/polls/new', '/dashboard']
+  const protectedPaths = ['/polls/new', '/dashboard', '/admin']
 
   if (protectedPaths.some((p) => pathname.startsWith(p)) && !req.auth) {
     const signInUrl = new URL('/login', req.url)

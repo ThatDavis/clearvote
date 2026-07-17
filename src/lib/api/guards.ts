@@ -3,7 +3,6 @@ import { canManagePoll } from '@/lib/auth'
 import { canManageElection } from '@/lib/election'
 import { prisma } from '@/lib/prisma'
 import { notFound, unauthorized } from './responses'
-
 export async function requireManager(
   kind: 'poll' | 'election',
   slug: string,
@@ -30,6 +29,14 @@ export async function requireOrgAdmin(orgId: string, userId: string): Promise<bo
     where: { userId_organizationId: { userId, organizationId: orgId } },
   })
   return membership?.role === 'admin'
+}
+
+export async function requireSystemAdmin(userId: string): Promise<boolean> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  })
+  return user?.role === 'admin'
 }
 
 const validTransitions: Record<string, string[]> = {

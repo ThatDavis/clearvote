@@ -101,6 +101,14 @@ export default function AuthStatus() {
             >
               Dashboard
             </Link>
+            {session.user?.role === 'admin' && (
+              <Link
+                href="/admin"
+                className="block px-4 py-2 text-sm font-medium text-chicago-navy hover:bg-zinc-50"
+              >
+                Admin
+              </Link>
+            )}
             <Link
               href="/settings"
               className="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
