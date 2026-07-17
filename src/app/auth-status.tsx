@@ -142,7 +142,7 @@ export default function AuthStatus() {
       </Link>
       <Link
         href="/signup"
-        className="rounded-lg bg-chicago-red px-4 py-2 text-white font-medium transition-all hover:bg-chicago-red-dark hover:shadow-md"
+        className="rounded-full bg-chicago-navy px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-chicago-navy/90 hover:shadow-md"
       >
         Sign up
       </Link>
