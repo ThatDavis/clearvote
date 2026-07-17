@@ -21,6 +21,9 @@ export default function Navbar() {
           >
             Methods
           </Link>
+          <Link href="/about" className="text-zinc-500 transition-colors hover:text-chicago-navy">
+            About
+          </Link>
           <a
             href="https://github.com/ThatDavis/clearvote"
             target="_blank"
