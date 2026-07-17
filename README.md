@@ -97,6 +97,35 @@ docker compose -f docker-compose.prod.yml pull
 docker compose -f docker-compose.prod.yml up -d
 ```
 
+### Admin setup
+
+After deploying, promote your first system admin so you can manage users from the `/admin` dashboard:
+
+```bash
+pnpm tsx scripts/make-admin.ts alice@example.com
+```
+
+This sets `User.role = 'admin'` for the given email. Once the first admin exists, further admin actions (password resets, account deletion) can be done from the UI at `/admin`. See the [Security Model](wiki/Security-Model.md#authentication-and-authorization) for details.
+
+## Development setup
+
+```bash
+pnpm install
+docker compose up -d          # start PostgreSQL
+cp .env.example .env          # set DATABASE_URL + AUTH_SECRET
+pnpm db:migrate               # apply migrations
+pnpm db:generate              # generate Prisma client
+pnpm dev                     # http://localhost:3000
+```
+
+Promote a user to system admin after signing up:
+
+```bash
+pnpm tsx scripts/make-admin.ts alice@example.com
+```
+
+See the [development setup guide](wiki/Development-Setup.md) for full details.
+
 ## Project structure
 
 ```
