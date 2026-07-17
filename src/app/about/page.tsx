@@ -40,10 +40,10 @@ export default function AboutPage() {
               About
             </p>
             <h1 className="font-display text-5xl font-bold leading-[1.05] tracking-tight sm:text-6xl">
-              Voting you can trust.
+              About ClearVote.
             </h1>
             <p className="mt-4 max-w-2xl text-lg text-white/80">
-              Built by one developer, for small communities that deserve fairer votes.
+              A side project to make ranked-choice voting something small groups can actually use.
             </p>
           </div>
         </section>
