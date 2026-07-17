@@ -71,6 +71,16 @@ The app runs at `http://localhost:3000`.
 | `pnpm db:generate` | regenerate the Prisma client |
 | `pnpm db:studio` | open Prisma Studio |
 
+## Admin bootstrapping
+
+To promote a user to system admin (needed once to set up the first admin):
+
+```bash
+pnpm tsx scripts/make-admin.ts alice@example.com
+```
+
+This sets `User.role = 'admin'` for the given email. Once the first admin exists, they can manage users from the `/admin` dashboard. See [Security Model](Security-Model.md#authentication-and-authorization).
+
 ## Before you push
 
 Run the same checks CI runs:

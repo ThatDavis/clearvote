@@ -31,7 +31,7 @@ Election 1─* ElectionAuditLog
 Multi-tenant grouping. Members have a `role` of `admin` or `member`. Invites store only a `tokenHash` and expire (`expiresAt`).
 
 ### User
-`email` (unique), `name`, `passwordHash` (bcrypt), and `emailVerified` (nullable timestamp - verification is required).
+`email` (unique), `name`, `passwordHash` (bcrypt), `emailVerified` (nullable timestamp - verification is required), and `role` (nullable - `null` = regular user, `'admin'` = system admin). The role is checked by `requireSystemAdmin` in `src/lib/api/guards.ts`.
 
 ### Poll
 The central object for standalone polls. Key fields:
@@ -45,7 +45,7 @@ The central object for standalone polls. Key fields:
 | `privacyThreshold` | ballot-count cutoff for small-electorate suppression (default 10) |
 | `status` | `draft` \| `open` \| `closed` (lifecycle) |
 | `startsAt` / `endsAt` | optional scheduling window |
-| `creatorId` / `organizationId` | ownership (both nullable) |
+| `creatorId` / `organizationId` | ownership (both nullable). `creatorName` preserves the creator's display name even after account deletion. |
 
 ### PollOption
 The choices on a ballot. `label` plus an `order` for display.
@@ -88,5 +88,8 @@ History lives in `prisma/migrations/`:
 - `add_election_models`
 - `add_wants_results_email`
 - `add_privacy_threshold`
+- `add_user_role`
+- `cascade_voter_rolls`
+- `add_creator_name`
 
 Use `pnpm db:migrate` (dev) to create/apply migrations and `pnpm db:generate` to regenerate the client. See [Development Setup](Development-Setup.md).

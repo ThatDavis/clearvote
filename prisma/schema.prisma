@@ -56,6 +56,7 @@ model User {
   emailVerified  DateTime?
   name           String
   passwordHash   String
+  role           String?  // null = regular user, 'admin' = system admin
   createdAt      DateTime  @default(now())
 
   memberships        OrganizationMember[]
@@ -89,6 +90,7 @@ model Poll {
   threshold      Int           @default(50)
   status         String        @default("draft")
   creatorId      String?
+  creatorName    String?
   organizationId String?
   startsAt       DateTime?
   endsAt         DateTime?
@@ -152,7 +154,7 @@ model VoterRoll {
   wantsResultsEmail Boolean @default(false)
 
   poll Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([pollId, userId])
   @@index([pollId])
@@ -181,6 +183,7 @@ model Contest {
   status         String   @default("draft")
   contestOrder   Int      @default(0)
   creatorId      String?
+  creatorName    String?
   organizationId String?
   electionId     String
   privacyThreshold Int     @default(10)
@@ -230,6 +233,7 @@ model Election {
   startsAt       DateTime?
   endsAt         DateTime?
   creatorId      String?
+  creatorName    String?
   organizationId String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -268,7 +272,7 @@ model ElectionVoterRoll {
   wantsResultsEmail Boolean @default(false)
 
   election Election @relation(fields: [electionId], references: [id], onDelete: Cascade)
-  user     User     @relation(fields: [userId], references: [id])
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([electionId, userId])
   @@index([electionId])

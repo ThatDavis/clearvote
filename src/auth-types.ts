@@ -10,12 +10,14 @@ interface Membership {
 
 declare module 'next-auth' {
   interface User {
+    role: string | null
     memberships: Membership[]
   }
 
   interface Session {
     user: {
       id: string
+      role: string | null
       memberships: Membership[]
     } & DefaultSession['user']
   }
@@ -24,6 +26,7 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT extends DefaultJWT {
     id: string
+    role: string | null
     memberships: Membership[]
   }
 }

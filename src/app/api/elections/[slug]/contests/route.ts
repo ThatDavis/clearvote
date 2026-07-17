@@ -64,6 +64,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       electionId: election.id,
       contestOrder: nextOrder,
       creatorId: session.user.id,
+      creatorName: session.user.name,
       organizationId: election.organizationId,
       options: {
         create: options.map((label, index) => ({

@@ -37,6 +37,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: user.id,
           email: user.email,
           name: user.name,
+          role: user.role,
           memberships: user.memberships.map((m) => ({
             organizationId: m.organization.id,
             organizationName: m.organization.name,
@@ -51,6 +52,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     jwt({ token, user }) {
       if (user) {
         token.id = user.id as string
+        token.role = (user as { role?: string }).role ?? null
         token.memberships =
           (
             user as {
@@ -68,6 +70,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
+        session.user.role = (token.role as string | null) ?? null
         session.user.memberships =
           (token.memberships as Array<{
             organizationId: string

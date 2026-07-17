@@ -80,6 +80,7 @@ export async function POST(request: Request) {
           startsAt: startsAt ? new Date(startsAt) : null,
           endsAt: endsAt ? new Date(endsAt) : null,
           creatorId: session.user.id,
+          creatorName: session.user.name,
           organizationId: organizationId ?? null,
           options: {
             create: options.map((label, index) => ({

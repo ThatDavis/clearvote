@@ -49,6 +49,7 @@ export async function POST(request: Request) {
         description: description?.trim() || null,
         slug,
         creatorId: session.user.id,
+        creatorName: session.user.name,
         organizationId: organizationId ?? null,
         startsAt: startsAt ? new Date(`${startsAt}T00:00:00Z`) : null,
         endsAt: endsAt ? new Date(`${endsAt}T00:00:00Z`) : null,
