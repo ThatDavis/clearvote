@@ -85,7 +85,7 @@ pnpm tsx scripts/make-admin.ts alice@example.com
 
 ```bash
 docker compose -f docker-compose.prod.yml exec db \
-  psql -U clearvote -d clearvote \
+  psql -it -U clearvote -d clearvote \
   -c "UPDATE \"User\" SET role = 'admin' WHERE email = 'alice@example.com';"
 ```
 
