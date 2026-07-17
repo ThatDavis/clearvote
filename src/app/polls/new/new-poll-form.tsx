@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { useToast } from '@/components/toast-provider'
 import VotingMethodSelector from '@/components/voting-method-selector'
-import { getMethod } from '@/lib/voting-methods'
+import { getMethod, VOTING_METHODS } from '@/lib/voting-methods'
 
 type Step = 1 | 2 | 3 | 4
 
@@ -12,6 +12,7 @@ export default function NewPollForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const orgId = searchParams.get('org')
+  const methodParam = searchParams.get('method')
   const { showToast } = useToast()
   const [step, setStep] = useState<Step>(1)
 
@@ -81,6 +82,13 @@ export default function NewPollForm() {
       return prev
     })
   }, [votingMethod])
+
+  // Pre-select voting method when /polls/new?method=<id> deep-link is present and valid
+  useEffect(() => {
+    if (methodParam && Object.hasOwn(VOTING_METHODS, methodParam) && methodParam !== votingMethod) {
+      setVotingMethodRaw(methodParam)
+    }
+  }, [methodParam, votingMethod])
 
   function addOption() {
     const key = String(nextKey.current++)

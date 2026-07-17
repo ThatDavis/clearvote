@@ -3,6 +3,8 @@
 :root {
   --background: #ffffff;
   --foreground: #1a1a2e;
+
+  /* Chicago primaries (preserved) */
   --chicago-red: #e4002b;
   --chicago-red-light: #ff1a4c;
   --chicago-red-dark: #b30022;
@@ -10,6 +12,15 @@
   --chicago-blue-light: #6cc9f0;
   --chicago-blue-dark: #2a8db8;
   --chicago-navy: #1b3a5c;
+
+  /* Expanded supporting palette */
+  --surface-warm: #faf8f5; /* warm off-white for overlapping card band */
+  --surface-warm-2: #f4f1ec; /* slightly deeper warm tint for supporting cards */
+  --gold-muted: #b8a05a; /* muted mustard for pill labels */
+  --gold-muted-dark: #8f7a3e;
+  --accent-lime: #a4d65e; /* chartreuse accent CTA */
+  --accent-lime-dark: #84b344;
+  --text-muted: #6b6f76; /* secondary text on light surfaces */
 }
 
 @theme inline {
@@ -22,7 +33,15 @@
   --color-chicago-blue-light: var(--chicago-blue-light);
   --color-chicago-blue-dark: var(--chicago-blue-dark);
   --color-chicago-navy: var(--chicago-navy);
-  --font-sans: var(--font-cormorant);
+  --color-surface-warm: var(--surface-warm);
+  --color-surface-warm-2: var(--surface-warm-2);
+  --color-gold-muted: var(--gold-muted);
+  --color-gold-muted-dark: var(--gold-muted-dark);
+  --color-accent-lime: var(--accent-lime);
+  --color-accent-lime-dark: var(--accent-lime-dark);
+  --color-text-muted: var(--text-muted);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-cormorant), Georgia, serif;
   --font-mono: var(--font-geist-mono);
 
   --text-xs: 1.125rem;
@@ -48,11 +67,32 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-cormorant), "Georgia", serif;
-  font-size: 22px;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 18px;
   font-weight: 400;
   line-height: 1.6;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.005em;
+}
+
+/* Hero background parallax: scrolls slower than foreground content.
+   Falls back to a static position for browsers without scroll-driven animations
+   (Safari < 26) and for reduced-motion users. */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-parallax-bg {
+      animation: hero-parallax-down linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 50vh;
+    }
+    @keyframes hero-parallax-down {
+      from {
+        transform: translateY(0);
+      }
+      to {
+        transform: translateY(8vh);
+      }
+    }
+  }
 }
 
 /* Smooth transitions globally */
