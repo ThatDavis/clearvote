@@ -104,8 +104,8 @@ After deploying, promote your first system admin so you can manage users from th
 **Docker deployment:**
 
 ```bash
-docker compose -f docker-compose.prod.yml exec db \
-  psql -it -U clearvote -d clearvote \
+docker exec -it clearvote-db-1 \
+  psql -U clearvote -d clearvote \
   -c "UPDATE \"User\" SET role = 'admin' WHERE email = 'alice@example.com';"
 ```
 

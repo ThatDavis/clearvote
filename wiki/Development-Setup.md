@@ -84,8 +84,8 @@ pnpm tsx scripts/make-admin.ts alice@example.com
 **Docker (production):** The container doesn't include `pnpm` or `tsx`. Use `psql` on the database container instead:
 
 ```bash
-docker compose -f docker-compose.prod.yml exec db \
-  psql -it -U clearvote -d clearvote \
+docker exec -it clearvote-db-1 \
+  psql -U clearvote -d clearvote \
   -c "UPDATE \"User\" SET role = 'admin' WHERE email = 'alice@example.com';"
 ```
 
