@@ -13,7 +13,7 @@ type SupportingCard = {
 const SUPPORTING_CARDS: SupportingCard[] = [
   {
     title: '100% open source',
-    body: 'AGPL-3.0. Self-host in one Docker container. No vendor lock-in, no telemetry, no surprises.',
+    body: 'MIT Licence. Self-host in one Docker container. No vendor lock-in, no telemetry, no surprises.',
     href: 'https://github.com/ThatDavis/clearvote',
     external: true,
     icon: (

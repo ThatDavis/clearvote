@@ -8,7 +8,8 @@ export const approval: VotingMethodDef = {
   shortDesc: 'Vote for any number you like',
   fullDesc:
     'Voters can select as many candidates as they approve of. The candidate with the most approvals wins. Simple, fast, and reduces strategic voting.',
-  bestFor: 'Quick decisions or when simplicity matters most',
+  bestFor:
+    'Quick decisions or when simplicity matters most, think "where do most people want to take a trip to"',
   ballotShape: 'ranking',
   minOptions: 2,
   uses: { seats: false, threshold: false },
