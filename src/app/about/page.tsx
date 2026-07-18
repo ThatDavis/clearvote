@@ -68,7 +68,7 @@ export default function AboutPage() {
               </h2>
               <p className="text-lg leading-relaxed text-zinc-700">
                 RCV lets voters rank candidates in order of preference and elects the candidate with
-                the broadest support. There are plenty of great resources to learn more - this 
+                the broadest support. There are plenty of great resources to learn more - this
                 <a
                   href="https://www.youtube.com/watch?v=3Y3jE3B8HsE"
                   target="_blank"
@@ -77,7 +77,7 @@ export default function AboutPage() {
                 >
                   CGP Grey
                 </a>
-                 explainer video is one of my favorites, the 
+                explainer video is one of my favorites, the
                 <a
                   href="https://www.rcvresources.org"
                   target="_blank"
@@ -85,8 +85,8 @@ export default function AboutPage() {
                   className="font-medium text-chicago-blue underline decoration-chicago-blue/30 underline-offset-2 transition-colors hover:text-chicago-blue-dark hover:decoration-chicago-blue"
                 >
                   Ranked Choice Voting Resource Center
-                </a> 
-                 , and{' '}
+                </a>
+                , and{' '}
                 <a
                   href="https://fairvote.org"
                   target="_blank"
